@@ -1,7 +1,6 @@
-//=========Page principale, gestion des routes / pages=========//
-
 import { Geist, Geist_Mono } from "next/font/google";
 import Navbar from "./components/navbar";
+import Header from "./components/header";
 import "./globals.css";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] });
@@ -17,6 +16,7 @@ export default function RootLayout({ children }) {
     <html lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased ml-64`}>
         <Navbar />
+        <Header />
         {children}
       </body>
     </html>
