@@ -1,4 +1,4 @@
-//=========1 ère page que l'utilisateur voit=========//
+//=========Page d'accueil => ère page que l'utilisateur voit=========//
 
 export default function Home() {
   return (

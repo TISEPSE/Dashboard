@@ -10,7 +10,7 @@ export default function Navbar() {
       <nav className="flex flex-col gap-4">
         <Link href="/" className="hover:text-gray-300">Accueil</Link>
         <Link href="/Dashboard/Crypto" className="hover:text-gray-300">Crypto</Link>
-        <Link href="/contact" className="hover:text-gray-300">Contact</Link>
+        <Link href="/Dashboard/Parametre" className="hover:text-gray-300">Paramètre</Link>
       </nav>
     </div>
   );
