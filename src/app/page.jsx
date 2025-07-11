@@ -1,5 +1,4 @@
-//=========C'est la page d'accueil de l'application Next.js=========//
-
+//=========1 ère page que l'utilisateur voit=========//
 
 export default function Home() {
   return (

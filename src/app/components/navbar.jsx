@@ -1,3 +1,5 @@
+//=========Navbar a gauche de la page=========//
+
 "use client";
 import Link from "next/link";
 
