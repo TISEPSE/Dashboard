@@ -113,9 +113,10 @@ export default function CryptoDashboardClient() {
       key={coin.id}
       className="
         bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
-        transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[10em] overflow-hidden
+        transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[11em] overflow-hidden
         transform hover:scale-110 hover:shadow-2xl
         group
+        relative
       "
       style={{ flexBasis: "calc(100% / 6 - 0.5rem)" }}
     >
@@ -124,10 +125,11 @@ export default function CryptoDashboardClient() {
           <div className="flex items-center gap-2 mb-1">
             <img src={coin.image} alt={coin.name} className="w-7 h-7" />
             <span
+              title={`${coin.name} (${coin.symbol.toUpperCase()})`}
               className="
                 text-lg font-semibold truncate text-[#FeFeFe]
                 group-hover:text-[#a0a0a0]
-                transition-colors duration-300
+                transition-colors duration-100
               "
             >
               {coin.name} ({coin.symbol.toUpperCase()})
@@ -135,9 +137,9 @@ export default function CryptoDashboardClient() {
           </div>
           <span
             className="
-              text-xl font-bold block mt-4 text-[#a0a0a0]
+              text-2xl font-bold block mt-4 text-[#a0a0a0]
               group-hover:text-[#FeFeFe]
-              transition-colors duration-200
+              transition-colors duration-100
             "
           >
             {coin.current_price} €
@@ -149,6 +151,11 @@ export default function CryptoDashboardClient() {
           <Variation label="7j" value={coin.price_change_percentage_7d_in_currency} />
         </div>
       </div>
+
+      <span className="absolute bottom-2 left-2 text-gray-500 text-xs font-mono select-none">
+        #{coin.market_cap_rank}
+      </span>
+
       <div className="mt-3 flex justify-center gap-2">
         <button className="btn btn-base btn-outline btn-error w-24 transition-all duration-200 hover:scale-105">
           Ajouter
