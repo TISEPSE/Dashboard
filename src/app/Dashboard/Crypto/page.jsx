@@ -143,7 +143,7 @@ export default function CryptoDashboardClient() {
     <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-4">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4">
         <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
-           {cryptos.length} des cryptos du moment
+           Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
         </h1>
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>

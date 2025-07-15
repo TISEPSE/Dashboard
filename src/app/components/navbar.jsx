@@ -83,7 +83,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
                   Accueil
                 </Link>
                 <Link href="/Dashboard/Crypto" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Crypto
+                  Cryptos
                 </Link>
                 <Link href="/Dashboard/Message" className="hover:text-gray-300 transition-colors duration-200 py-1">
                   Messages
@@ -103,10 +103,10 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
           <div className="flex flex-col p-2 gap-2">
             <Link href="/Dashboard/Profile" className="hover:text-gray-300 transition-colors duration-200">
-              Profile
+              Profil
             </Link>
             <Link href="/Dashboard/Parametre" className="hover:text-gray-300 transition-colors duration-200">
-              Paramètre
+              Paramètres
             </Link>
           </div>
         </nav>
