@@ -13,7 +13,7 @@ export default function CryptoDashboardClient() {
         params: {
           vs_currency: 'eur',
           order: 'market_cap_desc',
-          per_page: 13, // Change ici si tu veux + ou - de cryptos
+          per_page: 25,
           page: 1,
           price_change_percentage: '1h,24h,7d',
         },
@@ -36,7 +36,6 @@ export default function CryptoDashboardClient() {
     );
   }
 
-  // Divise les cryptos en 3 groupes, 1 rempli au max d'abord
   const splitIntoThreeCarousels = (array) => {
     const total = array.length;
     const part = Math.ceil(total / 3);
@@ -65,7 +64,7 @@ export default function CryptoDashboardClient() {
   const renderCard = (coin) => (
     <div
       key={coin.id}
-      className="bg-[#2a2d3e] rounded-xl p-4 w-64 flex-shrink-0 flex flex-col justify-between"
+      className="bg-[#2a2d3e] rounded-xl p-4 min-w-[16rem] flex-shrink-0 flex flex-col justify-between"
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
@@ -100,7 +99,7 @@ export default function CryptoDashboardClient() {
         group.length > 0 ? (
           <div
             key={idx}
-            className="flex overflow-x-auto gap-3 scroll-smooth flex-no-scrollbar mb-6"
+            className="flex overflow-x-auto gap-3 scroll-smooth scrollbar-hide mb-6"
           >
             {group.map(renderCard)}
           </div>
