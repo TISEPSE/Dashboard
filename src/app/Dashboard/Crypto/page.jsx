@@ -29,10 +29,11 @@ cryptoAPI.interceptors.response.use(
 export default function CryptoDashboardClient() {
   const maxPerPage = 250
   const [cryptos, setCryptos] = useState([])
-  const [perPage, setPerPage] = useState(20)
+  const [perPage, setPerPage] = useState(6)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [currency, setCurrency] = useState("eur")
 
   const isPaginationActive = perPage === "all"
 
@@ -47,7 +48,7 @@ export default function CryptoDashboardClient() {
 
         const response = await cryptoAPI.get("/coins/markets", {
           params: {
-            vs_currency: "eur",
+            vs_currency: currency,
             order: "market_cap_desc",
             per_page: perPageParam,
             page: pageParam,
@@ -65,7 +66,7 @@ export default function CryptoDashboardClient() {
     }
 
     fetchCryptos()
-  }, [perPage, page])
+  }, [perPage, page, currency])
 
   if (loading) {
     return (
@@ -142,7 +143,7 @@ export default function CryptoDashboardClient() {
               transition-colors duration-100
             "
           >
-            {coin.current_price} €
+            {coin.current_price} {currency === "eur" ? "€" : "$"}
           </span>
         </div>
         <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
@@ -157,10 +158,14 @@ export default function CryptoDashboardClient() {
       </span>
 
       <div className="mt-3 flex justify-center gap-2">
-        <button className="btn btn-base btn-outline btn-error w-24 transition-all duration-200 hover:scale-105">
+        <button
+          className="w-22 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white"
+        >
           Ajouter
         </button>
-        <button className="btn btn-base btn-outline btn-info w-24 transition-all duration-200 hover:scale-105">
+        <button
+          className="w-22 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white"
+        >
           Info
         </button>
       </div>
@@ -173,6 +178,22 @@ export default function CryptoDashboardClient() {
         <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
           Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
         </h1>
+
+        <div className="flex items-center gap-2">
+          <label htmlFor="currency" className="text-[#FeFeFe] font-semibold">
+            Devise:
+          </label>
+          <select
+            id="currency"
+            value={currency}
+            onChange={e => setCurrency(e.target.value)}
+            className="bg-[#2a2d3e] text-[#FeFeFe] border border-gray-600 rounded px-2 py-1"
+          >
+            <option value="eur">EUR (€)</option>
+            <option value="usd">USD ($)</option>
+          </select>
+        </div>
+
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
@@ -183,13 +204,13 @@ export default function CryptoDashboardClient() {
           <button
             disabled={page === 1}
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50 transition"
           >
             Page précédente
           </button>
           <button
             onClick={() => setPage((p) => p + 1)}
-            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg"
+            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg transition"
           >
             Page suivante
           </button>
