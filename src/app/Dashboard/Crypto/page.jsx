@@ -8,20 +8,21 @@ export default function CryptoDashboardClient() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get('https://api.coingecko.com/api/v3/coins/markets', {
-      params: {
-        vs_currency: 'eur',
-        order: 'market_cap_desc',
-        per_page: 30,
-        page: 1,
-        price_change_percentage: '1h,24h,7d',
-      },
-    })
-      .then(res => {
+    axios
+      .get('https://api.coingecko.com/api/v3/coins/markets', {
+        params: {
+          vs_currency: 'eur',
+          order: 'market_cap_desc',
+          per_page: 13, // Change ici si tu veux + ou - de cryptos
+          page: 1,
+          price_change_percentage: '1h,24h,7d',
+        },
+      })
+      .then((res) => {
         setCryptos(res.data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
         setLoading(true);
       });
@@ -35,14 +36,25 @@ export default function CryptoDashboardClient() {
     );
   }
 
+  // Divise les cryptos en 3 groupes, 1 rempli au max d'abord
+  const splitIntoThreeCarousels = (array) => {
+    const total = array.length;
+    const part = Math.ceil(total / 3);
+    return [
+      array.slice(0, part),
+      array.slice(part, part * 2),
+      array.slice(part * 2),
+    ];
+  };
+
+  const groups = splitIntoThreeCarousels(cryptos);
+
   const Variation = ({ label, value }) => (
     <div className="flex items-center gap-1 text-xs">
       <span className="text-gray-400">{label}</span>
       <span
         className={`font-semibold px-2 py-0.5 rounded-full ${
-          value >= 0
-            ? 'bg-green-600/20 text-green-400'
-            : 'bg-red-600/20 text-red-400'
+          value >= 0 ? 'bg-green-600/20 text-green-400' : 'bg-red-600/20 text-red-400'
         }`}
       >
         {value?.toFixed(2)}%
@@ -61,9 +73,7 @@ export default function CryptoDashboardClient() {
           <span className="text-[#d1d1d1] text-base font-semibold block truncate">
             {coin.name} ({coin.symbol.toUpperCase()})
           </span>
-          <span className="text-lg block mt-1">
-            {coin.current_price} €
-          </span>
+          <span className="text-lg block mt-1">{coin.current_price} €</span>
         </div>
         <div className="w-1/3 flex flex-col items-end gap-1 mt-1">
           <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
@@ -78,18 +88,6 @@ export default function CryptoDashboardClient() {
     </div>
   );
 
-  // divise cryptos en 5 groupes égaux
-  const groupByFive = (array) => {
-    const chunkSize = Math.ceil(array.length / 5);
-    const groups = [];
-    for (let i = 0; i < array.length; i += chunkSize) {
-      groups.push(array.slice(i, i + chunkSize));
-    }
-    return groups;
-  };
-
-  const groups = groupByFive(cryptos);
-
   return (
     <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-6">
       <div className="flex items-center justify-center">
@@ -98,14 +96,16 @@ export default function CryptoDashboardClient() {
         </h1>
       </div>
 
-      {groups.map((group, idx) => (
-        <div
-          key={idx}
-          className="flex overflow-x-auto gap-3 scroll-smooth flex-no-scrollbar mb-6"
-        >
-          {group.map(renderCard)}
-        </div>
-      ))}
+      {groups.map((group, idx) =>
+        group.length > 0 ? (
+          <div
+            key={idx}
+            className="flex overflow-x-auto gap-3 scroll-smooth flex-no-scrollbar mb-6"
+          >
+            {group.map(renderCard)}
+          </div>
+        ) : null
+      )}
     </div>
   );
 }
