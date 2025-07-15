@@ -59,45 +59,28 @@ export default function Navbar({ isOpen, setIsOpen }) {
         }`}
       >
         <nav className="flex flex-col gap-4 p-2">
-          <div className="bg-[#2A2D3A] border border-gray-600 text-white rounded-lg overflow-hidden">
-            <input type="checkbox" className="peer hidden" id="dashboard-toggle" />
-            <label 
-              htmlFor="dashboard-toggle" 
-              className="flex items-center justify-between p-3 cursor-pointer font-semibold"
-            >
-              <span>Dashboard</span>
-              <div className="w-6 h-6 flex items-center justify-center bg-[#3A6FF8] rounded-md">
-                <svg 
-                  className="w-4 h-4 transition-transform duration-300 ease-in-out peer-checked:rotate-180" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </label>
-            <div className="max-h-0 opacity-0 transition-all duration-400 ease-in-out overflow-hidden peer-checked:max-h-96 peer-checked:opacity-100 peer-checked:pb-3">
-              <div className="px-3 flex flex-col gap-2 text-sm">
-                <Link href="/" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Accueil
-                </Link>
-                <Link href="/Dashboard/Crypto" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Crypto
-                </Link>
-                <Link href="/Dashboard/Message" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Messages
-                </Link>
-                <Link href="/Dashboard/Meteo" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Météo
-                </Link>
-                <Link href="/Dashboard/Sport" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Sport
-                </Link>
-                <Link href="/Dashboard/Calendrier" className="hover:text-gray-300 transition-colors duration-200 py-1">
-                  Calendrier
-                </Link>
-              </div>
+          <div className="bg-[#3A6FF8] collapse collapse-arrow border border-base-300 text-white hover:border-white transition-colors duration-200">
+            <input type="checkbox" className="peer h-10" />
+            <div className="collapse-title font-semibold">Dashboard</div>
+            <div className="collapse-content text-sm flex flex-col gap-2 max-h-0 opacity-0 transition-all duration-300 ease-in-out overflow-hidden peer-checked:max-h-96 peer-checked:opacity-100">
+              <Link href="/" className="hover:text-gray-300 transition-colors duration-200">
+                Accueil
+              </Link>
+              <Link href="/Dashboard/Crypto" className="hover:text-gray-300 transition-colors duration-200">
+                Crypto
+              </Link>
+              <Link href="/Dashboard/Message" className="hover:text-gray-300 transition-colors duration-200">
+                Messages
+              </Link>
+              <Link href="/Dashboard/Meteo" className="hover:text-gray-300 transition-colors duration-200">
+                Météo
+              </Link>
+              <Link href="/Dashboard/Sport" className="hover:text-gray-300 transition-colors duration-200">
+                Sport
+              </Link>
+              <Link href="/Dashboard/Calendrier" className="hover:text-gray-300 transition-colors duration-200">
+                Calendrier
+              </Link>
             </div>
           </div>
 

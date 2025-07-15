@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useEffect, useState, useRef } from "react"
+import React, { useEffect, useState } from "react"
 import axios from "axios"
 import CryptoSelector from '../../components/Crypto/CryptoSelector'
 
@@ -28,10 +28,9 @@ cryptoAPI.interceptors.response.use(
 
 export default function CryptoDashboardClient() {
   const [cryptos, setCryptos] = useState([])
-  const [perPage, setPerPage] = useState(20)
+  const [perPage, setPerPage] = useState(20)  // peut être un nombre ou 'all'
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const carouselRefs = useRef([])
 
   useEffect(() => {
     const fetchCryptos = async () => {
@@ -39,11 +38,14 @@ export default function CryptoDashboardClient() {
         setLoading(true)
         setError(null)
 
+        // Si perPage === 'all', on met 250 (max autorisé par CoinGecko)
+        const perPageParam = perPage === 'all' ? 250 : perPage
+
         const response = await cryptoAPI.get('/coins/markets', {
           params: {
             vs_currency: 'eur',
             order: 'market_cap_desc',
-            per_page: perPage,
+            per_page: perPageParam,
             page: 1,
             price_change_percentage: '1h,24h,7d'
           }
@@ -60,91 +62,6 @@ export default function CryptoDashboardClient() {
 
     fetchCryptos()
   }, [perPage])
-
-  useEffect(() => {
-    const cleanupFunctions = []
-
-    carouselRefs.current.forEach(carousel => {
-      if (!carousel) return
-
-      let isDown = false
-      let startX
-      let scrollLeft
-
-      const onMouseDown = e => {
-        isDown = true
-        carousel.classList.add("cursor-grabbing")
-        carousel.style.scrollBehavior = "auto"
-        startX = e.pageX - carousel.offsetLeft
-        scrollLeft = carousel.scrollLeft
-      }
-
-      const onMouseUp = () => {
-        isDown = false
-        carousel.classList.remove("cursor-grabbing")
-        carousel.style.scrollBehavior = "smooth"
-      }
-
-      const onMouseMove = e => {
-        if (!isDown) return
-        e.preventDefault()
-        const x = e.pageX - carousel.offsetLeft
-        const walk = (x - startX) * 1.5
-        carousel.scrollLeft = scrollLeft - walk
-      }
-
-      const onWheel = e => {
-        e.preventDefault()
-        carousel.style.scrollBehavior = "auto"
-        const scrollAmount = e.deltaY * 0.8
-        carousel.scrollLeft += scrollAmount
-      }
-
-      const onTouchStart = e => {
-        isDown = true
-        carousel.style.scrollBehavior = "auto"
-        startX = e.touches[0].pageX - carousel.offsetLeft
-        scrollLeft = carousel.scrollLeft
-      }
-
-      const onTouchEnd = () => {
-        isDown = false
-        carousel.style.scrollBehavior = "smooth"
-      }
-
-      const onTouchMove = e => {
-        if (!isDown) return
-        e.preventDefault()
-        const x = e.touches[0].pageX - carousel.offsetLeft
-        const walk = (x - startX) * 1.5
-        carousel.scrollLeft = scrollLeft - walk
-      }
-
-      carousel.addEventListener("mousedown", onMouseDown)
-      carousel.addEventListener("mouseup", onMouseUp)
-      carousel.addEventListener("mouseleave", onMouseUp)
-      carousel.addEventListener("mousemove", onMouseMove)
-      carousel.addEventListener("wheel", onWheel, { passive: false })
-      carousel.addEventListener("touchstart", onTouchStart, { passive: false })
-      carousel.addEventListener("touchend", onTouchEnd)
-      carousel.addEventListener("touchmove", onTouchMove, { passive: false })
-
-      cleanupFunctions.push(() => {
-        carousel.removeEventListener("mousedown", onMouseDown)
-        carousel.removeEventListener("mouseup", onMouseUp)
-        carousel.removeEventListener("mouseleave", onMouseUp)
-        carousel.removeEventListener("mousemove", onMouseMove)
-        carousel.removeEventListener("wheel", onWheel)
-        carousel.removeEventListener("touchstart", onTouchStart)
-        carousel.removeEventListener("touchend", onTouchEnd)
-        carousel.removeEventListener("touchmove", onTouchMove)
-      })
-    })
-
-    return () => {
-      cleanupFunctions.forEach(cleanup => cleanup())
-    }
-  }, [cryptos])
 
   if (loading) {
     return (
@@ -174,18 +91,6 @@ export default function CryptoDashboardClient() {
     )
   }
 
-  const splitIntoThreeCarousels = array => {
-    const total = array.length
-    const part = Math.ceil(total / 3)
-    return [
-      array.slice(0, part),
-      array.slice(part, part * 2),
-      array.slice(part * 2),
-    ]
-  }
-
-  const groups = splitIntoThreeCarousels(cryptos)
-
   const Variation = ({ label, value }) => (
     <div className="flex items-center gap-1 text-xs">
       <span className="text-gray-400">{label}</span>
@@ -200,26 +105,30 @@ export default function CryptoDashboardClient() {
   const renderCard = coin => (
     <div
       key={coin.id}
-      className="bg-[#2a2d3e] rounded-xl p-4 min-w-[20rem] w-[20rem] flex-shrink-0 flex flex-col justify-between transition-all duration-300 hover:scale-110 hover:bg-[#323654] relative"
-      style={{ filter: "none" }}
-      onMouseEnter={e => { e.currentTarget.style.filter = "drop-shadow(0 8px 16px rgba(0, 0, 0, 0.15))" }}
-      onMouseLeave={e => { e.currentTarget.style.filter = "none" }}
+      className="
+        bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
+        transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[180px] overflow-hidden
+        transform hover:scale-110 hover:shadow-2xl
+      "
+      style={{ flexBasis: "calc(100% / 6 - 0.5rem)" }}
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
-          <img src={coin.image} alt={coin.name} className="w-7 h-7 mb-2" />
-          <span className="text-[#d1d1d1] text-base font-semibold block truncate">
-            {coin.name} ({coin.symbol.toUpperCase()})
-          </span>
-          <span className="text-lg block mt-1">{coin.current_price} €</span>
+          <div className="flex items-center gap-2 mb-1">
+            <img src={coin.image} alt={coin.name} className="w-5 h-5" />
+            <span className="text-[#d1d1d1] text-sm font-semibold truncate">
+              {coin.name} ({coin.symbol.toUpperCase()})
+            </span>
+          </div>
+          <span className="text-2xl font-bold block mt-0.5">{coin.current_price} €</span>
         </div>
-        <div className="w-1/3 flex flex-col items-end gap-1 mt-1">
+        <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
           <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
           <Variation label="24h" value={coin.price_change_percentage_24h_in_currency} />
           <Variation label="7j" value={coin.price_change_percentage_7d_in_currency} />
         </div>
       </div>
-      <div className="mt-4 flex justify-center gap-3">
+      <div className="mt-3 flex justify-center gap-2">
         <button className="btn btn-base btn-outline btn-error w-24 transition-all duration-200 hover:scale-105">
           Ajouter
         </button>
@@ -231,26 +140,17 @@ export default function CryptoDashboardClient() {
   )
 
   return (
-    <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-6">
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8 px-4">
-        <h1 className="text-2xl font-bold text-white bg-[#3A6FF8] px-6 py-3 rounded-xl shadow-md text-center sm:text-left">
-          Top {cryptos.length} des cryptos du moment
+    <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4">
+        <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
+          Classement des Crypto par Capitalisation ( {cryptos.length} )
         </h1>
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
-      {groups.map((group, idx) =>
-        group.length > 0 ? (
-          <div
-            key={idx}
-            ref={el => (carouselRefs.current[idx] = el)}
-            className="flex overflow-x-scroll gap-6 scrollbar-hide cursor-grab select-none py-3"
-            style={{ scrollBehavior: "smooth", WebkitOverflowScrolling: "touch" }}
-          >
-            {group.map(renderCard)}
-          </div>
-        ) : null
-      )}
+      <div className="flex flex-wrap justify-start">
+        {cryptos.map(renderCard)}
+      </div>
     </div>
   )
 }
