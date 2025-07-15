@@ -1,4 +1,3 @@
-//=========Navbar avec collapses intégrés=========//
 "use client"
 import Link from "next/link"
 
@@ -8,52 +7,25 @@ export default function Navbar() {
       <h1 className="text-2xl font-bold mb-4 p-4">Mon App</h1>
       <nav className="flex flex-col gap-4 p-2">
         <div className="flex flex-col gap-2">
-          <div className="collapse collapse-arrow bg-base-100 border border-base-300 text-white">
-            <input type="checkbox" />
+
+          <div className="bg-base-100 collapse collapse-arrow border border-base-300 text-white">
+            <input type="checkbox" className="peer h-10" />
             <div className="collapse-title font-semibold">Dashboard</div>
-            <div className="collapse-content text-sm flex flex-col gap-2">
-              <Link href="/" className="hover:text-gray-300">
-                Accueil
-              </Link>
-              <Link href="/Dashboard/Crypto" className="hover:text-gray-300">
-                Crypto
-              </Link>
-              <Link href="/Dashboard/Profile" className="hover:text-gray-300">
-                Profile
-              </Link>
-              <Link
-                href="/Dashboard/Calendrier"
-                className="hover:text-gray-300"
-              >
-                Calendrier
-              </Link>
-              <Link href="/Dashboard/Parametre" className="hover:text-gray-300">
-                Paramètre
-              </Link>
+            <div className=" collapse-content text-sm flex flex-col gap-2 max-h-0 opacity-0 transition-all duration-300 ease-in-out overflow-hidden peer-checked:max-h-96 peer-checked:opacity-100">
+              <Link href="/" className="hover:text-gray-300">Accueil</Link>
+              <Link href="/Dashboard/Crypto" className="hover:text-gray-300">Crypto</Link>
+              <Link href="/Dashboard/Message" className="hover:text-gray-300">Messages</Link>
+              <Link href="/Dashboard/Meteo" className="hover:text-gray-300">Météo</Link>
+              <Link href="/Dashboard/Sport" className="hover:text-gray-300">Sport</Link>
+              <Link href="/Dashboard/Calendrier" className="hover:text-gray-300">Calendrier</Link>
             </div>
           </div>
 
-          <div className="collapse collapse-arrow bg-base-100 border border-base-300 text-white">
-            <input type="checkbox" />
-            <div className="collapse-title font-semibold">
-              Mot de passe oublié
-            </div>
-            <div className="collapse-content text-sm">
-              Clique sur "Forgot Password" à la connexion et suis les
-              instructions.
-            </div>
+          <div className="flex flex-col p-2 gap-2">
+            <Link href="/Dashboard/Profile" className="hover:text-gray-300">Profile</Link>
+            <Link href="/Dashboard/Parametre" className="hover:text-gray-300">Paramètre</Link>
           </div>
 
-          <div className="collapse collapse-arrow bg-base-100 border border-base-300 text-white">
-            <input type="checkbox" />
-            <div className="collapse-title font-semibold">
-              Modifier le profil
-            </div>
-            <div className="collapse-content text-sm">
-              Va dans "Mon Compte" "Modifier le profil" pour faire les
-              changements.
-            </div>
-          </div>
         </div>
       </nav>
     </div>
