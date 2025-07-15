@@ -2,25 +2,25 @@
 
 import React, { useEffect, useState } from "react"
 import axios from "axios"
-import CryptoSelector from '../../components/Crypto/CryptoSelector'
+import CryptoSelector from "../../components/Crypto/CryptoSelector"
 
 const cryptoAPI = axios.create({
   baseURL: "https://api.coingecko.com/api/v3",
   timeout: 10000,
-  headers: { 'Content-Type': 'application/json' }
+  headers: { "Content-Type": "application/json" },
 })
 
 cryptoAPI.interceptors.response.use(
   response => response,
   error => {
-    if (error.code === 'ECONNABORTED') {
-      console.error('Timeout: La requête a pris trop de temps')
+    if (error.code === "ECONNABORTED") {
+      console.error("Timeout: La requête a pris trop de temps")
     } else if (error.response?.status === 429) {
-      console.error('Rate limit atteint, veuillez réessayer plus tard')
+      console.error("Rate limit atteint, veuillez réessayer plus tard")
     } else if (error.response?.status >= 500) {
-      console.error('Erreur serveur CoinGecko')
+      console.error("Erreur serveur CoinGecko")
     } else {
-      console.error('Erreur API:', error.message)
+      console.error("Erreur API:", error.message)
     }
     return Promise.reject(error)
   }
@@ -28,9 +28,23 @@ cryptoAPI.interceptors.response.use(
 
 export default function CryptoDashboardClient() {
   const [cryptos, setCryptos] = useState([])
-  const [perPage, setPerPage] = useState(20)  // peut être un nombre ou 'all'
+  const [perPage, setPerPage] = useState(20)
+  const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [totalCryptos, setTotalCryptos] = useState(0)
+
+  useEffect(() => {
+    const fetchTotalCoins = async () => {
+      try {
+        const response = await cryptoAPI.get("/coins/list")
+        setTotalCryptos(response.data.length)
+      } catch (e) {
+        console.error("Erreur récupération total cryptos:", e)
+      }
+    }
+    fetchTotalCoins()
+  }, [])
 
   useEffect(() => {
     const fetchCryptos = async () => {
@@ -38,30 +52,34 @@ export default function CryptoDashboardClient() {
         setLoading(true)
         setError(null)
 
-        // Si perPage === 'all', on met 250 (max autorisé par CoinGecko)
-        const perPageParam = perPage === 'all' ? 250 : perPage
+        const perPageParam = perPage === "all" ? 250 : perPage
 
-        const response = await cryptoAPI.get('/coins/markets', {
+        const response = await cryptoAPI.get("/coins/markets", {
           params: {
-            vs_currency: 'eur',
-            order: 'market_cap_desc',
+            vs_currency: "eur",
+            order: "market_cap_desc",
             per_page: perPageParam,
-            page: 1,
-            price_change_percentage: '1h,24h,7d'
-          }
+            page: page,
+            price_change_percentage: "1h,24h,7d",
+          },
         })
 
         setCryptos(response.data)
       } catch (err) {
         setError(err.message)
-        console.error('Erreur lors du chargement des cryptos:', err)
+        console.error("Erreur lors du chargement des cryptos:", err)
       } finally {
         setLoading(false)
       }
     }
-
     fetchCryptos()
+  }, [perPage, page])
+
+  useEffect(() => {
+    setPage(1) // reset page à 1 si perPage change pour éviter page vide
   }, [perPage])
+
+  const maxPage = perPage === "all" ? Math.ceil(totalCryptos / 250) : Math.ceil(totalCryptos / perPage)
 
   if (loading) {
     return (
@@ -94,20 +112,24 @@ export default function CryptoDashboardClient() {
   const Variation = ({ label, value }) => (
     <div className="flex items-center gap-1 text-xs">
       <span className="text-gray-400">{label}</span>
-      <span className={`font-semibold px-2 py-0.5 rounded-full ${
-        value >= 0 ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400"
-      }`}>
+      <span
+        className={`font-semibold px-2 py-0.5 rounded-full ${
+          value >= 0
+            ? "bg-green-600/20 text-green-400"
+            : "bg-red-600/20 text-red-400"
+        }`}
+      >
         {value?.toFixed(2)}%
       </span>
     </div>
   )
 
-  const renderCard = coin => (
+  const renderCard = (coin) => (
     <div
       key={coin.id}
       className="
         bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
-        transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[180px] overflow-hidden
+        transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[10em] overflow-hidden
         transform hover:scale-110 hover:shadow-2xl
       "
       style={{ flexBasis: "calc(100% / 6 - 0.5rem)" }}
@@ -120,7 +142,9 @@ export default function CryptoDashboardClient() {
               {coin.name} ({coin.symbol.toUpperCase()})
             </span>
           </div>
-          <span className="text-2xl font-bold block mt-0.5">{coin.current_price} €</span>
+          <span className="text-2xl font-bold block mt-4">
+            {coin.current_price} €
+          </span>
         </div>
         <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
           <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
@@ -143,13 +167,30 @@ export default function CryptoDashboardClient() {
     <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-4">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4">
         <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
-           Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
+          Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
         </h1>
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
       <div className="flex flex-wrap justify-start">
         {cryptos.map(renderCard)}
+      </div>
+
+      <div className="flex justify-center gap-4 mt-6">
+        <button
+          disabled={page <= 1}
+          onClick={() => setPage((p) => Math.max(1, p - 1))}
+          className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+        >
+          Page précédente
+        </button>
+        <button
+          disabled={page >= maxPage}
+          onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
+          className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+        >
+          Page suivante
+        </button>
       </div>
     </div>
   )
