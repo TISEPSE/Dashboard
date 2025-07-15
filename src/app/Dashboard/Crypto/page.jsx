@@ -1,26 +1,71 @@
 "use client"
 
 import React, {useEffect, useState, useRef} from "react"
+import axios from "axios"
+import CryptoSelector from '../../components/Crypto/CryptoSelector'
+
+// Configuration axios pour l'API CoinGecko
+const cryptoAPI = axios.create({
+  baseURL: "https://api.coingecko.com/api/v3",
+  timeout: 10000, // 10 secondes
+  headers: {
+    'Content-Type': 'application/json',
+  }
+})
+
+// Intercepteur pour gérer les erreurs globalement
+cryptoAPI.interceptors.response.use(
+  response => response,
+  error => {
+    if (error.code === 'ECONNABORTED') {
+      console.error('Timeout: La requête a pris trop de temps')
+    } else if (error.response?.status === 429) {
+      console.error('Rate limit atteint, veuillez réessayer plus tard')
+    } else if (error.response?.status >= 500) {
+      console.error('Erreur serveur CoinGecko')
+    } else {
+      console.error('Erreur API:', error.message)
+    }
+    return Promise.reject(error)
+  }
+)
+
+
 
 export default function CryptoDashboardClient() {
   const [cryptos, setCryptos] = useState([])
+  const [perPage, setPerPage] = useState(20) // Valeur par défaut
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
   const carouselRefs = useRef([])
 
   useEffect(() => {
-    fetch(
-      "https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=25&page=1&price_change_percentage=1h,24h,7d"
-    )
-      .then(res => res.json())
-      .then(data => {
-        setCryptos(data)
-        setLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
+    const fetchCryptos = async () => {
+      try {
         setLoading(true)
-      })
-  }, [])
+        setError(null)
+        
+        const response = await cryptoAPI.get('/coins/markets', {
+          params: {
+            vs_currency: 'eur',
+            order: 'market_cap_desc',
+            per_page: perPage,
+            page: 1,
+            price_change_percentage: '1h,24h,7d'
+          }
+        })
+        
+        setCryptos(response.data)
+      } catch (err) {
+        setError(err.message)
+        console.error('Erreur lors du chargement des cryptos:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchCryptos()
+  }, [perPage]) // Ajout de perPage comme dépendance
 
   useEffect(() => {
     const cleanupFunctions = []
@@ -119,9 +164,29 @@ export default function CryptoDashboardClient() {
 
   if (loading) {
     return (
-      <p className="flex items-center justify-center min-h-screen text-[2em]">
-        Chargement...
-      </p>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#3A6FF8] mx-auto mb-4"></div>
+          <p className="text-[2em] text-[#FeFeFe]">Chargement...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center bg-red-500/10 border border-red-500 rounded-lg p-6 max-w-md">
+          <p className="text-red-400 text-xl mb-2">Erreur de chargement</p>
+          <p className="text-gray-300 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Réessayer
+          </button>
+        </div>
+      </div>
     )
   }
 
@@ -207,6 +272,10 @@ export default function CryptoDashboardClient() {
         <h1 className="font-bold text-lg mb-6 bg-[#3A6FF8] p-4 rounded-xl">
           Top {cryptos.length} des cryptos du moment
         </h1>
+        <CryptoSelector 
+          value={perPage} 
+          onChange={setPerPage}
+        />
       </div>
 
       {groups.map((group, idx) =>
