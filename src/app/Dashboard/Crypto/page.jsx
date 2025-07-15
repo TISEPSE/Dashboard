@@ -66,10 +66,18 @@ export default function CryptoDashboardClient() {
 
   useEffect(() => {
     fetchCryptos()
-    const interval = setInterval(() => {
+    const fetchInterval = setInterval(() => {
       fetchCryptos()
     }, 10000)
-    return () => clearInterval(interval)
+
+    const reloadInterval = setInterval(() => {
+      window.location.reload()
+    }, 10000)
+
+    return () => {
+      clearInterval(fetchInterval)
+      clearInterval(reloadInterval)
+    }
   }, [perPage, page, currency])
 
   if (error) {
@@ -147,21 +155,22 @@ export default function CryptoDashboardClient() {
         </div>
       </div>
 
-      <span className="absolute bottom-2 left-2 text-gray-500 text-xs font-mono select-none">
-        #{coin.market_cap_rank}
-      </span>
-
-      <div className="mt-3 flex justify-center gap-2">
-        <button
-          className="w-24 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white"
-        >
-          Ajouter
-        </button>
-        <button
-          className="w-24 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white"
-        >
-          Info
-        </button>
+      <div className="mt-3 flex justify-between items-center">
+        <span className="text-gray-500 text-xs font-mono select-none">
+          #{coin.market_cap_rank}
+        </span>
+        <div className="flex gap-2">
+          <button
+            className="w-24 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white"
+          >
+            Ajouter
+          </button>
+          <button
+            className="w-24 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white"
+          >
+            Info
+          </button>
+        </div>
       </div>
     </div>
   )
@@ -170,7 +179,7 @@ export default function CryptoDashboardClient() {
     <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-4">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4">
         <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
-          Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
+          Classement des cryptos par Capitalisation Boursières (Top {cryptos.length})
         </h1>
 
         <div className="flex items-center gap-2">
