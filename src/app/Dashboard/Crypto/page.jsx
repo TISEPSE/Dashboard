@@ -31,53 +31,46 @@ export default function CryptoDashboardClient() {
   const [cryptos, setCryptos] = useState([])
   const [perPage, setPerPage] = useState(6)
   const [page, setPage] = useState(1)
-  const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [currency, setCurrency] = useState("eur")
+  const [loading, setLoading] = useState(false)
 
   const isPaginationActive = perPage === "all"
 
-  useEffect(() => {
-    const fetchCryptos = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+  const fetchCryptos = async () => {
+    try {
+      setLoading(true)
+      setError(null)
 
-        const perPageParam = isPaginationActive ? maxPerPage : perPage
-        const pageParam = isPaginationActive ? page : 1
+      const perPageParam = isPaginationActive ? maxPerPage : perPage
+      const pageParam = isPaginationActive ? page : 1
 
-        const response = await cryptoAPI.get("/coins/markets", {
-          params: {
-            vs_currency: currency,
-            order: "market_cap_desc",
-            per_page: perPageParam,
-            page: pageParam,
-            price_change_percentage: "1h,24h,7d",
-          },
-        })
+      const response = await cryptoAPI.get("/coins/markets", {
+        params: {
+          vs_currency: currency,
+          order: "market_cap_desc",
+          per_page: perPageParam,
+          page: pageParam,
+          price_change_percentage: "1h,24h,7d",
+        },
+      })
 
-        setCryptos(response.data)
-      } catch (err) {
-        setError(err.message)
-        console.error("Erreur lors du chargement des cryptos:", err)
-      } finally {
-        setLoading(false)
-      }
+      setCryptos(response.data)
+    } catch (err) {
+      setError(err.message)
+      console.error("Erreur lors du chargement des cryptos:", err)
+    } finally {
+      setLoading(false)
     }
-
-    fetchCryptos()
-  }, [perPage, page, currency])
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[#3A6FF8] mx-auto mb-4"></div>
-          <p className="text-[2em] text-[#FeFeFe]">Chargement...</p>
-        </div>
-      </div>
-    )
   }
+
+  useEffect(() => {
+    fetchCryptos()
+    const interval = setInterval(() => {
+      fetchCryptos()
+    }, 10000)
+    return () => clearInterval(interval)
+  }, [perPage, page, currency])
 
   if (error) {
     return (
@@ -86,7 +79,7 @@ export default function CryptoDashboardClient() {
           <p className="text-red-400 text-xl mb-2">Erreur de chargement</p>
           <p className="text-gray-300 mb-4">{error}</p>
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => fetchCryptos()}
             className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg transition-colors"
           >
             Réessayer
@@ -114,12 +107,13 @@ export default function CryptoDashboardClient() {
       key={coin.id}
       className="
         bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
-        transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[11em] overflow-hidden
+        transition-transform duration-150 m-1 overflow-visible
         transform hover:scale-110 hover:shadow-2xl
         group
         relative
+        hover:z-50
       "
-      style={{ flexBasis: "calc(100% / 6 - 0.5rem)" }}
+      style={{ width: "calc((100% / 6) - 0.8rem)", height: "11em" }}
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
@@ -159,12 +153,12 @@ export default function CryptoDashboardClient() {
 
       <div className="mt-3 flex justify-center gap-2">
         <button
-          className="w-22 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white"
+          className="w-24 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white"
         >
           Ajouter
         </button>
         <button
-          className="w-22 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white"
+          className="w-24 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white"
         >
           Info
         </button>
@@ -197,7 +191,7 @@ export default function CryptoDashboardClient() {
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
-      <div className="flex flex-wrap justify-start">{cryptos.map(renderCard)}</div>
+      <div className="flex flex-wrap justify-start overflow-visible">{cryptos.map(renderCard)}</div>
 
       {isPaginationActive && (
         <div className="flex justify-center gap-4 mt-6">
