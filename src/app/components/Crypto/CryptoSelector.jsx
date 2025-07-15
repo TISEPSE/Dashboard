@@ -1,11 +1,11 @@
 export default function CryptoSelector({ value, onChange }) {
   const options = [
-    { value: 10, label: "10 Crypto" },
-    { value: 20, label: "20 Crypto" },
-    { value: 30, label: "30 Crypto" },
-    { value: 50, label: "50 Crypto" },
-    { value: 100, label: "100 Crypto" },
-    { value: "all", label: "Toutes les cryptos" },
+    { value: 6, label: "Afficher les 6 premières" },
+    { value: 12, label: "Afficher les 12 premières" },
+    { value: 18, label: "Afficher les 18 premières" },
+    { value: 24, label: "Afficher les 24 premières" },
+    { value: 30, label: "Afficher les 30 premières" },
+    { value: "all", label: "Afficher tout le marché" },
   ];
 
   const handleChange = (e) => {

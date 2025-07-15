@@ -27,24 +27,14 @@ cryptoAPI.interceptors.response.use(
 )
 
 export default function CryptoDashboardClient() {
+  const maxPerPage = 250
   const [cryptos, setCryptos] = useState([])
-  const [perPage, setPerPage] = useState(20)
+  const [perPage, setPerPage] = useState(20) // nombre ou 'all'
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [totalCryptos, setTotalCryptos] = useState(0)
 
-  useEffect(() => {
-    const fetchTotalCoins = async () => {
-      try {
-        const response = await cryptoAPI.get("/coins/list")
-        setTotalCryptos(response.data.length)
-      } catch (e) {
-        console.error("Erreur récupération total cryptos:", e)
-      }
-    }
-    fetchTotalCoins()
-  }, [])
+  const isPaginationActive = perPage === "all"
 
   useEffect(() => {
     const fetchCryptos = async () => {
@@ -52,14 +42,15 @@ export default function CryptoDashboardClient() {
         setLoading(true)
         setError(null)
 
-        const perPageParam = perPage === "all" ? 250 : perPage
+        const perPageParam = isPaginationActive ? maxPerPage : perPage
+        const pageParam = isPaginationActive ? page : 1
 
         const response = await cryptoAPI.get("/coins/markets", {
           params: {
             vs_currency: "eur",
             order: "market_cap_desc",
             per_page: perPageParam,
-            page: page,
+            page: pageParam,
             price_change_percentage: "1h,24h,7d",
           },
         })
@@ -72,14 +63,9 @@ export default function CryptoDashboardClient() {
         setLoading(false)
       }
     }
+
     fetchCryptos()
   }, [perPage, page])
-
-  useEffect(() => {
-    setPage(1) // reset page à 1 si perPage change pour éviter page vide
-  }, [perPage])
-
-  const maxPage = perPage === "all" ? Math.ceil(totalCryptos / 250) : Math.ceil(totalCryptos / perPage)
 
   if (loading) {
     return (
@@ -114,9 +100,7 @@ export default function CryptoDashboardClient() {
       <span className="text-gray-400">{label}</span>
       <span
         className={`font-semibold px-2 py-0.5 rounded-full ${
-          value >= 0
-            ? "bg-green-600/20 text-green-400"
-            : "bg-red-600/20 text-red-400"
+          value >= 0 ? "bg-green-600/20 text-green-400" : "bg-red-600/20 text-red-400"
         }`}
       >
         {value?.toFixed(2)}%
@@ -142,9 +126,7 @@ export default function CryptoDashboardClient() {
               {coin.name} ({coin.symbol.toUpperCase()})
             </span>
           </div>
-          <span className="text-2xl font-bold block mt-4">
-            {coin.current_price} €
-          </span>
+          <span className="text-2xl font-bold block mt-4">{coin.current_price} €</span>
         </div>
         <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
           <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
@@ -172,26 +154,25 @@ export default function CryptoDashboardClient() {
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
-      <div className="flex flex-wrap justify-start">
-        {cryptos.map(renderCard)}
-      </div>
+      <div className="flex flex-wrap justify-start">{cryptos.map(renderCard)}</div>
 
-      <div className="flex justify-center gap-4 mt-6">
-        <button
-          disabled={page <= 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-          className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50"
-        >
-          Page précédente
-        </button>
-        <button
-          disabled={page >= maxPage}
-          onClick={() => setPage((p) => Math.min(maxPage, p + 1))}
-          className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50"
-        >
-          Page suivante
-        </button>
-      </div>
+      {isPaginationActive && (
+        <div className="flex justify-center gap-4 mt-6">
+          <button
+            disabled={page === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50"
+          >
+            Page précédente
+          </button>
+          <button
+            onClick={() => setPage((p) => p + 1)}
+            className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg"
+          >
+            Page suivante
+          </button>
+        </div>
+      )}
     </div>
   )
 }
