@@ -8,7 +8,7 @@ const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"]
 
 export default function RootLayout({ children }) {
   return (
-    <html data-theme="night" lang="fr">
+    <html data-theme="dark" lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased ml-64 pt-16`}>
         <Navbar />
         <Header />
