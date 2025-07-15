@@ -1,13 +1,13 @@
 "use client"
 
-import React, {useEffect, useState} from "react"
+import React, { useEffect, useState } from "react"
 import axios from "axios"
 import CryptoSelector from "../../components/Crypto/CryptoSelector"
 
 const cryptoAPI = axios.create({
   baseURL: "https://api.coingecko.com/api/v3",
   timeout: 10000,
-  headers: {"Content-Type": "application/json"},
+  headers: { "Content-Type": "application/json" },
 })
 
 cryptoAPI.interceptors.response.use(
@@ -38,7 +38,6 @@ export default function CryptoDashboardClient() {
 
   const isPaginationActive = perPage === "all"
 
-  // Charge les préférences depuis localStorage côté client
   useEffect(() => {
     setHydrated(true)
     const savedCurrency = localStorage.getItem("currency")
@@ -49,13 +48,11 @@ export default function CryptoDashboardClient() {
       setPerPage(savedPerPage === "all" ? "all" : Number(savedPerPage))
   }, [])
 
-  // Sauvegarde la devise en localStorage quand elle change
   useEffect(() => {
     if (!hydrated) return
     localStorage.setItem("currency", currency)
   }, [currency, hydrated])
 
-  // Sauvegarde le nombre de cryptos en localStorage quand il change
   useEffect(() => {
     if (!hydrated) return
     localStorage.setItem("perPage", perPage)
@@ -68,8 +65,7 @@ export default function CryptoDashboardClient() {
 
       const perPageParam = isPaginationActive ? maxPerPage : perPage
       const pageParam = isPaginationActive ? page : 1
-      
-//C'est la requête pour récupérer les cryptos
+
       const response = await cryptoAPI.get("/coins/markets", {
         params: {
           vs_currency: currency,
@@ -89,7 +85,6 @@ export default function CryptoDashboardClient() {
     }
   }
 
-  // Fetch des cryptos à chaque changement de paramètres
   useEffect(() => {
     if (!hydrated) return
     fetchCryptos()
@@ -118,7 +113,7 @@ export default function CryptoDashboardClient() {
     )
   }
 
-  const Variation = ({label, value}) => (
+  const Variation = ({ label, value }) => (
     <div className="flex items-center gap-1 text-xs">
       <span className="text-gray-400">{label}</span>
       <span
@@ -133,7 +128,7 @@ export default function CryptoDashboardClient() {
     </div>
   )
 
-  const renderCard = coin => (
+  const renderCard = (coin) => (
     <div
       key={coin.id}
       className="
@@ -144,7 +139,7 @@ export default function CryptoDashboardClient() {
         relative
         hover:z-50
       "
-      style={{width: "calc((100% / 6) - 0.8rem)", height: "11em"}}
+      style={{ width: "calc((100% / 6) - 0.8rem)", height: "11em" }}
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
@@ -172,33 +167,25 @@ export default function CryptoDashboardClient() {
           </span>
         </div>
         <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
-          <Variation
-            label="1h"
-            value={coin.price_change_percentage_1h_in_currency}
-          />
-          <Variation
-            label="24h"
-            value={coin.price_change_percentage_24h_in_currency}
-          />
-          <Variation
-            label="7j"
-            value={coin.price_change_percentage_7d_in_currency}
-          />
+          <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
+          <Variation label="24h" value={coin.price_change_percentage_24h_in_currency} />
+          <Variation label="7j" value={coin.price_change_percentage_7d_in_currency} />
         </div>
       </div>
 
-      <div className="mt-3 flex justify-between items-center">
+      <div className="absolute bottom-1 left-1.5">
         <span className="text-gray-500 text-xs font-mono select-none">
           #{coin.market_cap_rank}
         </span>
-        <div className="flex gap-2">
-          <button className="w-24 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white">
-            Ajouter
-          </button>
-          <button className="w-24 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white">
-            Info
-          </button>
-        </div>
+      </div>
+
+      <div className="mt-3 flex justify-center gap-2">
+        <button className="w-24 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white">
+          Ajouter
+        </button>
+        <button className="w-24 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white">
+          Info
+        </button>
       </div>
     </div>
   )
@@ -207,8 +194,7 @@ export default function CryptoDashboardClient() {
     <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-4">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4">
         <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
-          Classement des cryptos par Capitalisation Bourssières (Top{" "}
-          {cryptos.length})
+          Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
         </h1>
 
         <div className="flex items-center gap-2">
@@ -218,7 +204,7 @@ export default function CryptoDashboardClient() {
           <select
             id="currency"
             value={currency}
-            onChange={e => setCurrency(e.target.value)}
+            onChange={(e) => setCurrency(e.target.value)}
             className="bg-[#2a2d3e] text-[#FeFeFe] border border-gray-600 rounded px-2 py-1"
           >
             <option value="eur">EUR (€)</option>
@@ -229,21 +215,19 @@ export default function CryptoDashboardClient() {
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
-      <div className="flex flex-wrap justify-start overflow-visible">
-        {cryptos.map(renderCard)}
-      </div>
+      <div className="flex flex-wrap justify-start overflow-visible">{cryptos.map(renderCard)}</div>
 
       {isPaginationActive && (
         <div className="flex justify-center gap-4 mt-6">
           <button
             disabled={page === 1}
-            onClick={() => setPage(p => Math.max(1, p - 1))}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
             className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg disabled:opacity-50 transition"
           >
             Page précédente
           </button>
           <button
-            onClick={() => setPage(p => p + 1)}
+            onClick={() => setPage((p) => p + 1)}
             className="bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg transition"
           >
             Page suivante
