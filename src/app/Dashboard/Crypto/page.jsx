@@ -34,8 +34,31 @@ export default function CryptoDashboardClient() {
   const [error, setError] = useState(null)
   const [currency, setCurrency] = useState("eur")
   const [loading, setLoading] = useState(false)
+  const [hydrated, setHydrated] = useState(false)
 
   const isPaginationActive = perPage === "all"
+
+  // Charge les préférences depuis localStorage côté client
+  useEffect(() => {
+    setHydrated(true)
+    const savedCurrency = localStorage.getItem("currency")
+    if (savedCurrency) setCurrency(savedCurrency)
+
+    const savedPerPage = localStorage.getItem("perPage")
+    if (savedPerPage) setPerPage(savedPerPage === "all" ? "all" : Number(savedPerPage))
+  }, [])
+
+  // Sauvegarde la devise en localStorage quand elle change
+  useEffect(() => {
+    if (!hydrated) return
+    localStorage.setItem("currency", currency)
+  }, [currency, hydrated])
+
+  // Sauvegarde le nombre de cryptos en localStorage quand il change
+  useEffect(() => {
+    if (!hydrated) return
+    localStorage.setItem("perPage", perPage)
+  }, [perPage, hydrated])
 
   const fetchCryptos = async () => {
     try {
@@ -64,21 +87,17 @@ export default function CryptoDashboardClient() {
     }
   }
 
+  // Fetch des cryptos à chaque changement de paramètres (après hydration)
   useEffect(() => {
+    if (!hydrated) return
     fetchCryptos()
-    const fetchInterval = setInterval(() => {
+    const interval = setInterval(() => {
       fetchCryptos()
     }, 10000)
+    return () => clearInterval(interval)
+  }, [perPage, page, currency, hydrated])
 
-    const reloadInterval = setInterval(() => {
-      window.location.reload()
-    }, 10000)
-
-    return () => {
-      clearInterval(fetchInterval)
-      clearInterval(reloadInterval)
-    }
-  }, [perPage, page, currency])
+  if (!hydrated) return null
 
   if (error) {
     return (
@@ -179,7 +198,7 @@ export default function CryptoDashboardClient() {
     <div className="min-h-screen text-[#FeFeFe] bg-[#212332] px-4 py-4">
       <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6 px-4">
         <h1 className="text-xl font-bold text-white bg-[#3A6FF8] px-4 py-2 rounded-xl shadow-md text-center sm:text-left">
-          Classement des cryptos par Capitalisation Boursières (Top {cryptos.length})
+          Classement des cryptos par Capitalisation Bourssières (Top {cryptos.length})
         </h1>
 
         <div className="flex items-center gap-2">
