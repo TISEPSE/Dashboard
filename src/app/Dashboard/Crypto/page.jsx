@@ -1,32 +1,194 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState, useRef } from 'react';
 
 export default function CryptoDashboardClient() {
   const [cryptos, setCryptos] = useState([]);
   const [loading, setLoading] = useState(true);
+  const carouselRefs = useRef([]);
 
   useEffect(() => {
-    axios
-      .get('https://api.coingecko.com/api/v3/coins/markets', {
-        params: {
-          vs_currency: 'eur',
-          order: 'market_cap_desc',
-          per_page: 25,
-          page: 1,
-          price_change_percentage: '1h,24h,7d',
-        },
-      })
-      .then((res) => {
-        setCryptos(res.data);
+    fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=eur&order=market_cap_desc&per_page=25&page=1&price_change_percentage=1h,24h,7d')
+      .then(res => res.json())
+      .then(data => {
+        setCryptos(data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(err);
         setLoading(true);
       });
   }, []);
+
+  useEffect(() => {
+    const cleanupFunctions = [];
+
+    carouselRefs.current.forEach((carousel) => {
+      if (!carousel) return;
+
+      let isDown = false;
+      let startX;
+      let scrollLeft;
+      let lastX;
+      let velocity = 0;
+      let animationId;
+
+      // Fonction pour lisser le défilement avec momentum
+      const smoothScroll = () => {
+        if (Math.abs(velocity) > 0.1) {
+          carousel.scrollLeft += velocity;
+          velocity *= 0.95; // Friction
+          animationId = requestAnimationFrame(smoothScroll);
+        }
+      };
+
+      const onMouseDown = (e) => {
+        isDown = true;
+        carousel.classList.add('cursor-grabbing');
+        carousel.classList.remove('cursor-grab');
+        
+        // Désactiver le scroll smooth pendant le drag
+        carousel.style.scrollBehavior = 'auto';
+        
+        startX = e.pageX - carousel.offsetLeft;
+        lastX = e.pageX;
+        scrollLeft = carousel.scrollLeft;
+        velocity = 0;
+        
+        // Arrêter l'animation de momentum si elle existe
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      };
+
+      const onMouseLeave = () => {
+        if (isDown) {
+          isDown = false;
+          carousel.classList.remove('cursor-grabbing');
+          carousel.classList.add('cursor-grab');
+          carousel.style.scrollBehavior = 'smooth';
+          
+          // Démarrer l'animation de momentum
+          smoothScroll();
+        }
+      };
+
+      const onMouseUp = () => {
+        if (isDown) {
+          isDown = false;
+          carousel.classList.remove('cursor-grabbing');
+          carousel.classList.add('cursor-grab');
+          carousel.style.scrollBehavior = 'smooth';
+          
+          // Démarrer l'animation de momentum
+          smoothScroll();
+        }
+      };
+
+      const onMouseMove = (e) => {
+        if (!isDown) return;
+        
+        e.preventDefault();
+        
+        const x = e.pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 1.5; // Sensibilité ajustée
+        
+        // Calculer la vélocité pour le momentum
+        velocity = (lastX - e.pageX) * 0.8;
+        lastX = e.pageX;
+        
+        // Utiliser requestAnimationFrame pour un rendu plus fluide
+        requestAnimationFrame(() => {
+          carousel.scrollLeft = scrollLeft - walk;
+        });
+      };
+
+      // Désactiver le scroll molette pendant le survol
+      const onWheel = (e) => {
+        e.preventDefault();
+        
+        // Scroll horizontal avec la molette
+        const delta = e.deltaY;
+        requestAnimationFrame(() => {
+          carousel.scrollLeft += delta;
+        });
+      };
+
+      // Gérer aussi le touch pour mobile
+      const onTouchStart = (e) => {
+        isDown = true;
+        carousel.classList.add('cursor-grabbing');
+        carousel.style.scrollBehavior = 'auto';
+        
+        const touch = e.touches[0];
+        startX = touch.pageX - carousel.offsetLeft;
+        lastX = touch.pageX;
+        scrollLeft = carousel.scrollLeft;
+        velocity = 0;
+        
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      };
+
+      const onTouchEnd = () => {
+        if (isDown) {
+          isDown = false;
+          carousel.classList.remove('cursor-grabbing');
+          carousel.style.scrollBehavior = 'smooth';
+          smoothScroll();
+        }
+      };
+
+      const onTouchMove = (e) => {
+        if (!isDown) return;
+        
+        e.preventDefault();
+        
+        const touch = e.touches[0];
+        const x = touch.pageX - carousel.offsetLeft;
+        const walk = (x - startX) * 1.5;
+        
+        velocity = (lastX - touch.pageX) * 0.8;
+        lastX = touch.pageX;
+        
+        requestAnimationFrame(() => {
+          carousel.scrollLeft = scrollLeft - walk;
+        });
+      };
+
+      // Ajouter tous les event listeners
+      carousel.addEventListener('mousedown', onMouseDown);
+      carousel.addEventListener('mouseleave', onMouseLeave);
+      carousel.addEventListener('mouseup', onMouseUp);
+      carousel.addEventListener('mousemove', onMouseMove);
+      carousel.addEventListener('wheel', onWheel, { passive: false });
+      carousel.addEventListener('touchstart', onTouchStart, { passive: false });
+      carousel.addEventListener('touchend', onTouchEnd);
+      carousel.addEventListener('touchmove', onTouchMove, { passive: false });
+
+      // Stocker la fonction de nettoyage
+      cleanupFunctions.push(() => {
+        carousel.removeEventListener('mousedown', onMouseDown);
+        carousel.removeEventListener('mouseleave', onMouseLeave);
+        carousel.removeEventListener('mouseup', onMouseUp);
+        carousel.removeEventListener('mousemove', onMouseMove);
+        carousel.removeEventListener('wheel', onWheel);
+        carousel.removeEventListener('touchstart', onTouchStart);
+        carousel.removeEventListener('touchend', onTouchEnd);
+        carousel.removeEventListener('touchmove', onTouchMove);
+        
+        if (animationId) {
+          cancelAnimationFrame(animationId);
+        }
+      });
+    });
+
+    // Retourner une fonction qui appelle toutes les fonctions de nettoyage
+    return () => {
+      cleanupFunctions.forEach(cleanup => cleanup());
+    };
+  }, [cryptos]);
 
   if (loading) {
     return (
@@ -64,7 +226,7 @@ export default function CryptoDashboardClient() {
   const renderCard = (coin) => (
     <div
       key={coin.id}
-      className="bg-[#2a2d3e] rounded-xl p-4 min-w-[16rem] flex-shrink-0 flex flex-col justify-between"
+      className="bg-[#2a2d3e] rounded-xl p-4 min-w-[20rem] w-[20rem] flex-shrink-0 flex flex-col justify-between transition-all duration-300 hover:scale-110 hover:shadow-2xl hover:shadow-blue-500/20 hover:bg-[#323654] hover:z-10 relative"
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
@@ -81,8 +243,12 @@ export default function CryptoDashboardClient() {
         </div>
       </div>
       <div className="mt-4 flex justify-center gap-3">
-        <button className="btn btn-base btn-outline btn-error w-24">Ajouter</button>
-        <button className="btn btn-base btn-outline btn-info w-24">Info</button>
+        <button className="btn btn-base btn-outline btn-error w-24 transition-all duration-200 hover:scale-105">
+          Ajouter
+        </button>
+        <button className="btn btn-base btn-outline btn-info w-24 transition-all duration-200 hover:scale-105">
+          Info
+        </button>
       </div>
     </div>
   );
@@ -99,7 +265,12 @@ export default function CryptoDashboardClient() {
         group.length > 0 ? (
           <div
             key={idx}
-            className="flex overflow-x-auto gap-3 scroll-smooth scrollbar-hide mb-6"
+            ref={(el) => (carouselRefs.current[idx] = el)}
+            className="flex overflow-x-scroll gap-8 scroll-smooth scrollbar-hide mb-8 cursor-grab select-none py-4"
+            style={{ 
+              scrollBehavior: 'smooth',
+              WebkitOverflowScrolling: 'touch' // Support iOS
+            }}
           >
             {group.map(renderCard)}
           </div>
