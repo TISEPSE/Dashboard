@@ -29,7 +29,7 @@ cryptoAPI.interceptors.response.use(
 export default function CryptoDashboardClient() {
   const maxPerPage = 250
   const [cryptos, setCryptos] = useState([])
-  const [perPage, setPerPage] = useState(20) // nombre ou 'all'
+  const [perPage, setPerPage] = useState(20)
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -115,18 +115,33 @@ export default function CryptoDashboardClient() {
         bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
         transition-transform duration-150 m-1 flex-grow-0 flex-shrink-0 h-[10em] overflow-hidden
         transform hover:scale-110 hover:shadow-2xl
+        group
       "
       style={{ flexBasis: "calc(100% / 6 - 0.5rem)" }}
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
           <div className="flex items-center gap-2 mb-1">
-            <img src={coin.image} alt={coin.name} className="w-5 h-5" />
-            <span className="text-[#d1d1d1] text-sm font-semibold truncate">
+            <img src={coin.image} alt={coin.name} className="w-7 h-7" />
+            <span
+              className="
+                text-lg font-semibold truncate text-[#FeFeFe]
+                group-hover:text-[#a0a0a0]
+                transition-colors duration-300
+              "
+            >
               {coin.name} ({coin.symbol.toUpperCase()})
             </span>
           </div>
-          <span className="text-2xl font-bold block mt-4">{coin.current_price} €</span>
+          <span
+            className="
+              text-xl font-bold block mt-4 text-[#a0a0a0]
+              group-hover:text-[#FeFeFe]
+              transition-colors duration-200
+            "
+          >
+            {coin.current_price} €
+          </span>
         </div>
         <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
           <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
