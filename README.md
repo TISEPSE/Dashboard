@@ -1,92 +1,120 @@
-# 🌟 Installer Tailwind CSS + DaisyUI dans un projet Next.js
+# 🚀 Structure Modulaire du Dashboard Crypto
 
----
+## 📁 Organisation des fichiers
 
-## ✅ 1. Créer un projet Next.js
-
-```bash
-npm create next-app@latest ./
+```
+src/
+├── components/
+│   ├── Crypto/
+│   │   ├── CryptoDashboard.jsx      # Composant principal
+│   │   ├── CryptoCard.jsx           # Carte individuelle
+│   │   ├── CryptoToolbar.jsx        # Barre d'outils
+│   │   ├── CryptoPagination.jsx     # Navigation des pages
+│   │   ├── CryptoStates.jsx         # États d'erreur/chargement
+│   │   └── CryptoSelector.jsx       # Sélecteur existant
+│   └── hooks/
+│       ├── useCryptoData.js         # Gestion des données API
+│       └── useCryptoPreferences.js  # Gestion localStorage
+└── pages/
+    └── Dashboard/
+        └── Crypto/
+            └── page.jsx             # Page principale
 ```
 
-Suivre les instructions, tu peux décocher Tailwind (on l'ajoute proprement après).
+## 🔧 Comment migrer
 
----
+### 1. Créer les nouveaux fichiers
+Copiez chaque artefact dans le fichier correspondant selon la structure ci-dessus.
 
-## ✅ 2. Installer Tailwind CSS et DaisyUI
+### 2. Remplacer votre page principale
+Dans `pages/Dashboard/Crypto/page.jsx` :
 
-```bash
-npm install -D tailwindcss postcss autoprefixer
-npm install daisyui
+```javascript
+import CryptoDashboard from "../../../components/Crypto/CryptoDashboard"
+
+export default function CryptoPage() {
+  return <CryptoDashboard />
+}
 ```
 
----
+### 3. Ajuster les imports
+Vérifiez que tous les chemins d'import correspondent à votre structure :
 
-## ✅ 3. Générer les fichiers de configuration
-
-```bash
-npx tailwindcss init -p
+```javascript
+// Dans CryptoDashboard.jsx
+import { useCryptoData } from "../hooks/useCryptoData"
+import { useCryptoPreferences } from "../hooks/useCryptoPreferences"
+import CryptoCard from "./CryptoCard"
+// etc...
 ```
 
-Cela crée :
-- `tailwind.config.js`
-- `postcss.config.js`
+## ✅ Avantages de cette structure
 
----
+### 🎯 **Maintenabilité**
+- Chaque composant a une responsabilité unique
+- Modifications isolées (ex: changer le design des cartes)
+- Débogage plus facile
 
-## ✅ 4. Configurer `tailwind.config.js`
+### 🔄 **Réutilisabilité**
+- `CryptoCard` peut être utilisé ailleurs
+- `useCryptoData` réutilisable pour d'autres vues crypto
+- `CryptoToolbar` modulaire
 
-```js
-// tailwind.config.js
-/** @type {import('tailwindcss').Config} */
-export default {
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx}",
-    "./components/**/*.{js,ts,jsx,tsx}",
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [require("daisyui")],
-};
+### ⚡ **Performance**
+- Hooks optimisés avec `useMemo` et `useCallback`
+- Composants React.memo pour éviter les re-renders
+- Chargement paresseux possible
+
+### 🧪 **Testabilité**
+- Chaque composant testable individuellement
+- Hooks testables séparément
+- Mocks plus faciles
+
+## 🎨 Personnalisation
+
+### Modifier une carte crypto
+Éditez uniquement `CryptoCard.jsx` sans impacter le reste.
+
+### Ajouter une nouvelle fonctionnalité
+Créez un nouveau hook ou composant sans toucher l'existant.
+
+### Changer l'API
+Modifiez uniquement `useCryptoData.js`.
+
+## 🔮 Extensions possibles
+
+### 1. Gestion d'état globale
+```javascript
+// hooks/useCryptoStore.js
+import { create } from 'zustand'
+
+export const useCryptoStore = create((set) => ({
+  favorites: [],
+  addFavorite: (crypto) => set((state) => ({ 
+    favorites: [...state.favorites, crypto] 
+  }))
+}))
 ```
 
----
-
-## ✅ 5. Modifier `app/globals.css`
-
-```css
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+### 2. Composants supplémentaires
+```javascript
+// components/CryptoFavorites.jsx
+// components/CryptoChart.jsx
+// components/CryptoSearch.jsx
 ```
 
-> ❌ N’utilise pas `@import` ni `@plugin`, ça ne marche pas avec Tailwind v3+
-
----
-
-## ✅ 6. Démarrer le projet
-
-```bash
-npm run dev
+### 3. Hooks avancés
+```javascript
+// hooks/useCryptoWebSocket.js
+// hooks/useCryptoNotifications.js
+// hooks/useCryptoAnalytics.js
 ```
 
----
+## 🚨 Points d'attention
 
-## 🎉 Tu peux maintenant utiliser DaisyUI
+1. **Imports** : Vérifiez tous les chemins d'import
+2. **CryptoSelector** : Assurez-vous qu'il existe dans votre projet
+3. **Styles** : Tous les styles Tailwind sont conservés
+4. **Props** : Vérifiez que toutes les props sont bien passées
 
-```jsx
-<button className="btn btn-primary">Clic-moi</button>
-```
-
----
-
-## 🧠 Bonus
-
-Tu peux personnaliser les thèmes DaisyUI :
-
-```js
-// Dans tailwind.config.js
-daisyui: {
-  themes: ["dark", "light"],
-},
-```
+Cette structure vous permet de faire évoluer votre dashboard crypto facilement et proprement ! 🎉

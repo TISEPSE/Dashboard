@@ -1,62 +1,94 @@
 import React from "react"
-import Variation from "./Variation"
 
-export default function CryptoCard({ coin, currency }) {
-  return (
-    <div
-      className="
-        bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
-        transition-transform duration-150 m-1 overflow-visible
-        transform hover:scale-110 hover:shadow-2xl
-        group relative hover:z-50
-      "
-      style={{ width: "calc((100% / 6) - 0.8rem)", height: "11em" }}
+const Variation = ({ label, value }) => (
+  <div className="flex items-center gap-1.5 text-sm">
+    <span className="text-gray-400 font-medium">{label}</span>
+    <span
+      className={`font-semibold px-2.5 py-1 rounded-full text-xs ${
+        value >= 0
+          ? "bg-green-600/20 text-green-400"
+          : "bg-red-600/20 text-red-400"
+      }`}
     >
-      <div className="flex justify-between gap-2">
-        <div className="w-2/3 break-words">
-          <div className="flex items-center gap-2 mb-1">
-            <img src={coin.image} alt={coin.name} className="w-7 h-7" />
-            <span
-              title={`${coin.name} (${coin.symbol.toUpperCase()})`}
-              className="
-                text-lg font-semibold truncate text-[#FeFeFe]
-                group-hover:text-[#a0a0a0]
-                transition-colors duration-100
-              "
-            >
-              {coin.name} ({coin.symbol.toUpperCase()})
-            </span>
+      {value?.toFixed(2)}%
+    </span>
+  </div>
+)
+
+const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
+  return (
+    <div className="bg-[#2a2d3e] border border-[#3a3d4e] rounded-lg p-5 hover:border-[#3A6FF8]/50 hover:shadow-lg hover:shadow-[#3A6FF8]/10 transition-all duration-200 group cursor-pointer transform hover:scale-[1.02] hover:-translate-y-1">
+      <div className="flex justify-between items-start mb-5">
+        <div className="flex items-center gap-3">
+          <div className="relative">
+            <img
+              src={coin.image}
+              alt={coin.name}
+              className="w-9 h-9 rounded-full"
+            />
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#3A6FF8] rounded-full flex items-center justify-center">
+              <span className="text-xs font-bold text-white">
+                #{coin.market_cap_rank}
+              </span>
+            </div>
           </div>
-          <span
-            className="
-              text-2xl font-bold block mt-4 text-[#a0a0a0]
-              group-hover:text-[#FeFeFe]
-              transition-colors duration-100
-            "
-          >
-            {coin.current_price} {currency === "eur" ? "€" : "$"}
-          </span>
+          <div>
+            <h3 className="text-lg font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] transition-colors duration-200">
+              {coin.name}
+            </h3>
+            <p className="text-sm text-gray-400 font-medium">
+              {coin.symbol.toUpperCase()}
+            </p>
+          </div>
         </div>
-        <div className="w-1/3 flex flex-col items-end gap-0.5 mt-1">
-          <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
-          <Variation label="24h" value={coin.price_change_percentage_24h_in_currency} />
-          <Variation label="7j" value={coin.price_change_percentage_7d_in_currency} />
+
+        <div className="flex flex-col items-end gap-1.5">
+          <Variation
+            label="1h"
+            value={coin.price_change_percentage_1h_in_currency}
+          />
+          <Variation
+            label="24h"
+            value={coin.price_change_percentage_24h_in_currency}
+          />
+          <Variation
+            label="7j"
+            value={coin.price_change_percentage_7d_in_currency}
+          />
         </div>
       </div>
 
-      <div className="mt-3 flex justify-between items-center">
-        <span className="text-gray-500 text-xs font-mono select-none">
-          #{coin.market_cap_rank}
-        </span>
-        <div className="flex gap-2">
-          <button className="w-24 px-3 py-1 border border-red-500 text-red-500 rounded transition hover:bg-red-500 hover:text-white">
-            Ajouter
-          </button>
-          <button className="w-24 px-3 py-1 border border-blue-500 text-blue-500 rounded transition hover:bg-blue-500 hover:text-white">
-            Info
-          </button>
+      <div className="mb-5">
+        <div className="text-2xl font-bold text-[#FeFeFe] mb-1">
+          {coin.current_price?.toLocaleString()}{" "}
+          {currency === "eur" ? "€" : "$"}
         </div>
+        <div className="text-sm text-gray-400">
+          Cap. marché: {coin.market_cap?.toLocaleString()}{" "}
+          {currency === "eur" ? "€" : "$"}
+        </div>
+        <div className="text-sm text-gray-400">
+          Volume 24h: {coin.total_volume?.toLocaleString()}{" "}
+          {currency === "eur" ? "€" : "$"}
+        </div>
+      </div>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => onAddClick?.(coin)}
+          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 transform hover:scale-105"
+        >
+          Ajouter
+        </button>
+        <button
+          onClick={() => onInfoClick?.(coin)}
+          className="flex-1 bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-2 px-3 rounded-lg font-medium text-sm transition-all duration-200 transform hover:scale-105"
+        >
+          Info
+        </button>
       </div>
     </div>
   )
 }
+
+export default CryptoCard
