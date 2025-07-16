@@ -181,7 +181,7 @@ export default function Navbar({isOpen, setIsOpen}) {
             <div className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl shadow-xl">
               <div
                 onClick={() => setDashboardOpen(!dashboardOpen)}
-                className="flex items-center justify-between p-4 mb-3 cursor-pointer font-bold select-none hover:bg-white/5 transition-colors duration-200"
+                className="flex items-center justify-between p-4 cursor-pointer font-bold select-none"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#3A6FF8] rounded-lg flex items-center justify-center">
