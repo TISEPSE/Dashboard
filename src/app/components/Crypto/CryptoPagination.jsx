@@ -56,7 +56,7 @@ const CryptoPagination = ({
         </button>
       </div>
 
-      {/* Pagination mobile - Rendu dans le composant parent */}
+      {/* Pagination mobile - Rendu dans le composant parent */}Cache actif250 cryptos • Dernière MAJ: 0s
       <div className="sm:hidden">
         <div className="h-20"></div> {/* Spacer pour éviter que le contenu soit caché */}
       </div>
