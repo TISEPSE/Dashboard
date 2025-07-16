@@ -16,22 +16,20 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
   return (
     <>
-      {/* Interface en bas pour mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[70]">
-        <div className="bg-[#212332] border-t border-gray-500 p-4">
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full text-white bg-[#3A6FF8] p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#2952d3] shadow-lg flex items-center justify-center gap-2"
-            aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
-          >
-            <div className="transition-transform duration-200">
-              {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-            </div>
-            <span className="font-medium">
-              {isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            </span>
-          </button>
-        </div>
+      {/* Interface en bas pour mobile - Sans background */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[70] pb-4 px-4">
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full text-white bg-[#3A6FF8] p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#2952d3] shadow-lg flex items-center justify-center gap-2"
+          aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
+        >
+          <div className="transition-transform duration-200">
+            {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
+          </div>
+          <span className="font-medium">
+            {isOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          </span>
+        </button>
       </div>
 
       {/* Overlay pour mobile */}
