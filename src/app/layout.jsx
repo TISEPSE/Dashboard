@@ -1,6 +1,7 @@
 "use client"
 import { useState } from "react"
 import Navbar from "./components/navbar"
+import { CryptoProvider } from "./context/CryptoContext"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 
@@ -13,14 +14,16 @@ export default function RootLayout({ children }) {
   return (
     <html data-theme="dark" lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
-        <main
-          className={`transition-all duration-300 ease-in-out ${
-            isOpen ? "md:ml-64" : "md:ml-16"
-          }`}
-        >
-          {children}
-        </main>
+        <CryptoProvider>
+          <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
+          <main
+            className={`transition-all duration-300 ease-in-out ${
+              isOpen ? "md:ml-64" : "md:ml-16"
+            }`}
+          >
+            {children}
+          </main>
+        </CryptoProvider>
       </body>
     </html>
   )

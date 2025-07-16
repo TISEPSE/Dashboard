@@ -2,12 +2,14 @@
 import React, { useState, useEffect } from "react"
 import { useCryptoData } from "../../hook/useCryptoData"
 import { useCryptoPreferences } from "../../hook/useCryptoPreferences"
+import { useCryptoContext } from "../../context/CryptoContext"
 import CryptoCard from "../../components/Crypto/CryptoCard"
 import CryptoToolbar from "./CryptoToolbar"
 import CryptoPagination from "./CryptoPagination"
 import { CryptoErrorState, CryptoLoadingState, CryptoRetryNotification } from "../Crypto/CryptoState"
 
 const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
+  const { setCryptoPaginationData } = useCryptoContext()
   const [currentPage, setCurrentPage] = useState(1)
   
   // Récupération des préférences
@@ -60,6 +62,23 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
   useEffect(() => {
     setCurrentPage(1)
   }, [perPage])
+
+  // Mise à jour du context avec les données de pagination
+  useEffect(() => {
+    if (isPaginationEnabled) {
+      setCryptoPaginationData({
+        isPaginationEnabled: true,
+        currentPage,
+        totalPages,
+        isNextDisabled,
+        handlePrevious,
+        handleNext
+      })
+    } else {
+      setCryptoPaginationData({ isPaginationEnabled: false })
+    }
+  }, [isPaginationEnabled, currentPage, totalPages, isNextDisabled, setCryptoPaginationData])
+
 
   // Gestion des clics sur les cartes
   const handleAddCrypto = (coin) => {
@@ -155,63 +174,6 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
       </div>
 
       {/* Barre flottante mobile unifiée */}
-      <div className="sm:hidden fixed bottom-0 left-0 right-0 z-[70] pb-4 px-4">
-        <div className="bg-[#212332] border border-gray-500 rounded-lg p-3 shadow-lg">
-          {/* Pagination mobile si activée */}
-          {isPaginationEnabled && (
-            <div className="flex items-center justify-between gap-2 mb-3 pb-3 border-b border-gray-600">
-              <button
-                disabled={currentPage === 1}
-                onClick={handlePrevious}
-                className="bg-[#3a3d4e] hover:bg-[#4a4d5e] disabled:bg-[#2a2d3e] text-white px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-                <span>Préc.</span>
-              </button>
-
-              <div className="flex items-center gap-2 px-2 py-1 bg-[#2a2d3e] rounded border border-[#3a3d4e]">
-                <span className="text-gray-300 text-xs font-medium">
-                  {currentPage}/{totalPages}
-                </span>
-              </div>
-
-              <button
-                disabled={isNextDisabled}
-                onClick={handleNext}
-                className="bg-[#3A6FF8] hover:bg-[#2952d3] disabled:bg-[#2a2d3e] text-white px-3 py-2 rounded-lg font-medium text-xs transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
-              >
-                <span>Suiv.</span>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                </svg>
-              </button>
-            </div>
-          )}
-
-          {/* Bouton navbar */}
-          <button
-            onClick={() => setIsNavOpen?.(!isNavOpen)}
-            className="w-full text-white bg-[#3A6FF8] p-3 rounded-lg cursor-pointer transition-all duration-200 hover:bg-[#2952d3] flex items-center justify-center gap-2"
-          >
-            <div className="transition-transform duration-200">
-              {isNavOpen ? (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-                </svg>
-              )}
-            </div>
-            <span className="font-medium text-sm">
-              {isNavOpen ? "Fermer le menu" : "Ouvrir le menu"}
-            </span>
-          </button>
-        </div>
-      </div>
     </div>
   )
 }
