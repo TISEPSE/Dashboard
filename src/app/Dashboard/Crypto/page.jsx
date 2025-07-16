@@ -133,13 +133,10 @@ export default function CryptoDashboardClient() {
       key={coin.id}
       className="
         bg-[#2a2d3e] rounded-lg p-4 flex flex-col justify-between hover:bg-[#323654] 
-        transition-transform duration-150 m-1 overflow-visible
-        transform hover:scale-110 hover:shadow-2xl
-        group
-        relative
-        hover:z-50
+        transition-transform duration-150 overflow-visible
+        transform hover:scale-105 hover:shadow-2xl
+        group relative hover:z-50 h-[12em]
       "
-      style={{ width: "calc((100% / 6) - 0.8rem)", height: "11em" }}
     >
       <div className="flex justify-between gap-2">
         <div className="w-2/3 break-words">
@@ -215,7 +212,9 @@ export default function CryptoDashboardClient() {
         <CryptoSelector value={perPage} onChange={setPerPage} />
       </div>
 
-      <div className="flex flex-wrap justify-start overflow-visible">{cryptos.map(renderCard)}</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {cryptos.map(renderCard)}
+      </div>
 
       {isPaginationActive && (
         <div className="flex justify-center gap-4 mt-6">
