@@ -127,7 +127,7 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
       />
 
       {/* Contenu principal */}
-      <div className="max-w-7xl mx-auto px-6 py-6 pb-32 sm:pb-6">
+      <div className="max-w-9xl mx-auto px-6 py-6 pb-32 sm:pb-6">
         {/* Informations sur le cache */}
         {cacheStatus.isCached && (
           <div className="mb-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 flex items-center gap-3">

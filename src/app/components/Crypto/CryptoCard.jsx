@@ -4,11 +4,10 @@ const Variation = ({ label, value }) => (
   <div className="flex items-center gap-[0.25em] text-[0.7em]">
     <span className="text-gray-400">{label}</span>
     <span
-      className={`font-semibold px-[0.5em] py-[0.2em] rounded-full ${
-        value >= 0
+      className={`font-semibold px-[0.5em] py-[0.2em] rounded-full ${value >= 0
           ? "bg-green-600/20 text-green-400"
           : "bg-red-600/20 text-red-400"
-      }`}
+        }`}
     >
       {value?.toFixed(2)}%
     </span>
@@ -17,7 +16,12 @@ const Variation = ({ label, value }) => (
 
 const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
   return (
-    <div className="bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em] hover:border-[#3A6FF8]/50 hover:shadow-lg hover:shadow-[#3A6FF8]/10 transition-all duration-200 group cursor-pointer transform hover:scale-[1.01] hover:-translate-y-[0.2em] h-[16em] flex flex-col">
+    <div
+      className="bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
+                 transition-all duration-300 group cursor-pointer flex flex-col h-[16em]
+                 hover:border-[#3A6FF8] hover:shadow-[0_8px_20px_rgba(58,111,248,0.4)]
+                 hover:scale-[1.05] hover:-translate-y-[0.3em]"
+    >
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-[0.5em] flex-1 min-w-0">
           <div className="relative">
@@ -30,7 +34,7 @@ const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
           </div>
           <div className="min-w-0">
             <h3
-              className="text-[1.3em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate"
+              className="text-[1.3em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate transition-colors duration-200 ease-in-out"
               title={coin.name}
             >
               {coin.name}
@@ -49,16 +53,25 @@ const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
       </div>
 
       <div className="my-[0.6em]">
-        <div className="text-[1.4em] font-bold text-[#FeFeFe] truncate" title={`${coin.current_price?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}>
+        <div
+          className="text-[1.4em] font-bold text-[#FeFeFe] truncate"
+          title={`${coin.current_price?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}
+        >
           {coin.current_price?.toLocaleString()} {currency === "eur" ? "€" : "$"}
         </div>
       </div>
 
       <div className="space-y-[0.2em] text-[0.9em] text-gray-400">
-        <div className="truncate" title={`Cap. marché: ${coin.market_cap?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}>
+        <div
+          className="truncate"
+          title={`Cap. marché: ${coin.market_cap?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}
+        >
           Cap: {coin.market_cap?.toLocaleString()} {currency === "eur" ? "€" : "$"}
         </div>
-        <div className="truncate" title={`Volume 24h: ${coin.total_volume?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}>
+        <div
+          className="truncate"
+          title={`Volume 24h: ${coin.total_volume?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}
+        >
           Volume: {coin.total_volume?.toLocaleString()} {currency === "eur" ? "€" : "$"}
         </div>
       </div>
