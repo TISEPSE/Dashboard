@@ -1,32 +1,33 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { FaBars, FaTimes, FaRocket } from "react-icons/fa";
-import { useCryptoContext } from "../context/CryptoContext";
+import {useState, useEffect} from "react"
+import Link from "next/link"
+import {usePathname} from "next/navigation"
+import {FaBars, FaTimes, FaRocket} from "react-icons/fa"
+import {useCryptoContext} from "../context/CryptoContext"
 
-export default function Navbar({ isOpen, setIsOpen }) {
-  const [hasMounted, setHasMounted] = useState(false);
-  const [dashboardOpen, setDashboardOpen] = useState(false);
-  const pathname = usePathname();
-  const { cryptoPaginationData } = useCryptoContext();
+export default function Navbar({isOpen, setIsOpen}) {
+  const [hasMounted, setHasMounted] = useState(false)
+  const [dashboardOpen, setDashboardOpen] = useState(false)
+  const pathname = usePathname()
+  const {cryptoPaginationData} = useCryptoContext()
 
   useEffect(() => {
-    setHasMounted(true);
-  }, []);
+    setHasMounted(true)
+  }, [])
 
-  if (!hasMounted) return null;
+  if (!hasMounted) return null
 
-  const isCryptoPage = pathname === '/Dashboard/Crypto';
-  const showPagination = isCryptoPage && cryptoPaginationData?.isPaginationEnabled;
+  const isCryptoPage = pathname === "/Dashboard/Crypto"
+  const showPagination =
+    isCryptoPage && cryptoPaginationData?.isPaginationEnabled
 
   return (
     <>
-      <div 
-        className="md:hidden fixed bottom-0 left-0 right-0 z-[999] p-4" 
-        style={{ 
-          paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom, 6rem))' 
+      <div
+        className="md:hidden fixed bottom-0 left-0 right-0 z-[999] p-4"
+        style={{
+          paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 6rem))",
         }}
       >
         {showPagination ? (
@@ -37,8 +38,18 @@ export default function Navbar({ isOpen, setIsOpen }) {
                 onClick={cryptoPaginationData.handlePrevious}
                 className="bg-gradient-to-r from-[#3a3d4e] to-[#4a4d5e] hover:from-[#4a4d5e] hover:to-[#5a5d6e] disabled:from-[#2a2d3e] disabled:to-[#2a2d3e] text-white px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
                 </svg>
                 <span>Préc.</span>
               </button>
@@ -59,8 +70,18 @@ export default function Navbar({ isOpen, setIsOpen }) {
                 className="bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] disabled:from-[#2a2d3e] disabled:to-[#2a2d3e] text-white px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
               >
                 <span>Suiv.</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
                 </svg>
               </button>
             </div>
@@ -103,7 +124,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
       <div
         className={`
-          fixed z-[60] bg-gradient-to-br from-[#1a1d29] to-[#212332] text-white flex flex-col border-r border-gray-500/30 overflow-hidden transition-all duration-300 shadow-2xl
+          fixed z-[60] bg-gradient-to-br from-[#1a1d29] to-[#212332] text-white flex flex-col border-r border-gray-500/30 overflow-y-auto transition-all duration-300 shadow-2xl
           md:top-0 md:left-0 md:h-screen md:border-r
           ${
             isOpen
@@ -113,10 +134,10 @@ export default function Navbar({ isOpen, setIsOpen }) {
         `}
       >
         <div
-          className={`flex items-center justify-between p-6 pt-8 text-2xl font-bold bg-gradient-to-r from-[#3A6FF8]/10 to-transparent ${
+          className={`flex items-center justify-between p-6 pt-8 text-2xl font-bold border-b border-gray-600/30 bg-gradient-to-r from-[#3A6FF8]/10 to-transparent ${
             isOpen ? "gap-3" : "md:justify-center"
           }`}
-          style={{ minHeight: "88px" }}
+          style={{minHeight: "88px"}}
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
@@ -150,55 +171,81 @@ export default function Navbar({ isOpen, setIsOpen }) {
         </div>
 
         <div
-          className={`transition-all duration-300 ease-in-out overflow-hidden flex-1 ${
+          className={`transition-all duration-300 ease-in-out flex-1 overflow-auto ${
             isOpen
               ? "opacity-100 max-h-screen transform translate-y-0"
               : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4"
           }`}
         >
-          <nav className="flex flex-col gap-6 p-6 h-full">
-            <div className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl overflow-hidden shadow-xl">
+          <nav className="flex flex-col gap-6 p-6 h-full overflow-auto">
+            <div className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl shadow-xl">
               <div
                 onClick={() => setDashboardOpen(!dashboardOpen)}
-                className="flex items-center justify-between p-4 cursor-pointer font-bold select-none hover:bg-white/5 transition-colors duration-200"
+                className="flex items-center justify-between p-4 mb-3 cursor-pointer font-bold select-none hover:bg-white/5 transition-colors duration-200"
               >
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 bg-[#3A6FF8] rounded-lg flex items-center justify-center">
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                      />
                     </svg>
                   </div>
                   <span className="text-lg">Dashboard</span>
                 </div>
                 <div
-                  className={`w-8 h-8 flex items-center justify-center bg-[#3A6FF8] rounded-lg transition-transform duration-300 ease-in-out shadow-lg ${
+                  className={`w-8 h-8flex items-center justify-center bg-[#3A6FF8] rounded-lg transition-transform duration-300 ease-in-out shadow-lg ${
                     dashboardOpen ? "rotate-180" : ""
                   }`}
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  <svg
+                    className="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
                   </svg>
                 </div>
               </div>
               <div
-                className={`overflow-hidden transition-all duration-400 ease-in-out px-4 flex flex-col gap-3 ${
+                className={` transition-all duration-300 ease-in-out px-4 flex flex-col gap-3 ${
                   dashboardOpen
-                    ? "max-h-screen opacity-100 pb-4"
+                    ? "max-h-[calc(100vh-80px)] opacity-100 pb-4"
                     : "max-h-0 opacity-0"
                 }`}
               >
                 {[
-                  { href: "/Dashboard/Crypto", label: "Cryptos", icon: "₿" },
-                  { href: "/Dashboard/Message", label: "Messages", icon: "💬" },
-                  { href: "/Dashboard/Meteo", label: "Météo", icon: "🌤️" },
-                  { href: "/Dashboard/Sport", label: "Sport", icon: "⚽" },
-                  { href: "/Dashboard/Calendrier", label: "Calendrier", icon: "📅" }
-                ].map((item) => (
+                  {href: "/Dashboard/Crypto", label: "Cryptos", icon: "₿"},
+                  {href: "/Dashboard/Message", label: "Messages", icon: "💬"},
+                  {href: "/Dashboard/Meteo", label: "Météo", icon: "🌤️"},
+                  {href: "/Dashboard/Sport", label: "Sport", icon: "⚽"},
+                  {
+                    href: "/Dashboard/Calendrier",
+                    label: "Calendrier",
+                    icon: "📅",
+                  },
+                ].map(item => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-3 hover:text-[#3A6FF8] hover:bg-white/5 transition-all duration-200 py-3 px-3 rounded-xl group ${
-                      pathname === item.href ? 'bg-[#3A6FF8]/20 text-[#3A6FF8]' : ''
+                    className={`flex items-center gap-2 hover:text-[#3A6FF8] hover:bg-white/5 transition-all duration-200 py-3 px-3 rounded-xl group ${
+                      pathname === item.href
+                        ? "bg-[#3A6FF8]/20 text-[#3A6FF8]"
+                        : ""
                     }`}
                     onClick={() => setIsOpen(false)}
                   >
@@ -217,14 +264,20 @@ export default function Navbar({ isOpen, setIsOpen }) {
               </h3>
               <div className="flex flex-col gap-3">
                 {[
-                  { href: "/Dashboard/Profile", label: "Profil", icon: "👤" },
-                  { href: "/Dashboard/Parametre", label: "Paramètres", icon: "⚙️" }
-                ].map((item) => (
+                  {href: "/Dashboard/Profile", label: "Profil", icon: "👤"},
+                  {
+                    href: "/Dashboard/Parametre",
+                    label: "Paramètres",
+                    icon: "⚙️",
+                  },
+                ].map(item => (
                   <Link
                     key={item.href}
                     href={item.href}
                     className={`flex items-center gap-3 hover:text-[#3A6FF8] hover:bg-white/5 transition-all duration-200 py-3 px-3 rounded-xl group ${
-                      pathname === item.href ? 'bg-[#3A6FF8]/20 text-[#3A6FF8]' : ''
+                      pathname === item.href
+                        ? "bg-[#3A6FF8]/20 text-[#3A6FF8]"
+                        : ""
                     }`}
                     onClick={() => setIsOpen(false)}
                   >
@@ -250,5 +303,5 @@ export default function Navbar({ isOpen, setIsOpen }) {
         </div>
       </div>
     </>
-  );
+  )
 }
