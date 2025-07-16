@@ -11,6 +11,12 @@
   --foreground: #171717;
 }
 
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -42,8 +48,86 @@
 }
 
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Styles spécifiques pour APK mobile */
+
+/* Support des safe areas pour Android */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .mobile-navbar-container {
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
 }
+
+/* Viewport meta pour APK */
+@media screen and (max-width: 768px) {
+  body {
+    /* Éviter le zoom sur les inputs */
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    
+    /* Éviter le rebond sur iOS/Android */
+    overscroll-behavior: none;
+    
+    /* Empêcher la sélection de texte accidentelle */
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* Augmenter la zone de touch pour les boutons */
+  button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Améliorer la performance des scrolls */
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    transform: translateZ(0);
+  }
+}
+
+/* Styles pour les appareils avec barre de navigation native */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+  .navbar-bottom-container {
+    bottom: 0;
+    padding-bottom: max(1.5rem, env(safe-area-inset-bottom, 1.5rem));
+    z-index: 9999;
+  }
+}
+
+/* Spécifique aux appareils Android */
+@media screen and (max-width: 768px) {
+  /* Éviter le chevauchement avec la barre système */
+  .mobile-fixed-bottom {
+    bottom: 0;
+    padding-bottom: max(1.5rem, 4rem); /* 4rem = ~64px pour la barre système */
+    z-index: 9999;
+  }
+  
+  /* Conteneur principal avec padding pour éviter le chevauchement */
+  .main-content-mobile {
+    padding-bottom: max(6rem, calc(env(safe-area-inset-bottom) + 4rem));
+  }
+}
+
+/* Animation pour l'ouverture/fermeture */
+.navbar-button-mobile {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: transform, opacity;
+}
+
+.navbar-button-mobile:active {
+  transform: scale(0.96);
+}
+
+/* Améliorer la visibilité sur les écrans AMOLED */
+@media screen and (max-width: 768px) {
+  .navbar-button-mobile {
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                0 4px 16px rgba(58, 111, 248, 0.2);
+  }
+}
+
+
+
