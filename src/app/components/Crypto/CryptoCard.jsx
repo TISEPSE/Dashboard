@@ -39,7 +39,7 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
           </div>
           <div className="min-w-0">
             <h3
-              className="text-[1.4em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate mt-2.5 transition-colors duration-200 ease-in-out"
+              className="text-[1.4em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate mt-2 transition-colors duration-200 ease-in-out"
               title={coin.name}
             >
               {coin.name}
@@ -50,7 +50,7 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
           </div>
         </div>
 
-        <div className="flex flex-col items-end text-[1.3em] gap-[0.5em]">
+        <div className="flex flex-col items-end text-[1.2em] gap-[0.5em]">
           <Variation
             label="1h"
             value={coin.price_change_percentage_1h_in_currency}
@@ -66,7 +66,7 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
         </div>
       </div>
 
-      <div className="my-[0.6em]">
+      <div className="mb-2">
         <div
           className="text-[1.4em] font-bold text-[#FeFeFe] truncate"
           title={`${coin.current_price?.toLocaleString()} ${
