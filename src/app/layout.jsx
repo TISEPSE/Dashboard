@@ -1,5 +1,7 @@
 "use client"
 import { useState } from "react"
+import "core-js/stable"
+import "regenerator-runtime/runtime"
 import Navbar from "./components/navbar"
 import { CryptoProvider } from "./context/CryptoContext"
 import { Geist, Geist_Mono } from "next/font/google"
