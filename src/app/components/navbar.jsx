@@ -17,7 +17,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
   return (
     <>
       {/* Interface en bas pour mobile */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[60]">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 z-[70]">
         <div className="bg-[#212332] border-t border-gray-500 p-4">
           <button
             onClick={() => setIsOpen(!isOpen)}
@@ -49,8 +49,8 @@ export default function Navbar({ isOpen, setIsOpen }) {
           md:top-0 md:left-0 md:h-screen md:border-r
           ${
             isOpen
-              ? "md:w-64 inset-0 w-full h-full" // Mobile: plein écran, Desktop: largeur normale
-              : "md:w-16 md:min-w-[64px] -left-full w-0 h-0" // Mobile: caché, Desktop: réduit
+              ? "md:w-64 inset-0 w-full h-full"
+              : "md:w-16 md:min-w-[64px] -left-full w-0 h-0"
           }
         `}
       >
