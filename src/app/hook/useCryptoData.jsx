@@ -1,36 +1,14 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import axios from "axios"
 
 const cryptoAPI = axios.create({
   baseURL: "https://api.coingecko.com/api/v3",
-  timeout: 12000, // Timeout par défaut augmenté
+  timeout: 20000, // Timeout plus élevé pour les grosses requêtes
   headers: { 
     "Content-Type": "application/json",
     "Accept": "application/json"
   },
 })
-
-cryptoAPI.interceptors.request.use(
-  config => {
-    // Ajouter un délai anti-spam
-    const now = Date.now()
-    const lastRequest = cryptoAPI.lastRequest || 0
-    const timeSinceLastRequest = now - lastRequest
-    
-    if (timeSinceLastRequest < 1000) { // Minimum 1 seconde entre les requêtes
-      return new Promise(resolve => {
-        setTimeout(() => {
-          cryptoAPI.lastRequest = Date.now()
-          resolve(config)
-        }, 1000 - timeSinceLastRequest)
-      })
-    }
-    
-    cryptoAPI.lastRequest = now
-    return config
-  },
-  error => Promise.reject(error)
-)
 
 cryptoAPI.interceptors.response.use(
   response => response,
@@ -51,29 +29,17 @@ cryptoAPI.interceptors.response.use(
 )
 
 export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder) => {
-  const [cryptos, setCryptos] = useState([])
-  const [sortedCryptos, setSortedCryptos] = useState([])
+  const [allCryptos, setAllCryptos] = useState([]) // Cache complet
+  const [displayedCryptos, setDisplayedCryptos] = useState([]) // Données affichées
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
+  const [lastFetch, setLastFetch] = useState(null)
+  const cacheRef = useRef({})
 
-  // Paramètres API
-  const getApiParams = () => {
-    if (perPage === "all") {
-      return {
-        perPageParam: 50,
-        pageParam: currentPage
-      }
-    } else {
-      // Pour les choix spécifiques (6, 12, 24), on charge toujours depuis la page 1
-      const itemsPerPage = typeof perPage === 'number' ? perPage : 6
-      return {
-        perPageParam: itemsPerPage,
-        pageParam: 1
-      }
-    }
-  }
+  // Clé de cache unique par devise
+  const getCacheKey = () => `crypto_${currency}`
 
   // Tri des cryptos
   const sortCryptos = (cryptosList) => {
@@ -97,8 +63,8 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
     })
   }
 
-  // Fetch des données avec optimisations réseau
-  const fetchCryptos = async (isRetry = false) => {
+  // Fetch complet de toutes les cryptos (250 premières)
+  const fetchAllCryptos = async (isRetry = false) => {
     try {
       setLoading(true)
       setError(null)
@@ -106,39 +72,59 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
         setIsRetrying(true)
       }
 
-      const { perPageParam, pageParam } = getApiParams()
+      const cacheKey = getCacheKey()
+      const now = Date.now()
+      
+      // Vérifier le cache (valide pendant 2 minutes)
+      if (cacheRef.current[cacheKey] && 
+          (now - cacheRef.current[cacheKey].timestamp) < 120000) {
+        console.log("📦 Utilisation du cache pour", cacheKey)
+        setAllCryptos(cacheRef.current[cacheKey].data)
+        setLastFetch(new Date(cacheRef.current[cacheKey].timestamp))
+        setRetryCount(0)
+        setIsRetrying(false)
+        setLoading(false)
+        return
+      }
 
+      console.log("🌐 Fetch complet des cryptos pour", cacheKey)
+      
       const response = await cryptoAPI.get("/coins/markets", {
         params: {
           vs_currency: currency,
           order: "market_cap_desc",
-          per_page: perPageParam,
-          page: pageParam,
+          per_page: 250, // Toujours charger 250 cryptos
+          page: 1,
           price_change_percentage: "1h,24h,7d",
-          // Optimisations pour réduire la charge réseau
           sparkline: false,
           include_market_cap: true,
           include_24hr_vol: true,
           include_24hr_change: true,
           include_last_updated_at: false
-        },
-        // Optimisations supplémentaires
-        timeout: perPage === "all" ? 15000 : 10000, // Plus de temps pour le mode "Tout"
-        headers: {
-          "Content-Type": "application/json",
-          "Cache-Control": "public, max-age=30" // Cache pendant 30 secondes
         }
       })
 
-      setCryptos(response.data)
+      const cryptoData = response.data
+      
+      // Mettre en cache
+      cacheRef.current[cacheKey] = {
+        data: cryptoData,
+        timestamp: now
+      }
+      
+      setAllCryptos(cryptoData)
+      setLastFetch(new Date(now))
       setRetryCount(0)
       setIsRetrying(false)
+      
+      console.log(`✅ ${cryptoData.length} cryptos chargées et mises en cache`)
+      
     } catch (err) {
       setError(err.message)
       setRetryCount(prev => prev + 1)
       console.error("Erreur lors du chargement des cryptos:", err)
       
-      // Retry plus agressif pour le mode "Tout"
+      // Retry plus agressif
       const shouldRetry = err.code === "ECONNABORTED" || 
                          err.response?.status >= 500 || 
                          err.code === "NETWORK_ERROR" ||
@@ -146,15 +132,12 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
                          err.message?.includes("timeout") ||
                          !err.response
       
-      if (shouldRetry) {
+      if (shouldRetry && retryCount < 5) {
         setIsRetrying(true)
-        // Délai adaptatif selon le nombre de tentatives
-        const retryDelay = perPage === "all" ? 
-          Math.min(5000 + (retryCount * 2000), 15000) : // 5s, 7s, 9s, 11s, 13s, 15s max
-          5000
+        const retryDelay = Math.min(3000 + (retryCount * 2000), 15000) // 3s, 5s, 7s, 9s, 11s
         
         setTimeout(() => {
-          fetchCryptos(true)
+          fetchAllCryptos(true)
         }, retryDelay)
       } else {
         setIsRetrying(false)
@@ -164,47 +147,61 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
     }
   }
 
-  // Effet pour trier les cryptos
-  useEffect(() => {
-    if (cryptos.length > 0) {
-      setSortedCryptos(sortCryptos(cryptos))
-    }
-  }, [cryptos, sortBy, sortOrder])
+  // Filtrer et paginer les données du cache
+  const processDisplayedCryptos = () => {
+    if (allCryptos.length === 0) return
 
-  // Effet pour fetch les données
-  useEffect(() => {
-    fetchCryptos()
-  }, [perPage, currency, sortBy, sortOrder]) // Ajout de sortBy et sortOrder
-
-  // Effet pour fetch les données quand currentPage change SEULEMENT en mode "all"
-  useEffect(() => {
-    if (perPage === "all") {
-      fetchCryptos()
-    }
-  }, [currentPage])
-
-  // Auto-refresh optimisé
-  useEffect(() => {
-    // Intervalle adaptatif selon le mode
-    const refreshInterval = perPage === "all" ? 15000 : 10000 // 15s pour "Tout", 10s pour les autres
+    // Trier d'abord
+    const sortedData = sortCryptos(allCryptos)
     
+    if (perPage === "all") {
+      // Mode "Tout" : pagination par tranches de 50
+      const startIndex = (currentPage - 1) * 50
+      const endIndex = startIndex + 50
+      setDisplayedCryptos(sortedData.slice(startIndex, endIndex))
+    } else {
+      // Modes spécifiques : afficher exactement le nombre demandé
+      const itemsPerPage = typeof perPage === 'number' ? perPage : 6
+      setDisplayedCryptos(sortedData.slice(0, itemsPerPage))
+    }
+  }
+
+  // Effet pour charger les données initiales
+  useEffect(() => {
+    fetchAllCryptos()
+  }, [currency]) // Seulement quand la devise change
+
+  // Effet pour traiter l'affichage
+  useEffect(() => {
+    processDisplayedCryptos()
+  }, [allCryptos, perPage, currentPage, sortBy, sortOrder])
+
+  // Auto-refresh périodique (toutes les 3 minutes)
+  useEffect(() => {
     const interval = setInterval(() => {
-      // Éviter les refresh si on est déjà en retry
-      if (!isRetrying) {
-        fetchCryptos()
+      if (!isRetrying && !loading) {
+        console.log("🔄 Auto-refresh du cache")
+        fetchAllCryptos()
       }
-    }, refreshInterval)
+    }, 180000) // 3 minutes
     
     return () => clearInterval(interval)
-  }, [currentPage, perPage, currency, sortBy, sortOrder, isRetrying])
+  }, [currency, isRetrying, loading])
 
   return {
-    cryptos: sortedCryptos,
+    cryptos: displayedCryptos,
     loading,
     error,
     retryCount,
     isRetrying,
-    refetch: fetchCryptos,
-    isPaginationEnabled: perPage === "all" // Nouvelle propriété pour savoir si la pagination est active
+    refetch: fetchAllCryptos,
+    isPaginationEnabled: perPage === "all",
+    totalCryptos: allCryptos.length,
+    lastFetch,
+    // Informations sur le cache
+    cacheStatus: {
+      isCached: !!cacheRef.current[getCacheKey()],
+      cacheAge: lastFetch ? Math.round((Date.now() - lastFetch.getTime()) / 1000) : null
+    }
   }
 }

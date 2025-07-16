@@ -31,7 +31,10 @@ const CryptoDashboard = () => {
     retryCount,
     isRetrying,
     refetch,
-    isPaginationEnabled
+    isPaginationEnabled,
+    totalCryptos,
+    lastFetch,
+    cacheStatus
   } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder)
 
   // Gestion du changement de page
@@ -93,6 +96,21 @@ const CryptoDashboard = () => {
 
       {/* Contenu principal */}
       <div className="max-w-7xl mx-auto px-6 py-6 pb-32 sm:pb-6">
+        {/* Informations sur le cache */}
+        {cacheStatus.isCached && (
+          <div className="mb-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 flex items-center gap-3">
+            <div className="w-4 h-4 bg-blue-500/20 rounded-full flex items-center justify-center">
+              <span className="text-xs text-blue-400">📦</span>
+            </div>
+            <div className="flex-1 text-sm">
+              <span className="text-blue-400 font-medium">Cache actif</span>
+              <span className="text-gray-300 ml-2">
+                {totalCryptos} cryptos • Dernière MAJ: {cacheStatus.cacheAge}s
+              </span>
+            </div>
+          </div>
+        )}
+
         {/* Notification de retry */}
         {isRetrying && cryptos.length > 0 && (
           <CryptoRetryNotification retryCount={retryCount} />
@@ -118,6 +136,7 @@ const CryptoDashboard = () => {
             onPageChange={handlePageChange}
             cryptosLength={cryptos.length}
             perPage={perPage}
+            totalCryptos={totalCryptos}
           />
         )}
       </div>

@@ -5,6 +5,7 @@ const CryptoPagination = ({
   onPageChange,
   cryptosLength,
   perPage,
+  totalCryptos = 0,
   className = ""
 }) => {
   const handlePrevious = () => {
@@ -15,9 +16,9 @@ const CryptoPagination = ({
     onPageChange(currentPage + 1)
   }
 
-  // Pour le mode "Tout", on permet toujours la navigation suivante
-  // sauf si on reçoit moins de 50 résultats (fin des données)
-  const isNextDisabled = perPage === "all" ? cryptosLength < 50 : false
+  // Calculer le nombre total de pages possibles
+  const totalPages = Math.ceil(totalCryptos / 50)
+  const isNextDisabled = currentPage >= totalPages || cryptosLength < 50
 
   return (
     <>
@@ -36,10 +37,10 @@ const CryptoPagination = ({
 
         <div className="flex items-center gap-2 px-3 py-2 bg-[#2a2d3e] rounded-lg border border-[#3a3d4e]">
           <span className="text-gray-300 text-sm">
-            Page {currentPage}
+            Page {currentPage} / {totalPages}
           </span>
           <span className="text-xs text-gray-400">
-            ({cryptosLength} résultats)
+            ({cryptosLength} sur {totalCryptos})
           </span>
         </div>
 
@@ -71,7 +72,7 @@ const CryptoPagination = ({
 
           <div className="flex items-center gap-2 px-3 py-3 bg-[#2a2d3e] rounded-lg border border-[#3a3d4e] shadow-lg">
             <span className="text-gray-300 text-sm font-medium">
-              Page {currentPage}
+              {currentPage}/{totalPages}
             </span>
             <span className="text-xs text-gray-400">
               ({cryptosLength})
