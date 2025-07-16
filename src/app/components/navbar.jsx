@@ -18,13 +18,11 @@ export default function Navbar({ isOpen, setIsOpen }) {
 
   if (!hasMounted) return null;
 
-  // Détecter si on est sur la page crypto avec pagination activée
   const isCryptoPage = pathname === '/Dashboard/Crypto';
   const showPagination = isCryptoPage && cryptoPaginationData?.isPaginationEnabled;
 
   return (
     <>
-      {/* BOUTON MOBILE AVEC PAGINATION INTÉGRÉE */}
       <div 
         className="md:hidden fixed bottom-0 left-0 right-0 z-[999] p-4" 
         style={{ 
@@ -32,9 +30,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
         }}
       >
         {showPagination ? (
-          /* Version avec pagination */
           <div className="bg-gradient-to-r from-[#1a1d29] to-[#212332] border border-gray-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-sm">
-            {/* Pagination */}
             <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-600/50">
               <button
                 disabled={cryptoPaginationData.currentPage === 1}
@@ -69,7 +65,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
               </button>
             </div>
 
-            {/* Bouton Menu - Correction du problème de clic */}
             <button
               onClick={() => setIsOpen(!isOpen)}
               className="w-full bg-gradient-to-r from-[#3a3d4e] to-[#4a4d5e] hover:from-[#4a4d5e] hover:to-[#5a5d6e] text-white p-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95 touch-none"
@@ -84,7 +79,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
             </button>
           </div>
         ) : (
-          /* Version simple - Correction du problème de clic */
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="w-full bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] text-white p-5 rounded-2xl transition-all duration-200 shadow-2xl flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95 touch-none"
@@ -100,7 +94,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
         )}
       </div>
 
-      {/* Overlay pour mobile */}
       {isOpen && (
         <div
           className="md:hidden fixed inset-0 bg-black bg-opacity-50 z-[55]"
@@ -108,24 +101,22 @@ export default function Navbar({ isOpen, setIsOpen }) {
         />
       )}
 
-      {/* NAVBAR REDESIGNÉE - PLUS GRANDE ET INTUITIVE */}
       <div
         className={`
           fixed z-[60] bg-gradient-to-br from-[#1a1d29] to-[#212332] text-white flex flex-col border-r border-gray-500/30 overflow-hidden transition-all duration-300 shadow-2xl
           md:top-0 md:left-0 md:h-screen md:border-r
           ${
             isOpen
-              ? "md:w-80 inset-0 w-full h-full" // Plus large : 320px au lieu de 256px
+              ? "md:w-80 inset-0 w-full h-full"
               : "md:w-16 md:min-w-[64px] -left-full w-0 h-0"
           }
         `}
       >
-        {/* HEADER AMÉLIORÉ - Position légèrement abaissée */}
         <div
           className={`flex items-center justify-between p-6 pt-8 text-2xl font-bold border-b border-gray-600/30 bg-gradient-to-r from-[#3A6FF8]/10 to-transparent ${
             isOpen ? "gap-3" : "md:justify-center"
           }`}
-          style={{ minHeight: "88px" }} // Plus haut pour compenser le pt-8
+          style={{ minHeight: "88px" }}
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
@@ -147,7 +138,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
             </div>
           </div>
 
-          {/* Bouton toggle pour desktop - amélioré avec pointer-events */}
           <button
             onClick={() => setIsOpen(!isOpen)}
             className="hidden md:block text-white bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] p-3 rounded-xl cursor-pointer flex-shrink-0 transition-all duration-200 hover:from-[#2952d3] hover:to-[#1e3a8a] shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 touch-none"
@@ -159,7 +149,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
           </button>
         </div>
 
-        {/* CONTENU NAVIGATION AMÉLIORÉ */}
         <div
           className={`transition-all duration-300 ease-in-out overflow-hidden flex-1 ${
             isOpen
@@ -168,7 +157,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
           }`}
         >
           <nav className="flex flex-col gap-6 p-6 h-full">
-            {/* SECTION DASHBOARD - REDESIGNÉE */}
             <div className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl overflow-hidden shadow-xl">
               <div
                 onClick={() => setDashboardOpen(!dashboardOpen)}
@@ -187,25 +175,15 @@ export default function Navbar({ isOpen, setIsOpen }) {
                     dashboardOpen ? "rotate-180" : ""
                   }`}
                 >
-                  <svg
-                    className="w-4 h-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
               </div>
               <div
                 className={`overflow-hidden transition-all duration-400 ease-in-out px-4 flex flex-col gap-3 ${
                   dashboardOpen
-                    ? "max-h-96 opacity-100 pb-4"
+                    ? "max-h-screen opacity-100 pb-4"
                     : "max-h-0 opacity-0"
                 }`}
               >
@@ -233,7 +211,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
               </div>
             </div>
 
-            {/* SECTION UTILISATEUR - REDESIGNÉE */}
             <div className="bg-gradient-to-r from-[#374151] to-[#1f2937] rounded-2xl p-4 shadow-xl">
               <h3 className="text-sm font-bold text-gray-300 mb-3 uppercase tracking-wide">
                 Compte
@@ -260,7 +237,6 @@ export default function Navbar({ isOpen, setIsOpen }) {
               </div>
             </div>
 
-            {/* FOOTER NAVBAR */}
             <div className="mt-auto pt-4 border-t border-gray-600/30">
               <div className="flex items-center justify-between text-sm text-gray-400">
                 <span>v1.0.0</span>
