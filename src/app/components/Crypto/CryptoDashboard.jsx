@@ -1,5 +1,4 @@
 "use client"
-
 import React, { useState, useEffect } from "react"
 import { useCryptoData } from "../../hook/useCryptoData"
 import { useCryptoPreferences } from "../../hook/useCryptoPreferences"
@@ -63,10 +62,10 @@ const CryptoDashboard = () => {
   // États d'erreur et de chargement
   if (error && !isRetrying) {
     return (
-      <CryptoErrorState 
-        error={error} 
-        retryCount={retryCount} 
-        onRetry={() => refetch()} 
+      <CryptoErrorState
+        error={error}
+        retryCount={retryCount}
+        onRetry={() => refetch()}
       />
     )
   }

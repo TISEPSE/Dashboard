@@ -15,8 +15,9 @@ const CryptoPagination = ({
     onPageChange(currentPage + 1)
   }
 
-  const isNextDisabled = cryptosLength === 0 || 
-    (perPage !== "all" && cryptosLength < (typeof perPage === 'number' ? perPage : 6))
+  // Pour le mode "Tout", on permet toujours la navigation suivante
+  // sauf si on reçoit moins de 50 résultats (fin des données)
+  const isNextDisabled = perPage === "all" ? cryptosLength < 50 : false
 
   return (
     <>
