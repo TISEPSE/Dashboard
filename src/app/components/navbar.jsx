@@ -113,7 +113,7 @@ export default function Navbar({ isOpen, setIsOpen }) {
         `}
       >
         <div
-          className={`flex items-center justify-between p-6 pt-8 text-2xl font-bold border-b border-gray-600/30 bg-gradient-to-r from-[#3A6FF8]/10 to-transparent ${
+          className={`flex items-center justify-between p-6 pt-8 text-2xl font-bold bg-gradient-to-r from-[#3A6FF8]/10 to-transparent ${
             isOpen ? "gap-3" : "md:justify-center"
           }`}
           style={{ minHeight: "88px" }}
