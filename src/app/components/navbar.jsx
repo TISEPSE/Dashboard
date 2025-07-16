@@ -202,7 +202,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <span className="text-lg">Dashboard</span>
                 </div>
                 <div
-                  className={`w-8 h-8flex items-center justify-center bg-[#3A6FF8] rounded-lg transition-transform duration-300 ease-in-out shadow-lg ${
+                  className={`w-8 h-8 flex items-center justify-center bg-[#3A6FF8] rounded-lg transition-transform duration-300 ease-in-out shadow-lg ${
                     dashboardOpen ? "rotate-180" : ""
                   }`}
                 >
