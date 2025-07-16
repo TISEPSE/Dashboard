@@ -39,7 +39,7 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
           </div>
           <div className="min-w-0">
             <h3
-              className="text-[1.3em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate transition-colors duration-200 ease-in-out"
+              className="text-[1.4em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate mt-2.5 transition-colors duration-200 ease-in-out"
               title={coin.name}
             >
               {coin.name}

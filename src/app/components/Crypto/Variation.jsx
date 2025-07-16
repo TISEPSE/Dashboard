@@ -15,7 +15,7 @@ export default function Variation({ label, value }) {
           numericValue > 0 ? "text-green-500" : "text-red-500"
         }`}
       >
-        {numericValue.toFixed(10).replace(/\.?0+$/, "")}%
+        {numericValue}%
       </span>
     </div>
   )
