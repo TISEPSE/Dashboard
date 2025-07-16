@@ -1,17 +1,21 @@
 "use client"
-import React, { useState, useEffect } from "react"
-import { useCryptoData } from "../../hook/useCryptoData"
-import { useCryptoPreferences } from "../../hook/useCryptoPreferences"
-import { useCryptoContext } from "../../context/CryptoContext"
+import React, {useState, useEffect} from "react"
+import {useCryptoData} from "../../hook/useCryptoData"
+import {useCryptoPreferences} from "../../hook/useCryptoPreferences"
+import {useCryptoContext} from "../../context/CryptoContext"
 import CryptoCard from "../../components/Crypto/CryptoCard"
 import CryptoToolbar from "./CryptoToolbar"
 import CryptoPagination from "./CryptoPagination"
-import { CryptoErrorState, CryptoLoadingState, CryptoRetryNotification } from "../Crypto/CryptoState"
+import {
+  CryptoErrorState,
+  CryptoLoadingState,
+  CryptoRetryNotification,
+} from "../Crypto/CryptoState"
 
-const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
-  const { setCryptoPaginationData } = useCryptoContext()
+const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
+  const {setCryptoPaginationData} = useCryptoContext()
   const [currentPage, setCurrentPage] = useState(1)
-  
+
   // Récupération des préférences
   const {
     hydrated,
@@ -22,7 +26,7 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
     sortBy,
     setSortBy,
     sortOrder,
-    setSortOrder
+    setSortOrder,
   } = useCryptoPreferences()
 
   // Récupération des données
@@ -36,13 +40,13 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
     isPaginationEnabled,
     totalCryptos,
     lastFetch,
-    cacheStatus
+    cacheStatus,
   } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder)
 
   // Gestion du changement de page
-  const handlePageChange = (newPage) => {
+  const handlePageChange = newPage => {
     setCurrentPage(newPage)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo({top: 0, behavior: "smooth"})
   }
 
   // Gestion de la pagination
@@ -72,21 +76,26 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
         totalPages,
         isNextDisabled,
         handlePrevious,
-        handleNext
+        handleNext,
       })
     } else {
-      setCryptoPaginationData({ isPaginationEnabled: false })
+      setCryptoPaginationData({isPaginationEnabled: false})
     }
-  }, [isPaginationEnabled, currentPage, totalPages, isNextDisabled, setCryptoPaginationData])
-
+  }, [
+    isPaginationEnabled,
+    currentPage,
+    totalPages,
+    isNextDisabled,
+    setCryptoPaginationData,
+  ])
 
   // Gestion des clics sur les cartes
-  const handleAddCrypto = (coin) => {
+  const handleAddCrypto = coin => {
     console.log("Ajouter crypto:", coin)
     // Logique d'ajout ici
   }
 
-  const handleInfoCrypto = (coin) => {
+  const handleInfoCrypto = coin => {
     console.log("Info crypto:", coin)
     // Logique d'info ici
   }
@@ -150,7 +159,7 @@ const CryptoDashboard = ({ isNavOpen, setIsNavOpen }) => {
 
         {/* Grille des cryptos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
-          {cryptos.map((coin) => (
+          {cryptos.map(coin => (
             <CryptoCard
               key={coin.id}
               coin={coin}

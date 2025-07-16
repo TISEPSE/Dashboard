@@ -1,20 +1,21 @@
 import React from "react"
 
-const Variation = ({ label, value }) => (
+const Variation = ({label, value}) => (
   <div className="flex items-center gap-[0.25em] text-[0.7em]">
     <span className="text-gray-400">{label}</span>
     <span
-      className={`font-semibold px-[0.5em] py-[0.2em] rounded-full ${value >= 0
+      className={`font-semibold px-[0.5em] py-[0.em] rounded-full ${
+        value >= 0
           ? "bg-green-600/20 text-green-400"
           : "bg-red-600/20 text-red-400"
-        }`}
+      }`}
     >
       {value?.toFixed(2)}%
     </span>
   </div>
 )
 
-const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
+const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
   return (
     <div
       className="bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
@@ -25,7 +26,11 @@ const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-[0.5em] flex-1 min-w-0">
           <div className="relative">
-            <img src={coin.image} alt={coin.name} className="w-[2.1em] h-[2.1em] rounded-full" />
+            <img
+              src={coin.image}
+              alt={coin.name}
+              className="w-[2.1em] h-[2.1em] rounded-full"
+            />
             <div className="absolute -top-[0.5em] -right-[0.5em] w-[1.2em] h-[1.2em] bg-[#3A6FF8] rounded-full flex items-center justify-center">
               <span className="text-[0.6em] font-bold text-white">
                 #{coin.market_cap_rank}
@@ -45,34 +50,52 @@ const CryptoCard = ({ coin, currency, onAddClick, onInfoClick }) => {
           </div>
         </div>
 
-        <div className="flex flex-col items-end gap-[0.3em]">
-          <Variation label="1h" value={coin.price_change_percentage_1h_in_currency} />
-          <Variation label="24h" value={coin.price_change_percentage_24h_in_currency} />
-          <Variation label="7j" value={coin.price_change_percentage_7d_in_currency} />
+        <div className="flex flex-col items-end text-[1.3em] gap-[0.5em]">
+          <Variation
+            label="1h"
+            value={coin.price_change_percentage_1h_in_currency}
+          />
+          <Variation
+            label="24h"
+            value={coin.price_change_percentage_24h_in_currency}
+          />
+          <Variation
+            label="7j"
+            value={coin.price_change_percentage_7d_in_currency}
+          />
         </div>
       </div>
 
       <div className="my-[0.6em]">
         <div
           className="text-[1.4em] font-bold text-[#FeFeFe] truncate"
-          title={`${coin.current_price?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}
+          title={`${coin.current_price?.toLocaleString()} ${
+            currency === "eur" ? "€" : "$"
+          }`}
         >
-          {coin.current_price?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+          {coin.current_price?.toLocaleString()}{" "}
+          {currency === "eur" ? "€" : "$"}
         </div>
       </div>
 
       <div className="space-y-[0.2em] text-[0.9em] text-gray-400">
         <div
           className="truncate"
-          title={`Cap. marché: ${coin.market_cap?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}
+          title={`Cap. marché: ${coin.market_cap?.toLocaleString()} ${
+            currency === "eur" ? "€" : "$"
+          }`}
         >
-          Cap: {coin.market_cap?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+          Cap: {coin.market_cap?.toLocaleString()}{" "}
+          {currency === "eur" ? "€" : "$"}
         </div>
         <div
           className="truncate"
-          title={`Volume 24h: ${coin.total_volume?.toLocaleString()} ${currency === "eur" ? "€" : "$"}`}
+          title={`Volume 24h: ${coin.total_volume?.toLocaleString()} ${
+            currency === "eur" ? "€" : "$"
+          }`}
         >
-          Volume: {coin.total_volume?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+          Volume: {coin.total_volume?.toLocaleString()}{" "}
+          {currency === "eur" ? "€" : "$"}
         </div>
       </div>
 
