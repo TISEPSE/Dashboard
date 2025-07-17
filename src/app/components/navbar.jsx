@@ -30,89 +30,18 @@ export default function Navbar({isOpen, setIsOpen}) {
           paddingBottom: "max(1.5rem, env(safe-area-inset-bottom, 6rem))",
         }}
       >
-        {showPagination ? (
-          <div className="bg-gradient-to-r from-[#1a1d29] to-[#212332] border border-gray-500/50 rounded-2xl p-4 shadow-2xl backdrop-blur-sm">
-            <div className="flex items-center justify-between gap-3 mb-4 pb-4 border-b border-gray-600/50">
-              <button
-                disabled={cryptoPaginationData.currentPage === 1}
-                onClick={cryptoPaginationData.handlePrevious}
-                className="bg-gradient-to-r from-[#3a3d4e] to-[#4a4d5e] hover:from-[#4a4d5e] hover:to-[#5a5d6e] disabled:from-[#2a2d3e] disabled:to-[#2a2d3e] text-white px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
-              >
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M15 19l-7-7 7-7"
-                  />
-                </svg>
-                <span>Préc.</span>
-              </button>
-
-              <div className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#2a2d3e] to-[#3a3d4e] rounded-xl border border-gray-600/50 shadow-lg">
-                <span className="text-white text-sm font-bold">
-                  {cryptoPaginationData.currentPage}
-                </span>
-                <span className="text-gray-400 text-sm">/</span>
-                <span className="text-gray-300 text-sm">
-                  {cryptoPaginationData.totalPages}
-                </span>
-              </div>
-
-              <button
-                disabled={cryptoPaginationData.isNextDisabled}
-                onClick={cryptoPaginationData.handleNext}
-                className="bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] disabled:from-[#2a2d3e] disabled:to-[#2a2d3e] text-white px-4 py-3 rounded-xl font-medium text-sm transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-lg"
-              >
-                <span>Suiv.</span>
-                <svg
-                  className="w-4 h-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 5l7 7-7 7"
-                  />
-                </svg>
-              </button>
-            </div>
-
-            <button
-              onClick={() => setIsOpen(!isOpen)}
-              className="w-full bg-gradient-to-r from-[#3a3d4e] to-[#4a4d5e] hover:from-[#4a4d5e] hover:to-[#5a5d6e] text-white p-4 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-3 transform hover:scale-105 active:scale-95 touch-none"
-              aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
-            >
-              <div className="transition-transform duration-200 pointer-events-none">
-                {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-              </div>
-              <span className="font-bold text-lg pointer-events-none">
-                {isOpen ? "Fermer le menu" : "Ouvrir le menu"}
-              </span>
-            </button>
+        <button
+          onClick={() => setIsOpen(!isOpen)}
+          className="w-full bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] text-white p-3 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 touch-none"
+          aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
+        >
+          <div className="transition-transform duration-200 pointer-events-none">
+            {isOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
           </div>
-        ) : (
-          <button
-            onClick={() => setIsOpen(!isOpen)}
-            className="w-full bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] text-white p-2 rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-1 transform hover:scale-105 active:scale-95 touch-none"
-            aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
-          >
-            <div className="transition-transform duration-200 pointer-events-none">
-              {isOpen ? <FaTimes size={16} /> : <FaBars size={16} />}
-            </div>
-            <span className="font-medium text-xs pointer-events-none">
-              {isOpen ? "Fermer" : "Menu"}
-            </span>
-          </button>
-        )}
+          <span className="font-semibold text-sm pointer-events-none">
+            {isOpen ? "Fermer" : "Menu"}
+          </span>
+        </button>
       </div>
 
       {isOpen && (

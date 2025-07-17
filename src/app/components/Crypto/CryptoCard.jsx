@@ -1,5 +1,50 @@
 import React from "react"
 
+// Fonction pour formater les prix avec précision (sans arrondi)
+const formatPrice = (price, currency) => {
+  if (!price || price === 0) return "0"
+  
+  // Pour les prix très petits (< 0.01), afficher jusqu'à 8 décimales
+  if (price < 0.01) {
+    return price.toFixed(8).replace(/\.?0+$/, "")
+  }
+  // Pour les prix moyens (< 1), afficher jusqu'à 6 décimales
+  else if (price < 1) {
+    return price.toFixed(6).replace(/\.?0+$/, "")
+  }
+  // Pour les prix entre 1 et 100, afficher jusqu'à 4 décimales
+  else if (price < 100) {
+    return price.toFixed(4).replace(/\.?0+$/, "")
+  }
+  // Pour les prix plus élevés, utiliser 2 décimales avec séparateurs
+  else {
+    return price.toLocaleString('fr-FR', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 4
+    })
+  }
+}
+
+// Fonction pour formater les gros nombres (market cap, volume)
+const formatLargeNumber = (value, currency) => {
+  if (!value || value === 0) return "0"
+  
+  if (value >= 1e12) {
+    return (value / 1e12).toFixed(2) + "T"
+  } else if (value >= 1e9) {
+    return (value / 1e9).toFixed(2) + "B"
+  } else if (value >= 1e6) {
+    return (value / 1e6).toFixed(2) + "M"
+  } else if (value >= 1e3) {
+    return (value / 1e3).toFixed(2) + "K"
+  } else {
+    return value.toLocaleString('fr-FR', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2
+    })
+  }
+}
+
 const Variation = ({label, value}) => (
   <div className="flex items-center gap-[0.3em] text-[0.75em]">
     <span className="text-gray-400 font-medium">{label}</span>
@@ -19,14 +64,10 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
   return (
     <div
       className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
-                 transition-all duration-300 group cursor-pointer flex flex-col h-[16em]
-                 hover:border-[#3A6FF8] hover:shadow-[0_0_20px_rgba(58,111,248,0.4)]
-                 hover:bg-[#2f3240]
-                 hover:scale-[1.01] hover:-translate-y-[0.1em]
-                 overflow-hidden relative
-                 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent
-                 before:transform before:-translate-x-full before:transition-transform before:duration-700
-                 hover:before:translate-x-full
+                 transition-all duration-400 group cursor-pointer flex flex-col h-[16em]
+                 hover:border-[#3A6FF8] hover:shadow-[0_8px_24px_rgba(58,111,248,0.3)]
+                 hover:bg-[#2f3240] hover:scale-[1.02] hover:-translate-y-1
+                 relative overflow-hidden
                  animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0`}
       style={{
         animationDelay: `${index * 0.02}s`
@@ -74,12 +115,12 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
       <div className="mb-4">
         <div
           className="text-[1.6em] font-bold text-[#FeFeFe] truncate"
-          title={`${coin.current_price?.toLocaleString()} ${
+          title={`${formatPrice(coin.current_price, currency)} ${
             currency === "eur" ? "€" : "$"
           }`}
         >
-          {coin.current_price?.toLocaleString()}{" "}
-          <span className="text-[0.7em] text-gray-400">
+          {formatPrice(coin.current_price, currency)}{" "}
+          <span className="text-[0.7em] text-[#FeFeFe]">
             {currency === "eur" ? "€" : "$"}
           </span>
         </div>
@@ -89,13 +130,13 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
         <div className="flex justify-between items-center">
           <span className="text-gray-400">Cap. marché</span>
           <span className="font-medium text-gray-200">
-            {coin.market_cap?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+            {formatLargeNumber(coin.market_cap, currency)} {currency === "eur" ? "€" : "$"}
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-gray-400">Volume 24h</span>
           <span className="font-medium text-gray-200">
-            {coin.total_volume?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+            {formatLargeNumber(coin.total_volume, currency)} {currency === "eur" ? "€" : "$"}
           </span>
         </div>
       </div>
