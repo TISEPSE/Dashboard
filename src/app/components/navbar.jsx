@@ -128,15 +128,13 @@ export default function Navbar({isOpen, setIsOpen}) {
           md:top-0 md:left-0 md:h-screen md:border-r
           ${
             isOpen
-              ? "md:w-72 inset-0 w-full h-full"
+              ? "md:w-64 inset-0 w-full h-full"
               : "md:w-16 md:min-w-[64px] -left-full w-0 h-0"
           }
         `}
-        onMouseEnter={() => setIsOpen(true)}
-        onMouseLeave={() => setIsOpen(false)}
       >
         <div
-          className={`flex items-center justify-between p-4 pt-6 text-lg font-bold bg-gradient-to-b from-[#3A6FF8]/10 via-[#3A6FF8]/5 to-transparent ${
+          className={`flex items-center justify-between p-4 pt-6 text-xl font-bold bg-gradient-to-b from-[#3A6FF8]/10 via-[#3A6FF8]/5 to-transparent ${
             isOpen ? "gap-2" : "md:justify-center"
           }`}
           style={{minHeight: "72px"}}
@@ -210,7 +208,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <span className="text-lg">Dashboard</span>
                 </div>
                 <div
-                  className={`w-8 h-8 flex items-center justify-center bg-[#3A6FF8] rounded-lg transition-transform duration-300 ease-in-out shadow-lg ${
+                  className={`w-8 h-8 flex items-center justify-center text-gray-400 transition-transform duration-300 ease-in-out ${
                     dashboardOpen ? "rotate-180" : ""
                   }`}
                 >

@@ -20,7 +20,7 @@ export default function RootLayout({ children }) {
           <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
           <main
             className={`transition-all duration-300 ease-in-out ${
-              isOpen ? "md:ml-80" : "md:ml-16"
+              isOpen ? "md:ml-64" : "md:ml-16"
             }`}
           >
             {children}

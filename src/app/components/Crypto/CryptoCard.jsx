@@ -17,7 +17,7 @@ const Variation = ({label, value}) => (
 
 const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false}) => {
   const shouldAnimate = true
-  const animationDelay = hasInteracted ? 0.01 : 0.03
+  const animationDelay = hasInteracted ? 0.02 : 0.05
 
   return (
     <div
@@ -30,7 +30,7 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
                  before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent
                  before:transform before:-translate-x-full before:transition-transform before:duration-700
                  hover:before:translate-x-full ${
-                   shouldAnimate ? 'animate-[fadeInUp_0.3s_ease-out_forwards] opacity-0' : 'opacity-100'
+                   shouldAnimate ? 'animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0' : 'opacity-100'
                  }`}
       style={{
         animationDelay: `${index * animationDelay}s`
