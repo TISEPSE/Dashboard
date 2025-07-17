@@ -6,6 +6,7 @@ import {useCryptoContext} from "../../context/CryptoContext"
 import CryptoCard from "../../components/Crypto/CryptoCard"
 import CryptoToolbar from "./CryptoToolbar"
 import CryptoPagination from "./CryptoPagination"
+import FavoritesList from "./FavoritesList"
 import {
   CryptoErrorState,
   CryptoLoadingState,
@@ -192,9 +193,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
             
             <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFavorites ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className={`border-t border-gray-600/20 transition-all duration-300 ease-in-out ${showFavorites ? 'mt-3 pt-3' : 'mt-0 pt-0'}`}>
-                <p className="text-center text-gray-400 py-4 text-sm">
-                  Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
-                </p>
+                <FavoritesList onCryptoSelect={(symbol) => console.log('Crypto sélectionnée:', symbol)} />
               </div>
             </div>
           </div>

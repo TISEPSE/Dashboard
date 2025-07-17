@@ -1,4 +1,5 @@
 import React from "react"
+import { useFavorites } from "../../hook/useFavorites"
 
 // Fonction pour formater les prix avec précision (sans arrondi)
 const formatPrice = (price, currency) => {
@@ -60,7 +61,9 @@ const Variation = ({label, value}) => (
   </div>
 )
 
-const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false}) => {
+const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = false}) => {
+  const { addFavorite, removeFavorite, isFavorite } = useFavorites()
+  
   // Mémorisation pour éviter le re-render complet
   const memoizedCoin = React.useMemo(() => coin, [
     coin.id, 
@@ -70,6 +73,15 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
     coin.market_cap,
     coin.total_volume
   ])
+
+  const handleAddToFavorites = async (e) => {
+    e.stopPropagation()
+    if (isFavorite(coin.symbol)) {
+      await removeFavorite(coin.symbol)
+    } else {
+      await addFavorite(coin.symbol, coin.name)
+    }
+  }
 
   return (
     <div
