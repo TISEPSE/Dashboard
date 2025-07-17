@@ -11,7 +11,7 @@ export async function GET() {
     }
 
     const response = await fetch(
-      `https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=50&labelIds=INBOX`,
+      `https://www.googleapis.com/gmail/v1/users/me/messages?maxResults=100&labelIds=INBOX`,
       {
         headers: {
           Authorization: `Bearer ${session.accessToken}`,
@@ -61,83 +61,45 @@ export async function GET() {
         const senderName = fromMatch[1]?.trim() || from
         const senderEmail = fromMatch[2]?.trim() || from
         
-        // Déterminer la catégorie basée sur l'expéditeur et le sujet
+        // Utiliser les labels Gmail natifs pour la catégorisation
         let category = "primary"
         
-        const subjectLower = subject.toLowerCase()
-        const senderEmailLower = senderEmail.toLowerCase()
+        const labels = messageData.labelIds || []
         
-        // Exclure les emails envoyés par l'utilisateur lui-même de la catégorie principale
-        const userEmail = session.user?.email?.toLowerCase()
-        if (userEmail && senderEmailLower === userEmail) {
-          category = "notifications"
-        }
-        // Entreprises légitimes qui doivent rester en "primary"
-        else if (senderEmailLower.includes("anthropic") || senderEmailLower.includes("claude") ||
-                 senderEmailLower.includes("mcdonalds") || senderEmailLower.includes("mcdonald") ||
-                 senderEmailLower.includes("microsoft") || senderEmailLower.includes("apple") ||
-                 senderEmailLower.includes("google") || senderEmailLower.includes("amazon") ||
-                 senderEmailLower.includes("netflix") || senderEmailLower.includes("spotify") ||
-                 senderEmailLower.includes("paypal") || senderEmailLower.includes("stripe") ||
-                 senderEmailLower.includes("github") || senderEmailLower.includes("gitlab") ||
-                 senderEmailLower.includes("stackoverflow") || senderEmailLower.includes("reddit") ||
-                 senderEmailLower.includes("discord") || senderEmailLower.includes("slack") ||
-                 senderEmailLower.includes("notion") || senderEmailLower.includes("figma") ||
-                 senderEmailLower.includes("adobe") || senderEmailLower.includes("canva") ||
-                 senderEmailLower.includes("dropbox") || senderEmailLower.includes("onedrive") ||
-                 senderEmailLower.includes("zoom") || senderEmailLower.includes("teams") ||
-                 senderEmailLower.includes("trello") || senderEmailLower.includes("asana") ||
-                 senderEmailLower.includes("banking") || senderEmailLower.includes("bank") ||
-                 senderEmailLower.includes("universit") || senderEmailLower.includes("school") ||
-                 senderEmailLower.includes("education") || senderEmailLower.includes(".edu") ||
-                 senderEmailLower.includes(".gov") || senderEmailLower.includes(".org")) {
-          category = "primary"
-        }
-        // Réseaux sociaux
-        else if (senderEmailLower.includes("linkedin") || senderEmailLower.includes("facebook") || 
-                 senderEmailLower.includes("twitter") || senderEmailLower.includes("instagram") ||
-                 senderEmailLower.includes("tiktok") || senderEmailLower.includes("youtube") ||
-                 senderEmailLower.includes("snapchat") || senderEmailLower.includes("pinterest")) {
-          category = "social"
-        }
-        // Promotions - Très large pour capturer toutes les promotions
-        else if (subjectLower.includes("promo") || subjectLower.includes("offer") || 
-                 subjectLower.includes("deal") || subjectLower.includes("sale") ||
-                 subjectLower.includes("discount") || subjectLower.includes("% off") ||
-                 subjectLower.includes("offre") || subjectLower.includes("réduction") ||
-                 subjectLower.includes("solde") || subjectLower.includes("gratuit") ||
-                 subjectLower.includes("free") || subjectLower.includes("limited time") ||
-                 subjectLower.includes("special") || subjectLower.includes("exclusive") ||
-                 subjectLower.includes("save") || subjectLower.includes("économis") ||
-                 subjectLower.includes("black friday") || subjectLower.includes("cyber monday") ||
-                 subjectLower.includes("flash sale") || subjectLower.includes("clearance") ||
-                 senderEmailLower.includes("marketing") || senderEmailLower.includes("promo") ||
-                 senderEmailLower.includes("deals") || senderEmailLower.includes("offers") ||
-                 senderEmailLower.includes("shop") || senderEmailLower.includes("store") ||
-                 senderEmailLower.includes("ecommerce") || senderEmailLower.includes("unsubscribe") ||
-                 senderEmailLower.includes("campaign")) {
+        // Vérifier les labels Gmail natifs d'abord
+        if (labels.includes("CATEGORY_PROMOTIONS")) {
           category = "promotions"
         }
-        // Notifications automatiques
-        else if (senderEmailLower.includes("noreply") || senderEmailLower.includes("no-reply") ||
-                 senderEmailLower.includes("notification") || senderEmailLower.includes("alert") ||
-                 senderEmailLower.includes("automated") || senderEmailLower.includes("system") ||
-                 senderEmailLower.includes("donotreply") || senderEmailLower.includes("do-not-reply") ||
-                 senderEmailLower.includes("support") || senderEmailLower.includes("help") ||
-                 senderEmailLower.includes("service") || senderEmailLower.includes("info@") ||
-                 senderEmailLower.includes("contact@") || senderEmailLower.includes("admin@")) {
-          category = "notifications"
+        else if (labels.includes("CATEGORY_SOCIAL")) {
+          category = "social"
         }
-        // Mises à jour et newsletters
-        else if (subjectLower.includes("newsletter") || subjectLower.includes("update") ||
-                 subjectLower.includes("digest") || subjectLower.includes("weekly") ||
-                 subjectLower.includes("monthly") || subjectLower.includes("daily") ||
-                 subjectLower.includes("bulletin") || subjectLower.includes("news") ||
-                 subjectLower.includes("recap") || subjectLower.includes("summary") ||
-                 subjectLower.includes("roundup") || subjectLower.includes("highlights")) {
+        else if (labels.includes("CATEGORY_UPDATES")) {
           category = "updates"
         }
-        // Sinon, reste en "primary" - seulement pour les vrais messages personnels et professionnels
+        else if (labels.includes("CATEGORY_FORUMS")) {
+          category = "notifications"
+        }
+        else if (labels.includes("CATEGORY_PRIMARY")) {
+          category = "primary"
+        }
+        else {
+          // Fallback pour les emails sans catégorie Gmail
+          const senderEmailLower = senderEmail.toLowerCase()
+          
+          // Exclure les emails envoyés par l'utilisateur lui-même
+          const userEmail = session.user?.email?.toLowerCase()
+          if (userEmail && senderEmailLower === userEmail) {
+            category = "notifications"
+          }
+          // Détection basique pour les emails non catégorisés
+          else if (senderEmailLower.includes("noreply") || senderEmailLower.includes("no-reply") ||
+                   senderEmailLower.includes("notification") || senderEmailLower.includes("support")) {
+            category = "notifications"
+          }
+          else {
+            category = "primary"
+          }
+        }
         
         // Vérifier si lu/non lu
         const isUnread = messageData.labelIds?.includes("UNREAD") || false

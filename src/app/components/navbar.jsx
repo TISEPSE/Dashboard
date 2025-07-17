@@ -164,7 +164,7 @@ export default function Navbar({isOpen, setIsOpen}) {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="hidden md:block text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-lg cursor-pointer flex-shrink-0 transition-all duration-200 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 touch-none"
+            className="hidden md:block text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-xl cursor-pointer flex-shrink-0 transition-all duration-200 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 touch-none"
             aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
           >
             <div className="transition-transform duration-200 pointer-events-none">
@@ -182,7 +182,7 @@ export default function Navbar({isOpen, setIsOpen}) {
         >
           <nav className="flex flex-col gap-6 p-6 h-full overflow-auto">
             <div 
-              className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/30 text-white rounded-xl shadow-lg animate-[slideInLeft_0.5s_ease-out]"
+              className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-500/50 text-white rounded-xl shadow-xl animate-[slideInLeft_0.5s_ease-out]"
               onClick={(e) => e.stopPropagation()}
             >
               <div
@@ -193,7 +193,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                 className="flex items-center justify-between p-4 cursor-pointer font-bold select-none"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center shadow-lg border border-blue-400/30">
                     <svg
                       className="w-4 h-4 text-white"
                       fill="none"
@@ -208,7 +208,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                       />
                     </svg>
                   </div>
-                  <span className="text-lg">Dashboard</span>
+                  <span className="text-lg font-semibold text-white drop-shadow-sm">Dashboard</span>
                 </div>
                 <div
                   className={`w-8 h-8 flex items-center justify-center text-gray-400 transition-transform duration-300 ease-in-out ${
@@ -252,10 +252,10 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 hover:text-blue-400 hover:bg-white/5 transition-all duration-300 py-3 px-3 rounded-lg group hover:scale-105 hover:shadow-md animate-[slideInFromLeft_0.4s_ease-out] ${
+                    className={`flex items-center gap-2 hover:text-blue-300 hover:bg-white/10 transition-all duration-300 py-3 px-3 rounded-lg group hover:scale-105 hover:shadow-lg animate-[slideInFromLeft_0.4s_ease-out] border border-transparent hover:border-blue-400/30 ${
                       pathname === item.href
-                        ? "bg-blue-600/20 text-blue-400"
-                        : ""
+                        ? "bg-blue-600/30 text-blue-300 border-blue-400/50 shadow-lg"
+                        : "text-gray-200"
                     }`}
                     style={{
                       animationDelay: `${0.2 + index * 0.1}s`
@@ -289,10 +289,10 @@ export default function Navbar({isOpen, setIsOpen}) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 hover:text-blue-400 hover:bg-gradient-to-r hover:from-blue-600/10 hover:to-blue-600/5 hover:border-blue-600/40 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-300 py-3 px-4 rounded-lg group border border-gray-600/30 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-md transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
+                  className={`flex items-center gap-3 hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 py-3 px-4 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
                     pathname === item.href
-                      ? "bg-blue-600/20 text-blue-400 border-blue-600/30"
-                      : ""
+                      ? "bg-blue-600/30 text-blue-300 border-blue-500/50 shadow-xl"
+                      : "text-gray-200"
                   }`}
                   style={{
                     animationDelay: `${0.8 + index * 0.2}s`

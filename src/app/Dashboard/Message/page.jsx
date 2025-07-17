@@ -9,12 +9,11 @@ export default function MessagePage() {
   const [emails, setEmails] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [selectedCategory, setSelectedCategory] = useState("all")
+  const [selectedCategory, setSelectedCategory] = useState("primary")
   const [selectedEmail, setSelectedEmail] = useState(null)
   const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   const categories = [
-    { id: "all", name: "Tous", icon: "📧", color: "bg-blue-500" },
     { id: "primary", name: "Principal", icon: "📨", color: "bg-green-500" },
     { id: "social", name: "Réseaux sociaux", icon: "👥", color: "bg-purple-500" },
     { id: "promotions", name: "Promotions", icon: "🏷️", color: "bg-orange-500" },
@@ -51,8 +50,8 @@ export default function MessagePage() {
     }
   }
 
-  const filteredEmails = selectedCategory === "all" 
-    ? emails 
+  const filteredEmails = selectedCategory === "primary" 
+    ? emails.filter(email => !['social', 'promotions', 'updates', 'notifications'].includes(email.category))
     : emails.filter(email => email.category === selectedCategory)
 
   const formatDate = (dateString) => {
@@ -68,7 +67,9 @@ export default function MessagePage() {
   }
 
   const getCategoryCount = (categoryId) => {
-    if (categoryId === "all") return emails.length
+    if (categoryId === "primary") {
+      return emails.filter(email => !['social', 'promotions', 'updates', 'notifications'].includes(email.category)).length
+    }
     return emails.filter(email => email.category === categoryId).length
   }
 
@@ -99,17 +100,6 @@ export default function MessagePage() {
     <div className="min-h-screen bg-[#212332] text-white">
       <div className="max-w-7xl mx-auto p-6">
         <style jsx>{`
-          @keyframes slideInFromLeft {
-            from {
-              opacity: 0;
-              transform: translateX(-20px);
-            }
-            to {
-              opacity: 1;
-              transform: translateX(0);
-            }
-          }
-          
           .scrollbar-thin {
             scrollbar-width: thin;
           }
@@ -177,7 +167,7 @@ export default function MessagePage() {
           <div className="p-6 border-b border-gray-600/30">
             <div className="flex flex-col gap-4">
               <h3 className="text-xl font-semibold text-white">
-                {categories.find(c => c.id === selectedCategory)?.name || "Tous"} 
+                {categories.find(c => c.id === selectedCategory)?.name || "Principal"} 
                 <span className="text-gray-400 ml-2">({filteredEmails.length})</span>
               </h3>
               
@@ -223,52 +213,51 @@ export default function MessagePage() {
                 {filteredEmails.map((email, index) => (
                   <div
                     key={email.id}
-                    className={`p-4 border-b border-gray-600/20 hover:bg-gray-700/30 cursor-pointer transition-all duration-300 transform hover:translate-x-1 hover:shadow-md ${
+                    className={`p-3 border-b border-gray-600/20 hover:bg-gray-700/30 cursor-pointer transition-all duration-300 transform hover:translate-x-1 hover:shadow-md ${
                       email.isUnread ? 'bg-blue-600/5 border-l-4 border-l-blue-500' : ''
                     }`}
                     onClick={() => setSelectedEmail(email)}
                     style={{
-                      animationDelay: `${index * 0.05}s`,
-                      animation: 'slideInFromLeft 0.5s ease-out forwards'
+                      animationDelay: `${index * 0.05}s`
                     }}
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3 flex-1">
                         {/* Avatar */}
-                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-md">
                           {email.from.charAt(0).toUpperCase()}
                         </div>
                         
                         {/* Email Content */}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className={`font-medium text-base ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
+                            <span className={`font-medium text-sm ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
                               {email.from}
                             </span>
                             {email.isImportant && (
-                              <span className="text-yellow-400 text-sm">⭐</span>
+                              <span className="text-yellow-400 text-xs">⭐</span>
                             )}
-                            <span className="text-gray-500 text-sm">
+                            <span className="text-gray-500 text-xs">
                               {email.email}
                             </span>
                           </div>
                           
-                          <h4 className={`font-medium mb-2 text-base ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
+                          <h4 className={`font-medium mb-1 text-sm ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
                             {email.subject}
                           </h4>
                           
-                          <p className="text-gray-400 text-sm line-clamp-2">
+                          <p className="text-gray-400 text-xs line-clamp-1">
                             {email.snippet}
                           </p>
                         </div>
                       </div>
                       
                       {/* Date and Category */}
-                      <div className="flex flex-col items-end gap-2 ml-4">
-                        <span className="text-gray-400 text-sm">
+                      <div className="flex flex-col items-end gap-1 ml-4">
+                        <span className="text-gray-400 text-xs">
                           {formatDate(email.date)}
                         </span>
-                        <span className={`text-sm px-3 py-1 rounded-full shadow-sm ${
+                        <span className={`text-xs px-2 py-1 rounded-full shadow-sm ${
                           categories.find(c => c.id === email.category)?.color || 'bg-gray-600'
                         } text-white`}>
                           {categories.find(c => c.id === email.category)?.icon}
