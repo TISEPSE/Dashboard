@@ -20,9 +20,9 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
     <div
       className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
                  transition-all duration-300 group cursor-pointer flex flex-col h-[16em]
-                 hover:border-[#3A6FF8] hover:shadow-[0_0_40px_rgba(58,111,248,0.6)]
-                 hover:bg-gradient-to-br hover:from-[#2a2d3e] hover:to-[#3A6FF8]/10
-                 hover:scale-[1.02] hover:-translate-y-[0.2em]
+                 hover:border-[#3A6FF8] hover:shadow-[0_0_20px_rgba(58,111,248,0.4)]
+                 hover:bg-[#2f3240]
+                 hover:scale-[1.01] hover:-translate-y-[0.1em]
                  overflow-hidden relative
                  before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent
                  before:transform before:-translate-x-full before:transition-transform before:duration-700
