@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react"
 import Link from "next/link"
 import {usePathname} from "next/navigation"
-import {FaBars, FaTimes, FaRocket} from "react-icons/fa"
+import {FaBars, FaTimes, FaChartBar} from "react-icons/fa"
 import {useCryptoContext} from "../context/CryptoContext"
 
 export default function Navbar({isOpen, setIsOpen}) {
@@ -141,7 +141,7 @@ export default function Navbar({isOpen, setIsOpen}) {
         >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="relative">
-              <FaRocket className="text-[#3A6FF8] flex-shrink-0 text-3xl drop-shadow-lg" />
+              <FaChartBar className="text-[#3A6FF8] flex-shrink-0 text-3xl drop-shadow-lg" />
               <div className="absolute inset-0 bg-[#3A6FF8]/20 rounded-full blur-lg"></div>
             </div>
             <div
