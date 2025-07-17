@@ -128,26 +128,28 @@ export default function Navbar({isOpen, setIsOpen}) {
           md:top-0 md:left-0 md:h-screen md:border-r
           ${
             isOpen
-              ? "md:w-80 inset-0 w-full h-full"
+              ? "md:w-72 inset-0 w-full h-full"
               : "md:w-16 md:min-w-[64px] -left-full w-0 h-0"
           }
         `}
+        onMouseEnter={() => setIsOpen(true)}
+        onMouseLeave={() => setIsOpen(false)}
       >
         <div
-          className={`flex items-center justify-between p-6 pt-8 text-2xl font-bold bg-gradient-to-b from-[#3A6FF8]/10 via-[#3A6FF8]/5 to-transparent ${
-            isOpen ? "gap-3" : "md:justify-center"
+          className={`flex items-center justify-between p-4 pt-6 text-lg font-bold bg-gradient-to-b from-[#3A6FF8]/10 via-[#3A6FF8]/5 to-transparent ${
+            isOpen ? "gap-2" : "md:justify-center"
           }`}
-          style={{minHeight: "88px"}}
+          style={{minHeight: "72px"}}
         >
-          <div className="flex items-center gap-3 overflow-hidden">
+          <div className="flex items-center gap-2 overflow-hidden">
             <div className="relative">
-              <FaChartBar className="text-[#3A6FF8] flex-shrink-0 text-3xl drop-shadow-lg" />
+              <FaChartBar className="text-[#3A6FF8] flex-shrink-0 text-2xl drop-shadow-lg" />
               <div className="absolute inset-0 bg-[#3A6FF8]/20 rounded-full blur-lg"></div>
             </div>
             <div
               className={`transition-all duration-500 ease-in-out ${
                 isOpen
-                  ? "opacity-100 max-w-[250px] transform translate-x-0"
+                  ? "opacity-100 max-w-[200px] transform translate-x-0"
                   : "md:opacity-0 md:max-w-0 md:transform md:-translate-x-4"
               }`}
             >
@@ -178,9 +180,15 @@ export default function Navbar({isOpen, setIsOpen}) {
           }`}
         >
           <nav className="flex flex-col gap-6 p-6 h-full overflow-auto">
-            <div className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl shadow-xl">
+            <div 
+              className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl shadow-xl animate-[slideInLeft_0.5s_ease-out]"
+              onClick={(e) => e.stopPropagation()}
+            >
               <div
-                onClick={() => setDashboardOpen(!dashboardOpen)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDashboardOpen(!dashboardOpen);
+                }}
                 className="flex items-center justify-between p-4 cursor-pointer font-bold select-none"
               >
                 <div className="flex items-center gap-3">
@@ -227,6 +235,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                     ? "max-h-[calc(100vh-80px)] opacity-100 pb-4"
                     : "max-h-0 opacity-0"
                 }`}
+                onClick={(e) => e.stopPropagation()}
               >
                 {[
                   {href: "/Dashboard/Crypto", label: "Cryptos", icon: "₿"},
@@ -238,19 +247,25 @@ export default function Navbar({isOpen, setIsOpen}) {
                     label: "Calendrier",
                     icon: "📅",
                   },
-                ].map(item => (
+                ].map((item, index) => (
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 hover:text-[#3A6FF8] hover:bg-white/5 transition-all duration-200 py-3 px-3 rounded-xl group ${
+                    className={`flex items-center gap-2 hover:text-[#3A6FF8] hover:bg-white/5 transition-all duration-300 py-3 px-3 rounded-xl group hover:scale-105 hover:shadow-lg animate-[slideInFromLeft_0.4s_ease-out] ${
                       pathname === item.href
                         ? "bg-[#3A6FF8]/20 text-[#3A6FF8]"
                         : ""
                     }`}
-                    onClick={() => setIsOpen(false)}
+                    style={{
+                      animationDelay: `${0.2 + index * 0.1}s`
+                    }}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsOpen(false);
+                    }}
                   >
-                    <span className="text-lg">{item.icon}</span>
-                    <span className="font-medium group-hover:translate-x-1 transition-transform duration-200">
+                    <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
+                    <span className="font-medium group-hover:translate-x-2 transition-transform duration-300">
                       {item.label}
                     </span>
                   </Link>
@@ -258,7 +273,10 @@ export default function Navbar({isOpen, setIsOpen}) {
               </div>
             </div>
 
-            <div className="flex flex-col gap-3">
+            <div 
+              className="flex flex-col gap-3"
+              onClick={(e) => e.stopPropagation()}
+            >
               {[
                 {href: "/Dashboard/Profile", label: "Profil", icon: "👤"},
                 {
@@ -266,19 +284,25 @@ export default function Navbar({isOpen, setIsOpen}) {
                   label: "Paramètres",
                   icon: "⚙️",
                 },
-              ].map(item => (
+              ].map((item, index) => (
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 hover:text-[#3A6FF8] hover:bg-gradient-to-r hover:from-[#3A6FF8]/10 hover:to-[#3A6FF8]/5 hover:border-[#3A6FF8]/40 hover:shadow-lg hover:shadow-[#3A6FF8]/20 transition-all duration-300 py-3 px-4 rounded-xl group border border-gray-600/30 bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] shadow-lg transform hover:scale-105 ${
+                  className={`flex items-center gap-3 hover:text-[#3A6FF8] hover:bg-gradient-to-r hover:from-[#3A6FF8]/10 hover:to-[#3A6FF8]/5 hover:border-[#3A6FF8]/40 hover:shadow-lg hover:shadow-[#3A6FF8]/20 transition-all duration-300 py-3 px-4 rounded-xl group border border-gray-600/30 bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
                     pathname === item.href
                       ? "bg-[#3A6FF8]/20 text-[#3A6FF8] border-[#3A6FF8]/30"
                       : ""
                   }`}
-                  onClick={() => setIsOpen(false)}
+                  style={{
+                    animationDelay: `${0.8 + index * 0.2}s`
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setIsOpen(false);
+                  }}
                 >
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="font-medium">
+                  <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
+                  <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-300">
                     {item.label}
                   </span>
                 </Link>

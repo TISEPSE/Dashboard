@@ -15,13 +15,26 @@ const Variation = ({label, value}) => (
   </div>
 )
 
-const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
+const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false}) => {
+  const shouldAnimate = true
+  const animationDelay = hasInteracted ? 0.01 : 0.03
+
   return (
     <div
-      className="bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
+      className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
                  transition-all duration-300 group cursor-pointer flex flex-col h-[16em]
-                 hover:border-[#3A6FF8] hover:shadow-[0_8px_20px_rgba(58,111,248,0.4)]
-                 hover:scale-[1.05] hover:-translate-y-[0.3em]"
+                 hover:border-[#3A6FF8] hover:shadow-[0_0_40px_rgba(58,111,248,0.6)]
+                 hover:bg-gradient-to-br hover:from-[#2a2d3e] hover:to-[#3A6FF8]/10
+                 hover:scale-[1.02] hover:-translate-y-[0.2em]
+                 overflow-hidden relative
+                 before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent
+                 before:transform before:-translate-x-full before:transition-transform before:duration-700
+                 hover:before:translate-x-full ${
+                   shouldAnimate ? 'animate-[fadeInUp_0.3s_ease-out_forwards] opacity-0' : 'opacity-100'
+                 }`}
+      style={{
+        animationDelay: `${index * animationDelay}s`
+      }}
     >
       <div className="flex justify-between items-start">
         <div className="flex items-center gap-[0.5em] flex-1 min-w-0">
@@ -102,13 +115,13 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick}) => {
       <div className="flex gap-[0.75em] mt-auto">
         <button
           onClick={() => onAddClick?.(coin)}
-          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-[0.7em] px-[1.2em] rounded-[0.5em] font-medium text-[0.85em] transition-all duration-200 hover:scale-[1.03]"
+          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-[0.7em] px-[1.2em] rounded-[0.5em] font-medium text-[0.85em] transition-all duration-300 hover:scale-[1.1] hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
         >
           Ajouter
         </button>
         <button
           onClick={() => onInfoClick?.(coin)}
-          className="flex-1 bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-[0.7em] px-[1.2em] rounded-[0.5em] font-medium text-[0.85em] transition-all duration-200 hover:scale-[1.03]"
+          className="flex-1 bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-[0.7em] px-[1.2em] rounded-[0.5em] font-medium text-[0.85em] transition-all duration-300 hover:scale-[1.1] hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
         >
           Info
         </button>

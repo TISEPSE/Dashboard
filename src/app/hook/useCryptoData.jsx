@@ -155,9 +155,9 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
     const sortedData = sortCryptos(allCryptos)
     
     if (perPage === "all") {
-      // Mode "Tout" : pagination par tranches de 50
-      const startIndex = (currentPage - 1) * 50
-      const endIndex = startIndex + 50
+      // Mode "Tout" : pagination par tranches de 40
+      const startIndex = (currentPage - 1) * 40
+      const endIndex = startIndex + 40
       setDisplayedCryptos(sortedData.slice(startIndex, endIndex))
     } else {
       // Modes spécifiques : afficher exactement le nombre demandé

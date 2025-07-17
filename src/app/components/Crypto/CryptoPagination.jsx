@@ -17,8 +17,8 @@ const CryptoPagination = ({
   }
 
   // Calculer le nombre total de pages possibles
-  const totalPages = Math.ceil(totalCryptos / 50)
-  const isNextDisabled = currentPage >= totalPages || cryptosLength < 50
+  const totalPages = Math.ceil(totalCryptos / 40)
+  const isNextDisabled = currentPage >= totalPages || cryptosLength < 40
 
   return (
     <>

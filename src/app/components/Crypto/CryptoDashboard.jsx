@@ -15,6 +15,7 @@ import {
 const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const {setCryptoPaginationData} = useCryptoContext()
   const [currentPage, setCurrentPage] = useState(1)
+  const [hasInteracted, setHasInteracted] = useState(false)
 
   // Récupération des préférences
   const {
@@ -59,13 +60,26 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   }
 
   // Calculer le nombre total de pages possibles
-  const totalPages = Math.ceil(totalCryptos / 50)
-  const isNextDisabled = currentPage >= totalPages || cryptos.length < 50
+  const totalPages = Math.ceil(totalCryptos / 40)
+  const isNextDisabled = currentPage >= totalPages || cryptos.length < 40
 
   // Reset de la page courante quand perPage change
   useEffect(() => {
     setCurrentPage(1)
   }, [perPage])
+
+  // Détection d'interaction pour accélérer les animations
+  useEffect(() => {
+    const handleInteraction = () => {
+      setHasInteracted(true)
+    }
+
+    window.addEventListener('keydown', handleInteraction)
+
+    return () => {
+      window.removeEventListener('keydown', handleInteraction)
+    }
+  }, [])
 
   // Mise à jour du context avec les données de pagination
   useEffect(() => {
@@ -136,7 +150,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
       />
 
       {/* Contenu principal */}
-      <div className="max-w-9xl mx-auto px-6 py-6 pb-32 sm:pb-6">
+      <div className="max-w-9xl mx-auto px-6 py-6 pb-24 sm:pb-6">
         {/* Informations sur le cache */}
         {cacheStatus.isCached && (
           <div className="mb-4 bg-blue-500/10 border border-blue-500/30 rounded-lg p-3 flex items-center gap-3">
@@ -159,19 +173,21 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
         {/* Grille des cryptos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
-          {cryptos.map(coin => (
+          {cryptos.map((coin, index) => (
             <CryptoCard
               key={coin.id}
               coin={coin}
               currency={currency}
               onAddClick={handleAddCrypto}
               onInfoClick={handleInfoCrypto}
+              index={index}
+              hasInteracted={hasInteracted}
             />
           ))}
         </div>
 
         {/* Pagination - Affichée seulement si "Tout" est sélectionné */}
-        {isPaginationEnabled && (
+        {isPaginationEnabled && totalCryptos > 40 && (
           <CryptoPagination
             currentPage={currentPage}
             onPageChange={handlePageChange}
