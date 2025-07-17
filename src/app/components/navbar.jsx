@@ -124,7 +124,7 @@ export default function Navbar({isOpen, setIsOpen}) {
 
       <div
         className={`
-          fixed z-[60] bg-gradient-to-br from-[#1a1d29] to-[#212332] text-white flex flex-col border-r border-gray-500/30 overflow-y-auto transition-all duration-300 shadow-2xl
+          fixed z-[60] bg-gradient-to-br from-[#2a2d3e] to-[#212332] text-white flex flex-col border-r border-gray-600/30 overflow-y-auto transition-all duration-300 shadow-2xl
           md:top-0 md:left-0 md:h-screen md:border-r
           ${
             isOpen
@@ -134,15 +134,18 @@ export default function Navbar({isOpen, setIsOpen}) {
         `}
       >
         <div
-          className={`flex items-center justify-between p-4 pt-6 text-xl font-bold bg-gradient-to-b from-[#3A6FF8]/10 via-[#3A6FF8]/5 to-transparent ${
+          className={`flex items-center justify-between p-4 pt-6 text-xl font-bold bg-gradient-to-b from-[#2a2d3e]/20 via-[#2a2d3e]/10 to-transparent border-b border-gray-600/30 ${
             isOpen ? "gap-2" : "md:justify-center"
           }`}
           style={{minHeight: "72px"}}
         >
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="relative">
-              <FaChartBar className="text-[#3A6FF8] flex-shrink-0 text-2xl drop-shadow-lg" />
-              <div className="absolute inset-0 bg-[#3A6FF8]/20 rounded-full blur-lg"></div>
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
             </div>
             <div
               className={`transition-all duration-500 ease-in-out ${
@@ -153,7 +156,7 @@ export default function Navbar({isOpen, setIsOpen}) {
             >
               <Link href="/" className="whitespace-nowrap">
                 <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
-                  Stat and You
+                  Dashboard
                 </span>
               </Link>
             </div>
@@ -161,7 +164,7 @@ export default function Navbar({isOpen, setIsOpen}) {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="hidden md:block text-white bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] p-3 rounded-xl cursor-pointer flex-shrink-0 transition-all duration-200 hover:from-[#2952d3] hover:to-[#1e3a8a] shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 touch-none"
+            className="hidden md:block text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-lg cursor-pointer flex-shrink-0 transition-all duration-200 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 touch-none"
             aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
           >
             <div className="transition-transform duration-200 pointer-events-none">
@@ -179,7 +182,7 @@ export default function Navbar({isOpen, setIsOpen}) {
         >
           <nav className="flex flex-col gap-6 p-6 h-full overflow-auto">
             <div 
-              className="bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/50 text-white rounded-2xl shadow-xl animate-[slideInLeft_0.5s_ease-out]"
+              className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/30 text-white rounded-xl shadow-lg animate-[slideInLeft_0.5s_ease-out]"
               onClick={(e) => e.stopPropagation()}
             >
               <div
@@ -190,9 +193,9 @@ export default function Navbar({isOpen, setIsOpen}) {
                 className="flex items-center justify-between p-4 cursor-pointer font-bold select-none"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-[#3A6FF8] rounded-lg flex items-center justify-center">
+                  <div className="w-8 h-8 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-md">
                     <svg
-                      className="w-4 h-4"
+                      className="w-4 h-4 text-white"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -249,9 +252,9 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 hover:text-[#3A6FF8] hover:bg-white/5 transition-all duration-300 py-3 px-3 rounded-xl group hover:scale-105 hover:shadow-lg animate-[slideInFromLeft_0.4s_ease-out] ${
+                    className={`flex items-center gap-2 hover:text-blue-400 hover:bg-white/5 transition-all duration-300 py-3 px-3 rounded-lg group hover:scale-105 hover:shadow-md animate-[slideInFromLeft_0.4s_ease-out] ${
                       pathname === item.href
-                        ? "bg-[#3A6FF8]/20 text-[#3A6FF8]"
+                        ? "bg-blue-600/20 text-blue-400"
                         : ""
                     }`}
                     style={{
@@ -286,9 +289,9 @@ export default function Navbar({isOpen, setIsOpen}) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 hover:text-[#3A6FF8] hover:bg-gradient-to-r hover:from-[#3A6FF8]/10 hover:to-[#3A6FF8]/5 hover:border-[#3A6FF8]/40 hover:shadow-lg hover:shadow-[#3A6FF8]/20 transition-all duration-300 py-3 px-4 rounded-xl group border border-gray-600/30 bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
+                  className={`flex items-center gap-3 hover:text-blue-400 hover:bg-gradient-to-r hover:from-blue-600/10 hover:to-blue-600/5 hover:border-blue-600/40 hover:shadow-lg hover:shadow-blue-600/20 transition-all duration-300 py-3 px-4 rounded-lg group border border-gray-600/30 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-md transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
                     pathname === item.href
-                      ? "bg-[#3A6FF8]/20 text-[#3A6FF8] border-[#3A6FF8]/30"
+                      ? "bg-blue-600/20 text-blue-400 border-blue-600/30"
                       : ""
                   }`}
                   style={{

@@ -98,11 +98,51 @@ export default function MessagePage() {
   return (
     <div className="min-h-screen bg-[#212332] text-white">
       <div className="max-w-7xl mx-auto p-6">
+        <style jsx>{`
+          @keyframes slideInFromLeft {
+            from {
+              opacity: 0;
+              transform: translateX(-20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateX(0);
+            }
+          }
+          
+          .scrollbar-thin {
+            scrollbar-width: thin;
+          }
+          
+          .scrollbar-thumb-gray-600::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .scrollbar-thumb-gray-600::-webkit-scrollbar-track {
+            background: #1f2937;
+          }
+          
+          .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb {
+            background: #4b5563;
+            border-radius: 4px;
+          }
+          
+          .scrollbar-thumb-gray-600::-webkit-scrollbar-thumb:hover {
+            background: #6b7280;
+          }
+        `}</style>
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Messagerie</h1>
-            <p className="text-gray-400 text-sm">{session?.user?.email}</p>
+          <div className="flex items-center gap-3">
+            <img 
+              src={session?.user?.image || "https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg"} 
+              alt="Profil" 
+              className="w-8 h-8 rounded-full"
+            />
+            <div>
+              <h1 className="text-2xl font-bold text-white">Messagerie</h1>
+              <p className="text-gray-400 text-sm">{session?.user?.email}</p>
+            </div>
           </div>
           <div className="flex items-center gap-3">
             <button 
@@ -132,108 +172,116 @@ export default function MessagePage() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Sidebar - Categories */}
-          <div className="lg:col-span-1">
-            <div className="bg-[#2a2d3e] rounded-xl p-4 border border-gray-600/30">
-              <h3 className="font-semibold text-white mb-4">Catégories</h3>
-              <div className="space-y-2">
-                {categories.map((category) => (
-                  <button
-                    key={category.id}
-                    onClick={() => setSelectedCategory(category.id)}
-                    className={`w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 ${
-                      selectedCategory === category.id
-                        ? 'bg-blue-600 text-white'
-                        : 'text-gray-300 hover:bg-gray-700/50'
-                    }`}
-                  >
-                    <span className="text-lg">{category.icon}</span>
-                    <span className="flex-1 text-left text-sm">{category.name}</span>
-                    <span className="text-xs bg-gray-600 px-2 py-1 rounded-full">
-                      {getCategoryCount(category.id)}
-                    </span>
-                  </button>
-                ))}
+        {/* Main Content - Email List */}
+        <div className="bg-[#2a2d3e] rounded-xl border border-gray-600/30 overflow-hidden shadow-lg">
+          <div className="p-6 border-b border-gray-600/30">
+            <div className="flex flex-col gap-4">
+              <h3 className="text-xl font-semibold text-white">
+                {categories.find(c => c.id === selectedCategory)?.name || "Tous"} 
+                <span className="text-gray-400 ml-2">({filteredEmails.length})</span>
+              </h3>
+              
+              {/* Sélecteur de catégorie intégré - Plus grand */}
+              <div className="flex items-center gap-3">
+                <span className="text-base text-gray-400 font-medium">Filtrer:</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  {categories.map((category) => (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 transform hover:scale-105 ${
+                        selectedCategory === category.id
+                          ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg'
+                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                      }`}
+                    >
+                      <span className="text-base">{category.icon}</span>
+                      <span className="hidden sm:inline">{category.name}</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-bold ${
+                        selectedCategory === category.id
+                          ? 'bg-white/20 text-white'
+                          : 'bg-gray-600 text-white'
+                      }`}>
+                        {getCategoryCount(category.id)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
-
-          {/* Main Content - Email List */}
-          <div className="lg:col-span-4">
-            <div className="bg-[#2a2d3e] rounded-xl border border-gray-600/30 overflow-hidden">
-              <div className="p-4 border-b border-gray-600/30">
-                <h3 className="font-semibold text-white">
-                  {categories.find(c => c.id === selectedCategory)?.name || "Tous"} 
-                  <span className="text-gray-400 ml-2">({filteredEmails.length})</span>
-                </h3>
+          
+          {/* Container des emails avec effet slide */}
+          <div className="h-[calc(100vh-200px)] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-gray-800">
+            {filteredEmails.length === 0 ? (
+              <div className="text-center text-gray-400 py-16">
+                <span className="text-6xl mb-6 block">📭</span>
+                <p className="text-lg">Aucun email dans cette catégorie</p>
               </div>
-              
-              <div className="max-h-[70vh] overflow-y-auto">
-                {filteredEmails.length === 0 ? (
-                  <div className="text-center text-gray-400 py-12">
-                    <span className="text-4xl mb-4 block">📭</span>
-                    <p>Aucun email dans cette catégorie</p>
-                  </div>
-                ) : (
-                  filteredEmails.map((email) => (
-                    <div
-                      key={email.id}
-                      className={`p-4 border-b border-gray-600/20 hover:bg-gray-700/30 cursor-pointer transition-colors duration-200 ${
-                        email.isUnread ? 'bg-blue-600/5 border-l-4 border-l-blue-500' : ''
-                      }`}
-                      onClick={() => setSelectedEmail(email)}
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3 flex-1">
-                          {/* Avatar */}
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-                            {email.from.charAt(0).toUpperCase()}
-                          </div>
-                          
-                          {/* Email Content */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <span className={`font-medium ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
-                                {email.from}
-                              </span>
-                              {email.isImportant && (
-                                <span className="text-yellow-400 text-xs">⭐</span>
-                              )}
-                              <span className="text-gray-500 text-xs">
-                                {email.email}
-                              </span>
-                            </div>
-                            
-                            <h4 className={`font-medium mb-1 ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
-                              {email.subject}
-                            </h4>
-                            
-                            <p className="text-gray-400 text-sm line-clamp-2">
-                              {email.snippet}
-                            </p>
-                          </div>
+            ) : (
+              <div className="space-y-1">
+                {filteredEmails.map((email, index) => (
+                  <div
+                    key={email.id}
+                    className={`p-4 border-b border-gray-600/20 hover:bg-gray-700/30 cursor-pointer transition-all duration-300 transform hover:translate-x-1 hover:shadow-md ${
+                      email.isUnread ? 'bg-blue-600/5 border-l-4 border-l-blue-500' : ''
+                    }`}
+                    onClick={() => setSelectedEmail(email)}
+                    style={{
+                      animationDelay: `${index * 0.05}s`,
+                      animation: 'slideInFromLeft 0.5s ease-out forwards'
+                    }}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-3 flex-1">
+                        {/* Avatar */}
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm shadow-md">
+                          {email.from.charAt(0).toUpperCase()}
                         </div>
                         
-                        {/* Date and Category */}
-                        <div className="flex flex-col items-end gap-1 ml-4">
-                          <span className="text-gray-400 text-xs">
-                            {formatDate(email.date)}
-                          </span>
-                          <span className={`text-xs px-2 py-1 rounded-full ${
-                            categories.find(c => c.id === email.category)?.color || 'bg-gray-600'
-                          } text-white`}>
-                            {categories.find(c => c.id === email.category)?.icon}
-                          </span>
+                        {/* Email Content */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className={`font-medium text-base ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
+                              {email.from}
+                            </span>
+                            {email.isImportant && (
+                              <span className="text-yellow-400 text-sm">⭐</span>
+                            )}
+                            <span className="text-gray-500 text-sm">
+                              {email.email}
+                            </span>
+                          </div>
+                          
+                          <h4 className={`font-medium mb-2 text-base ${email.isUnread ? 'text-white' : 'text-gray-300'}`}>
+                            {email.subject}
+                          </h4>
+                          
+                          <p className="text-gray-400 text-sm line-clamp-2">
+                            {email.snippet}
+                          </p>
                         </div>
                       </div>
+                      
+                      {/* Date and Category */}
+                      <div className="flex flex-col items-end gap-2 ml-4">
+                        <span className="text-gray-400 text-sm">
+                          {formatDate(email.date)}
+                        </span>
+                        <span className={`text-sm px-3 py-1 rounded-full shadow-sm ${
+                          categories.find(c => c.id === email.category)?.color || 'bg-gray-600'
+                        } text-white`}>
+                          {categories.find(c => c.id === email.category)?.icon}
+                        </span>
+                      </div>
                     </div>
-                  ))
-                )}
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
           </div>
         </div>
+
 
         {/* Modal de confirmation de déconnexion */}
         {showLogoutModal && (
