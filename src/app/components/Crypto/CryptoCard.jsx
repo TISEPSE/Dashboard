@@ -1,4 +1,4 @@
-import React from "react"
+import React, { useEffect, useRef } from "react"
 
 const Variation = ({label, value}) => (
   <div className="flex items-center gap-[0.3em] text-[0.75em]">
@@ -15,12 +15,35 @@ const Variation = ({label, value}) => (
   </div>
 )
 
-const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false}) => {
-  const shouldAnimate = true
-  const animationDelay = hasInteracted ? 0.02 : 0.05
+const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false, shouldAnimate = false, onVisible}) => {
+  const cardRef = useRef(null)
+
+  useEffect(() => {
+    if (!shouldAnimate && onVisible) {
+      const observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry.isIntersecting) {
+            onVisible()
+            observer.disconnect()
+          }
+        },
+        {
+          threshold: 0.1,
+          rootMargin: '50px'
+        }
+      )
+
+      if (cardRef.current) {
+        observer.observe(cardRef.current)
+      }
+
+      return () => observer.disconnect()
+    }
+  }, [shouldAnimate, onVisible])
 
   return (
     <div
+      ref={cardRef}
       className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
                  transition-all duration-300 group cursor-pointer flex flex-col h-[16em]
                  hover:border-[#3A6FF8] hover:shadow-[0_0_40px_rgba(58,111,248,0.6)]
@@ -29,11 +52,10 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
                  overflow-hidden relative
                  before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent
                  before:transform before:-translate-x-full before:transition-transform before:duration-700
-                 hover:before:translate-x-full ${
-                   shouldAnimate ? 'animate-[fadeInUp_0.5s_ease-out_forwards] opacity-0' : 'opacity-100'
-                 }`}
+                 hover:before:translate-x-full
+                 ${shouldAnimate ? 'animate-[fadeInUp_0.3s_ease-out_forwards] opacity-0' : 'opacity-100'}`}
       style={{
-        animationDelay: `${index * animationDelay}s`
+        animationDelay: shouldAnimate ? `${index * 0.05}s` : '0s'
       }}
     >
       <div className="flex justify-between items-start mb-3">
@@ -107,13 +129,13 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
       <div className="flex gap-[0.5em] mt-auto">
         <button
           onClick={() => onAddClick?.(coin)}
-          className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] transition-all duration-300 ease-out hover:shadow-lg hover:shadow-emerald-500/25 border border-emerald-500/20 hover:border-emerald-400/50 hover:scale-[1.02] hover:-translate-y-[1px] active:scale-[0.98] active:translate-y-[0px] transform"
+          className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] border border-emerald-500/20 transform transition-all duration-500 ease-out hover:from-emerald-500 hover:to-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30 hover:border-emerald-400/60 hover:scale-[1.03] hover:-translate-y-[2px] active:scale-[0.97] active:translate-y-[0px] active:duration-150"
         >
           Ajouter
         </button>
         <button
           onClick={() => onInfoClick?.(coin)}
-          className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] transition-all duration-300 ease-out hover:shadow-lg hover:shadow-slate-500/25 border border-slate-500/20 hover:border-slate-400/50 hover:scale-[1.02] hover:-translate-y-[1px] active:scale-[0.98] active:translate-y-[0px] transform"
+          className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] border border-slate-500/20 transform transition-all duration-500 ease-out hover:from-slate-500 hover:to-slate-600 hover:shadow-lg hover:shadow-slate-500/30 hover:border-slate-400/60 hover:scale-[1.03] hover:-translate-y-[2px] active:scale-[0.97] active:translate-y-[0px] active:duration-150"
         >
           Info
         </button>

@@ -17,6 +17,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [showFavorites, setShowFavorites] = useState(false)
+  const [animatedCards, setAnimatedCards] = useState(new Set())
 
   // Récupération des préférences
   const {
@@ -115,6 +116,33 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     // Logique d'info ici
   }
 
+  // Effet pour réinitialiser les animations lors du changement de données
+  useEffect(() => {
+    if (cryptos.length > 0 && !loading) {
+      setAnimatedCards(new Set())
+      // Déclencher l'animation des cartes visibles immédiatement
+      const timer = setTimeout(() => {
+        const newAnimatedCards = new Set()
+        cryptos.forEach((_, index) => {
+          if (index < 20) { // Animer les 20 premières cartes immédiatement
+            newAnimatedCards.add(index)
+          }
+        })
+        setAnimatedCards(newAnimatedCards)
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [cryptos, loading])
+
+  // Fonction pour déclencher l'animation d'une carte
+  const triggerCardAnimation = (index) => {
+    setAnimatedCards(prev => {
+      const newSet = new Set(prev)
+      newSet.add(index)
+      return newSet
+    })
+  }
+
   // Attendre l'hydratation
   if (!hydrated) return null
 
@@ -130,6 +158,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   }
 
   if (isRetrying && cryptos.length === 0) {
+    return <CryptoLoadingState retryCount={retryCount} />
+  }
+
+  if (loading && cryptos.length === 0) {
     return <CryptoLoadingState retryCount={retryCount} />
   }
 
@@ -156,7 +188,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         {/* Section Favoris */}
         <div className="mb-6">
           <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/20 rounded-xl p-4 shadow-lg">
-            <div className="flex items-center justify-between">
+            <div 
+              className="flex items-center justify-between cursor-pointer hover:bg-white/5 rounded-lg p-2 -m-2 transition-colors duration-200"
+              onClick={() => setShowFavorites(!showFavorites)}
+            >
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-md flex items-center justify-center">
                   <span className="text-white text-xs leading-none">⭐</span>
@@ -166,23 +201,22 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
                   <p className="text-gray-400 text-xs">Vos cryptomonnaies suivies</p>
                 </div>
               </div>
-              <button
-                onClick={() => setShowFavorites(!showFavorites)}
-                className="text-gray-400 hover:text-white transition-colors duration-200"
-              >
+              <div className="text-gray-400 hover:text-white transition-colors duration-200">
                 <svg className={`w-4 h-4 transition-transform duration-200 ${showFavorites ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
-              </button>
+              </div>
             </div>
             
-            {showFavorites && (
+            <div className={`overflow-hidden transition-all duration-300 ease-out ${showFavorites ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
               <div className="border-t border-gray-600/20 mt-3 pt-3">
-                <p className="text-center text-gray-400 py-4 text-sm">
-                  Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
-                </p>
+                <div className={`transform transition-all duration-400 ease-out ${showFavorites ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
+                  <p className="text-center text-gray-400 py-4 text-sm">
+                    Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
+                  </p>
+                </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
 
@@ -202,13 +236,15 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
               onInfoClick={handleInfoCrypto}
               index={index}
               hasInteracted={hasInteracted}
+              shouldAnimate={animatedCards.has(index)}
+              onVisible={() => triggerCardAnimation(index)}
             />
           ))}
         </div>
 
-        {/* Pagination - Affichée seulement si "Tout" est sélectionné et sur desktop */}
+        {/* Pagination - Affichée seulement sur desktop */}
         {isPaginationEnabled && totalCryptos > 40 && (
-          <div className="hidden md:block">
+          <div className="hidden lg:block">
             <CryptoPagination
               currentPage={currentPage}
               onPageChange={handlePageChange}

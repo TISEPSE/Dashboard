@@ -102,13 +102,13 @@ export default function Navbar({isOpen, setIsOpen}) {
         ) : (
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="w-full bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] text-white p-3 rounded-xl transition-all duration-200 shadow-lg flex items-center justify-center gap-2 transform hover:scale-105 active:scale-95 touch-none"
+            className="w-full bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3a8a] text-white p-2 rounded-lg transition-all duration-200 shadow-lg flex items-center justify-center gap-1 transform hover:scale-105 active:scale-95 touch-none"
             aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
           >
             <div className="transition-transform duration-200 pointer-events-none">
-              {isOpen ? <FaTimes size={18} /> : <FaBars size={18} />}
+              {isOpen ? <FaTimes size={16} /> : <FaBars size={16} />}
             </div>
-            <span className="font-medium text-sm pointer-events-none">
+            <span className="font-medium text-xs pointer-events-none">
               {isOpen ? "Fermer" : "Menu"}
             </span>
           </button>
