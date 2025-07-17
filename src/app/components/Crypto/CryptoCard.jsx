@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react"
+import React from "react"
 
 const Variation = ({label, value}) => (
   <div className="flex items-center gap-[0.3em] text-[0.75em]">
@@ -15,35 +15,9 @@ const Variation = ({label, value}) => (
   </div>
 )
 
-const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false, shouldAnimate = false, onVisible}) => {
-  const cardRef = useRef(null)
-
-  useEffect(() => {
-    if (!shouldAnimate && onVisible) {
-      const observer = new IntersectionObserver(
-        ([entry]) => {
-          if (entry.isIntersecting) {
-            onVisible()
-            observer.disconnect()
-          }
-        },
-        {
-          threshold: 0.1,
-          rootMargin: '50px'
-        }
-      )
-
-      if (cardRef.current) {
-        observer.observe(cardRef.current)
-      }
-
-      return () => observer.disconnect()
-    }
-  }, [shouldAnimate, onVisible])
-
+const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false}) => {
   return (
     <div
-      ref={cardRef}
       className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
                  transition-all duration-300 group cursor-pointer flex flex-col h-[16em]
                  hover:border-[#3A6FF8] hover:shadow-[0_0_40px_rgba(58,111,248,0.6)]
@@ -53,9 +27,9 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
                  before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/5 before:to-transparent
                  before:transform before:-translate-x-full before:transition-transform before:duration-700
                  hover:before:translate-x-full
-                 ${shouldAnimate ? 'animate-[fadeInUp_0.3s_ease-out_forwards] opacity-0' : 'opacity-100'}`}
+                 animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0`}
       style={{
-        animationDelay: shouldAnimate ? `${index * 0.05}s` : '0s'
+        animationDelay: `${index * 0.02}s`
       }}
     >
       <div className="flex justify-between items-start mb-3">

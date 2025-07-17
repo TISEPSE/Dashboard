@@ -17,7 +17,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const [currentPage, setCurrentPage] = useState(1)
   const [hasInteracted, setHasInteracted] = useState(false)
   const [showFavorites, setShowFavorites] = useState(false)
-  const [animatedCards, setAnimatedCards] = useState(new Set())
+  const [showCards, setShowCards] = useState(false)
 
   // Récupération des préférences
   const {
@@ -116,32 +116,14 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     // Logique d'info ici
   }
 
-  // Effet pour réinitialiser les animations lors du changement de données
+  // Effet pour déclencher l'animation des cartes
   useEffect(() => {
     if (cryptos.length > 0 && !loading) {
-      setAnimatedCards(new Set())
-      // Déclencher l'animation des cartes visibles immédiatement
-      const timer = setTimeout(() => {
-        const newAnimatedCards = new Set()
-        cryptos.forEach((_, index) => {
-          if (index < 20) { // Animer les 20 premières cartes immédiatement
-            newAnimatedCards.add(index)
-          }
-        })
-        setAnimatedCards(newAnimatedCards)
-      }, 100)
+      setShowCards(false)
+      const timer = setTimeout(() => setShowCards(true), 50)
       return () => clearTimeout(timer)
     }
   }, [cryptos, loading])
-
-  // Fonction pour déclencher l'animation d'une carte
-  const triggerCardAnimation = (index) => {
-    setAnimatedCards(prev => {
-      const newSet = new Set(prev)
-      newSet.add(index)
-      return newSet
-    })
-  }
 
   // Attendre l'hydratation
   if (!hydrated) return null
@@ -208,13 +190,11 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
               </div>
             </div>
             
-            <div className={`overflow-hidden transition-all duration-300 ease-out ${showFavorites ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className="border-t border-gray-600/20 mt-3 pt-3">
-                <div className={`transform transition-all duration-400 ease-out ${showFavorites ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0'}`}>
-                  <p className="text-center text-gray-400 py-4 text-sm">
-                    Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
-                  </p>
-                </div>
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFavorites ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+              <div className={`border-t border-gray-600/20 transition-all duration-300 ease-in-out ${showFavorites ? 'mt-3 pt-3' : 'mt-0 pt-0'}`}>
+                <p className="text-center text-gray-400 py-4 text-sm">
+                  Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
+                </p>
               </div>
             </div>
           </div>
@@ -227,7 +207,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
         {/* Grille des cryptos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
-          {cryptos.map((coin, index) => (
+          {showCards && cryptos.map((coin, index) => (
             <CryptoCard
               key={coin.id}
               coin={coin}
@@ -236,8 +216,6 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
               onInfoClick={handleInfoCrypto}
               index={index}
               hasInteracted={hasInteracted}
-              shouldAnimate={animatedCards.has(index)}
-              onVisible={() => triggerCardAnimation(index)}
             />
           ))}
         </div>
