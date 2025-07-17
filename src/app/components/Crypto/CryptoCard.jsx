@@ -1,16 +1,16 @@
 import React from "react"
 
 const Variation = ({label, value}) => (
-  <div className="flex items-center gap-[0.25em] text-[0.7em]">
-    <span className="text-gray-400">{label}</span>
+  <div className="flex items-center gap-[0.3em] text-[0.75em]">
+    <span className="text-gray-400 font-medium">{label}</span>
     <span
-      className={`font-semibold px-[0.5em] py-[0.em] rounded-full ${
+      className={`font-semibold px-[0.4em] py-[0.1em] rounded ${
         value >= 0
-          ? "bg-green-600/20 text-green-400"
-          : "bg-red-600/20 text-red-400"
+          ? "bg-emerald-500/20 text-emerald-300"
+          : "bg-red-500/20 text-red-300"
       }`}
     >
-      {value?.toFixed(2)}%
+      {value >= 0 ? '+' : ''}{value?.toFixed(2)}%
     </span>
   </div>
 )
@@ -36,38 +36,34 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
         animationDelay: `${index * animationDelay}s`
       }}
     >
-      <div className="flex justify-between items-start">
-        <div className="flex items-center gap-[0.5em] flex-1 min-w-0">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center gap-[0.6em] flex-1 min-w-0">
           <div className="relative">
             <img
               src={coin.image}
               alt={coin.name}
-              className="w-[2.1em] h-[2.1em] rounded-full"
+              className="w-[2.2em] h-[2.2em] rounded-full"
             />
-            <div className="absolute -top-[0.5em] -right-[0.5em] w-[1.2em] h-[1.2em] bg-[#3A6FF8] rounded-full flex items-center justify-center">
-              <span className="text-[0.6em] font-bold text-white">
+            <div className="absolute -top-[0.4em] -right-[0.4em] w-[1.3em] h-[1.3em] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg border-2 border-[#2a2d3e]">
+              <span className="text-[0.6em] font-bold text-white leading-none">
                 #{coin.market_cap_rank}
               </span>
             </div>
           </div>
           <div className="min-w-0">
             <h3
-              className="text-[1.4em] font-bold text-[#FeFeFe] group-hover:text-[#3A6FF8] truncate mt-2 transition-colors duration-200 ease-in-out"
+              className="text-[1.3em] font-bold text-[#FeFeFe] truncate transition-colors duration-200 ease-in-out"
               title={coin.name}
             >
               {coin.name}
             </h3>
-            <p className="text-[0.7em] text-gray-400 font-medium truncate">
+            <p className="text-[0.75em] text-gray-400 font-medium truncate">
               {coin.symbol.toUpperCase()}
             </p>
           </div>
         </div>
 
-        <div className="flex flex-col items-end text-[1.2em] gap-[0.5em]">
-          <Variation
-            label="1h"
-            value={coin.price_change_percentage_1h_in_currency}
-          />
+        <div className="flex flex-col items-end text-[1em] gap-[0.3em]">
           <Variation
             label="24h"
             value={coin.price_change_percentage_24h_in_currency}
@@ -79,49 +75,45 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
         </div>
       </div>
 
-      <div className="mb-2">
+      <div className="mb-4">
         <div
-          className="text-[1.4em] font-bold text-[#FeFeFe] truncate"
+          className="text-[1.6em] font-bold text-[#FeFeFe] truncate"
           title={`${coin.current_price?.toLocaleString()} ${
             currency === "eur" ? "€" : "$"
           }`}
         >
           {coin.current_price?.toLocaleString()}{" "}
-          {currency === "eur" ? "€" : "$"}
+          <span className="text-[0.7em] text-gray-400">
+            {currency === "eur" ? "€" : "$"}
+          </span>
         </div>
       </div>
 
-      <div className="space-y-[0.2em] text-[0.9em] text-gray-400">
-        <div
-          className="truncate"
-          title={`Cap. marché: ${coin.market_cap?.toLocaleString()} ${
-            currency === "eur" ? "€" : "$"
-          }`}
-        >
-          Cap: {coin.market_cap?.toLocaleString()}{" "}
-          {currency === "eur" ? "€" : "$"}
+      <div className="space-y-[0.3em] text-[0.8em] text-gray-400 mb-4">
+        <div className="flex justify-between items-center">
+          <span className="text-gray-400">Cap. marché</span>
+          <span className="font-medium text-gray-200">
+            {coin.market_cap?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+          </span>
         </div>
-        <div
-          className="truncate"
-          title={`Volume 24h: ${coin.total_volume?.toLocaleString()} ${
-            currency === "eur" ? "€" : "$"
-          }`}
-        >
-          Volume: {coin.total_volume?.toLocaleString()}{" "}
-          {currency === "eur" ? "€" : "$"}
+        <div className="flex justify-between items-center">
+          <span className="text-gray-400">Volume 24h</span>
+          <span className="font-medium text-gray-200">
+            {coin.total_volume?.toLocaleString()} {currency === "eur" ? "€" : "$"}
+          </span>
         </div>
       </div>
 
-      <div className="flex gap-[0.75em] mt-auto">
+      <div className="flex gap-[0.5em] mt-auto">
         <button
           onClick={() => onAddClick?.(coin)}
-          className="flex-1 bg-red-500 hover:bg-red-600 text-white py-[0.7em] px-[1.2em] rounded-[0.5em] font-medium text-[0.85em] transition-all duration-300 hover:scale-[1.1] hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
+          className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] transition-all duration-300 ease-out hover:shadow-lg hover:shadow-emerald-500/25 border border-emerald-500/20 hover:border-emerald-400/50 hover:scale-[1.02] hover:-translate-y-[1px] active:scale-[0.98] active:translate-y-[0px] transform"
         >
           Ajouter
         </button>
         <button
           onClick={() => onInfoClick?.(coin)}
-          className="flex-1 bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-[0.7em] px-[1.2em] rounded-[0.5em] font-medium text-[0.85em] transition-all duration-300 hover:scale-[1.1] hover:shadow-lg hover:-translate-y-0.5 active:scale-95"
+          className="flex-1 bg-gradient-to-r from-slate-600 to-slate-700 hover:from-slate-500 hover:to-slate-600 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] transition-all duration-300 ease-out hover:shadow-lg hover:shadow-slate-500/25 border border-slate-500/20 hover:border-slate-400/50 hover:scale-[1.02] hover:-translate-y-[1px] active:scale-[0.98] active:translate-y-[0px] transform"
         >
           Info
         </button>

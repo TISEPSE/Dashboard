@@ -154,32 +154,36 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
       <div className="max-w-9xl mx-auto px-6 py-6 pb-24 sm:pb-6">
         
         {/* Section Favoris */}
-        <div className="mb-6">
-          <button
-            onClick={() => setShowFavorites(!showFavorites)}
-            className="flex items-center gap-3 bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/30 hover:border-[#3A6FF8]/40 text-white px-6 py-4 rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-[#3A6FF8]/20 group"
-          >
-            <div className="w-10 h-10 bg-[#3A6FF8] rounded-full flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-              <span className="text-white text-xl">⭐</span>
+        <div className="mb-8">
+          <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/20 rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-sm leading-none">⭐</span>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-white">Favoris</h2>
+                  <p className="text-gray-400 text-sm">Vos cryptomonnaies suivies</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowFavorites(!showFavorites)}
+                className="text-gray-400 hover:text-white transition-colors duration-200"
+              >
+                <svg className={`w-5 h-5 transition-transform duration-200 ${showFavorites ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
             </div>
-            <div className="flex-1 text-left">
-              <h2 className="text-xl font-semibold">Favoris</h2>
-              <p className="text-gray-400 text-sm">Gérez vos cryptomonnaies favorites</p>
-            </div>
-            <div className="text-[#3A6FF8] group-hover:translate-x-1 transition-transform duration-300">
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
-            </div>
-          </button>
-
-          {showFavorites && (
-            <div className="mt-4 bg-gradient-to-r from-[#2A2D3A] to-[#1f2937] border border-gray-600/30 rounded-xl p-6 animate-[fadeInUp_0.3s_ease-out_forwards]">
-              <p className="text-center text-gray-400 py-8">
-                Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
-              </p>
-            </div>
-          )}
+            
+            {showFavorites && (
+              <div className="border-t border-gray-600/20 pt-4">
+                <p className="text-center text-gray-400 py-8">
+                  Aucun favori pour le moment. Cliquez sur "Ajouter" sur une crypto pour l'ajouter à vos favoris.
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Notification de retry */}

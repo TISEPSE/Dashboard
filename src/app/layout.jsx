@@ -1,5 +1,6 @@
 "use client"
 import { useState } from "react"
+import { SessionProvider } from "next-auth/react"
 import "core-js/stable"
 import "regenerator-runtime/runtime"
 import Navbar from "./components/navbar"
@@ -16,16 +17,18 @@ export default function RootLayout({ children }) {
   return (
     <html data-theme="dark" lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <CryptoProvider>
-          <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
-          <main
-            className={`transition-all duration-300 ease-in-out ${
-              isOpen ? "md:ml-64" : "md:ml-16"
-            }`}
-          >
-            {children}
-          </main>
-        </CryptoProvider>
+        <SessionProvider>
+          <CryptoProvider>
+            <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
+            <main
+              className={`transition-all duration-300 ease-in-out ${
+                isOpen ? "md:ml-64" : "md:ml-16"
+              }`}
+            >
+              {children}
+            </main>
+          </CryptoProvider>
+        </SessionProvider>
       </body>
     </html>
   )
