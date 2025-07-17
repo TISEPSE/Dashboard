@@ -61,13 +61,23 @@ const Variation = ({label, value}) => (
 )
 
 const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInteracted = false}) => {
+  // Mémorisation pour éviter le re-render complet
+  const memoizedCoin = React.useMemo(() => coin, [
+    coin.id, 
+    coin.current_price, 
+    coin.price_change_percentage_24h_in_currency,
+    coin.price_change_percentage_7d_in_currency,
+    coin.market_cap,
+    coin.total_volume
+  ])
+
   return (
     <div
       className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
                  transition-all duration-400 group cursor-pointer flex flex-col h-[16em]
-                 hover:border-[#3A6FF8] hover:shadow-[0_8px_24px_rgba(58,111,248,0.3)]
+                 hover:border-[#3A6FF8]
                  hover:bg-[#2f3240] hover:scale-[1.02] hover:-translate-y-1
-                 relative overflow-hidden
+                 relative 
                  animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0`}
       style={{
         animationDelay: `${index * 0.02}s`
@@ -159,4 +169,17 @@ const CryptoCard = ({coin, currency, onAddClick, onInfoClick, index = 0, hasInte
   )
 }
 
-export default CryptoCard
+// Mémorisation du composant pour éviter les re-renders inutiles
+export default React.memo(CryptoCard, (prevProps, nextProps) => {
+  // Le composant ne se re-render que si ces valeurs changent
+  return (
+    prevProps.coin.id === nextProps.coin.id &&
+    prevProps.coin.current_price === nextProps.coin.current_price &&
+    prevProps.coin.price_change_percentage_24h_in_currency === nextProps.coin.price_change_percentage_24h_in_currency &&
+    prevProps.coin.price_change_percentage_7d_in_currency === nextProps.coin.price_change_percentage_7d_in_currency &&
+    prevProps.coin.market_cap === nextProps.coin.market_cap &&
+    prevProps.coin.total_volume === nextProps.coin.total_volume &&
+    prevProps.currency === nextProps.currency &&
+    prevProps.index === nextProps.index
+  )
+})

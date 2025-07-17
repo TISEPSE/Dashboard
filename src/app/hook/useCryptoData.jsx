@@ -176,17 +176,82 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
     processDisplayedCryptos()
   }, [allCryptos, perPage, currentPage, sortBy, sortOrder])
 
-  // Auto-refresh périodique (toutes les 30 secondes)
+  // Auto-refresh périodique silencieux (toutes les 10 secondes)
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isRetrying && !loading) {
-        console.log("🔄 Auto-refresh du cache (temps réel)")
-        fetchAllCryptos()
+        console.log("🔄 Auto-refresh silencieux du cache (temps réel)")
+        // Fetch silencieux sans changer l'état de loading
+        fetchAllCryptosSilently()
       }
-    }, 30000) // 30 secondes pour du temps réel
+    }, 10000) // 10 secondes pour du temps réel
     
     return () => clearInterval(interval)
   }, [currency, isRetrying, loading])
+
+  // Fonction de refresh silencieux avec mise à jour granulaire
+  const fetchAllCryptosSilently = async () => {
+    try {
+      setError(null)
+      
+      const cacheKey = getCacheKey()
+      const now = Date.now()
+      
+      console.log("🌐 Fetch silencieux des cryptos pour", cacheKey)
+      
+      const response = await cryptoAPI.get("/coins/markets", {
+        params: {
+          vs_currency: currency,
+          order: "market_cap_desc",
+          per_page: 250,
+          page: 1,
+          price_change_percentage: "1h,24h,7d",
+          sparkline: false,
+          include_market_cap: true,
+          include_24hr_vol: true,
+          include_24hr_change: true,
+          include_last_updated_at: false
+        }
+      })
+
+      const newCryptoData = response.data
+      
+      // Mise à jour granulaire : ne changer que si les données sont différentes
+      setAllCryptos(prevCryptos => {
+        // Vérifier s'il y a des changements significatifs
+        const hasChanges = prevCryptos.length === 0 || 
+          newCryptoData.some((newCoin, index) => {
+            const oldCoin = prevCryptos[index]
+            return !oldCoin || 
+              oldCoin.current_price !== newCoin.current_price ||
+              oldCoin.price_change_percentage_24h_in_currency !== newCoin.price_change_percentage_24h_in_currency ||
+              oldCoin.market_cap !== newCoin.market_cap ||
+              oldCoin.total_volume !== newCoin.total_volume
+          })
+        
+        if (hasChanges) {
+          console.log(`🔄 Mise à jour granulaire de ${newCryptoData.length} cryptos`)
+          return newCryptoData
+        } else {
+          console.log("📊 Aucun changement détecté, pas de mise à jour")
+          return prevCryptos
+        }
+      })
+      
+      // Mettre en cache
+      cacheRef.current[cacheKey] = {
+        data: newCryptoData,
+        timestamp: now
+      }
+      
+      setLastFetch(new Date(now))
+      setRetryCount(0)
+      
+    } catch (err) {
+      console.error("Erreur lors du refresh silencieux:", err)
+      // En cas d'erreur silencieuse, on ne change pas l'état d'erreur
+    }
+  }
 
   return {
     cryptos: displayedCryptos,

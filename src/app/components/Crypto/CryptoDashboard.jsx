@@ -46,10 +46,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     cacheStatus,
   } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder)
 
-  // Gestion du changement de page
+  // Gestion du changement de page (sans scroll automatique)
   const handlePageChange = newPage => {
     setCurrentPage(newPage)
-    window.scrollTo({top: 0, behavior: "smooth"})
+    // Supprimé: window.scrollTo({top: 0, behavior: "smooth"})
   }
 
   // Gestion de la pagination
@@ -116,14 +116,14 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     // Logique d'info ici
   }
 
-  // Effet pour déclencher l'animation des cartes
+  // Effet pour déclencher l'animation des cartes (seulement au premier chargement)
   useEffect(() => {
-    if (cryptos.length > 0 && !loading) {
+    if (cryptos.length > 0 && !loading && !showCards) {
       setShowCards(false)
       const timer = setTimeout(() => setShowCards(true), 50)
       return () => clearTimeout(timer)
     }
-  }, [cryptos, loading])
+  }, [cryptos.length, loading]) // Changé: dépendance sur cryptos.length au lieu de cryptos
 
   // Attendre l'hydratation
   if (!hydrated) return null
