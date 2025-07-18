@@ -517,6 +517,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
 
   return {
     cryptos: displayedCryptos,
+    allCryptos,
     favoriteCryptos,
     loading,
     error,

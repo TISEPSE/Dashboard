@@ -39,6 +39,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   // Récupération des données
   const {
     cryptos,
+    allCryptos,
     favoriteCryptos,
     loading,
     error,
@@ -53,27 +54,67 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     cacheStatus,
   } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder, favorites)
 
-  // Logique de filtrage
+  // Tri des cryptos
+  const sortCryptos = (cryptosList) => {
+    return [...cryptosList].sort((a, b) => {
+      let aValue = a[sortBy]
+      let bValue = b[sortBy]
+
+      if (sortBy === "name") {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      }
+
+      if (aValue === null || aValue === undefined) return 1
+      if (bValue === null || bValue === undefined) return -1
+
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+  }
+
+  // Logique de filtrage et pagination complète
   const filteredCryptos = React.useMemo(() => {
+    console.log("🔍 Filtrage - Type:", filterType)
+    
+    let sourceData = []
+    
     if (filterType === 'favorites') {
-      console.log("🔍 Filtre favoris activé")
-      console.log("Favoris dans la liste:", favorites.map(f => f.symbol))
-      console.log("Cryptos disponibles:", cryptos.slice(0, 3).map(c => c.symbol))
-      console.log("favoriteCryptos:", favoriteCryptos.length)
-      
-      // Filtrer directement depuis cryptos en utilisant les symboles des favoris
-      if (favorites.length > 0) {
+      // Filtrer les favoris depuis allCryptos
+      if (favorites.length > 0 && allCryptos.length > 0) {
         const favoriteSymbols = favorites.map(fav => fav.symbol.toUpperCase())
-        const filtered = cryptos.filter(crypto => 
+        sourceData = allCryptos.filter(crypto => 
           favoriteSymbols.includes(crypto.symbol.toUpperCase())
         )
-        console.log("Cryptos filtrés:", filtered.map(c => c.symbol))
-        return filtered
+        console.log("Favoris trouvés:", sourceData.map(c => c.symbol))
+      } else {
+        sourceData = []
       }
-      return []
+    } else {
+      // Utiliser allCryptos pour les filtres normaux
+      sourceData = allCryptos
     }
-    return cryptos
-  }, [cryptos, favoriteCryptos, filterType, favorites])
+
+    if (sourceData.length === 0) return []
+
+    // Trier
+    const sortedData = sortCryptos(sourceData)
+    
+    // Appliquer la pagination/limitation
+    if (perPage === "all") {
+      // Mode "Tout" : pagination par tranches de 40
+      const startIndex = (currentPage - 1) * 40
+      const endIndex = startIndex + 40
+      return sortedData.slice(startIndex, endIndex)
+    } else {
+      // Modes spécifiques : afficher exactement le nombre demandé
+      const itemsPerPage = typeof perPage === 'number' ? perPage : 6
+      return sortedData.slice(0, itemsPerPage)
+    }
+  }, [allCryptos, favorites, filterType, sortBy, sortOrder, perPage, currentPage])
 
   // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {
@@ -91,7 +132,13 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   }
 
   // Calculer le nombre total de pages possibles
-  const totalPages = Math.ceil(totalCryptos / 40)
+  const totalFilteredCryptos = filterType === 'favorites' ? 
+    (favorites.length > 0 && allCryptos.length > 0 ? 
+      allCryptos.filter(crypto => 
+        favorites.map(fav => fav.symbol.toUpperCase()).includes(crypto.symbol.toUpperCase())
+      ).length : 0) : 
+    totalCryptos
+  const totalPages = Math.ceil(totalFilteredCryptos / 40)
   const isNextDisabled = currentPage >= totalPages || filteredCryptos.length < 40
 
   // Reset de la page courante quand perPage ou filterType change
