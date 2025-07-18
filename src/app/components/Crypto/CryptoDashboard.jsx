@@ -6,7 +6,6 @@ import {useCryptoContext} from "../../context/CryptoContext"
 import CryptoCard from "../../components/Crypto/CryptoCard"
 import CryptoToolbar from "./CryptoToolbar"
 import CryptoPagination from "./CryptoPagination"
-import FavoritesList from "./FavoritesList"
 import {
   CryptoErrorState,
   CryptoLoadingState,
@@ -18,7 +17,6 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const {setCryptoPaginationData} = useCryptoContext()
   const [currentPage, setCurrentPage] = useState(1)
   const [hasInteracted, setHasInteracted] = useState(false)
-  const [showFavorites, setShowFavorites] = useState(false)
   const [showCards, setShowCards] = useState(false)
   const [filterType, setFilterType] = useState('all')
 
@@ -58,10 +56,24 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   // Logique de filtrage
   const filteredCryptos = React.useMemo(() => {
     if (filterType === 'favorites') {
-      return favoriteCryptos
+      console.log("🔍 Filtre favoris activé")
+      console.log("Favoris dans la liste:", favorites.map(f => f.symbol))
+      console.log("Cryptos disponibles:", cryptos.slice(0, 3).map(c => c.symbol))
+      console.log("favoriteCryptos:", favoriteCryptos.length)
+      
+      // Filtrer directement depuis cryptos en utilisant les symboles des favoris
+      if (favorites.length > 0) {
+        const favoriteSymbols = favorites.map(fav => fav.symbol.toUpperCase())
+        const filtered = cryptos.filter(crypto => 
+          favoriteSymbols.includes(crypto.symbol.toUpperCase())
+        )
+        console.log("Cryptos filtrés:", filtered.map(c => c.symbol))
+        return filtered
+      }
+      return []
     }
     return cryptos
-  }, [cryptos, favoriteCryptos, filterType])
+  }, [cryptos, favoriteCryptos, filterType, favorites])
 
   // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {
@@ -186,37 +198,6 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
       {/* Contenu principal */}
       <div className="max-w-9xl mx-auto px-6 py-6 pb-6">
-        
-        {/* Section Favoris */}
-        <div className="mb-6">
-          <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/20 rounded-xl p-4 shadow-lg">
-            <div 
-              className="flex items-center justify-between cursor-pointer hover:bg-white/5 rounded-lg p-2 -m-2 transition-colors duration-200"
-              onClick={() => setShowFavorites(!showFavorites)}
-            >
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-gradient-to-r from-amber-500 to-orange-500 rounded-md flex items-center justify-center">
-                  <span className="text-white text-xs leading-none">⭐</span>
-                </div>
-                <div>
-                  <h2 className="text-base font-semibold text-white">Favoris</h2>
-                  <p className="text-gray-400 text-xs">Vos cryptomonnaies suivies</p>
-                </div>
-              </div>
-              <div className="text-gray-400 hover:text-white transition-colors duration-200">
-                <svg className={`w-4 h-4 transition-transform duration-200 ${showFavorites ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </div>
-            </div>
-            
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out ${showFavorites ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <div className={`border-t border-gray-600/20 transition-all duration-300 ease-in-out ${showFavorites ? 'mt-3 pt-3' : 'mt-0 pt-0'}`}>
-                <FavoritesList onCryptoSelect={(symbol) => console.log('Crypto sélectionnée:', symbol)} />
-              </div>
-            </div>
-          </div>
-        </div>
 
         {/* Notification de retry */}
         {isRetrying && cryptos.length > 0 && (

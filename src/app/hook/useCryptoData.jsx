@@ -10,6 +10,229 @@ const cryptoAPI = axios.create({
   },
 })
 
+// Correspondance symbole -> ID CoinGecko
+const symbolToId = {
+  'BTC': 'bitcoin',
+  'ETH': 'ethereum',
+  'BNB': 'binancecoin',
+  'XRP': 'ripple',
+  'ADA': 'cardano',
+  'DOGE': 'dogecoin',
+  'SOL': 'solana',
+  'TRX': 'tron',
+  'TON': 'the-open-network',
+  'AVAX': 'avalanche-2',
+  'SHIB': 'shiba-inu',
+  'DOT': 'polkadot',
+  'LINK': 'chainlink',
+  'MATIC': 'matic-network',
+  'LTC': 'litecoin',
+  'BCH': 'bitcoin-cash',
+  'ICP': 'internet-computer',
+  'XLM': 'stellar',
+  'UNI': 'uniswap',
+  'ATOM': 'cosmos',
+  'FIL': 'filecoin',
+  'ALGO': 'algorand',
+  'VET': 'vechain',
+  'HBAR': 'hedera-hashgraph',
+  'APT': 'aptos',
+  'MANA': 'decentraland',
+  'SAND': 'the-sandbox',
+  'NEAR': 'near',
+  'THETA': 'theta-token',
+  'EGLD': 'elrond-erd-2',
+  'FLOW': 'flow',
+  'AXS': 'axie-infinity',
+  'ENJ': 'enjincoin',
+  'GALA': 'gala',
+  'CHZ': 'chiliz',
+  'MANA': 'decentraland',
+  'CRO': 'crypto-com-chain',
+  'FTM': 'fantom',
+  'AAVE': 'aave',
+  'GRT': 'the-graph',
+  'COMP': 'compound-coin',
+  'MKR': 'maker',
+  'YFI': 'yearn-finance',
+  'SUSHI': 'sushi',
+  'SNX': 'havven',
+  'CRV': 'curve-dao-token',
+  'BAL': 'balancer',
+  'ZRX': '0x',
+  'KNC': 'kyber-network',
+  'LEND': 'ethlend',
+  'MANA': 'decentraland',
+  'BAT': 'basic-attention-token',
+  'ZIL': 'zilliqa',
+  'REP': 'augur',
+  'STORJ': 'storj',
+  'BNT': 'bancor',
+  'POLY': 'polymath',
+  'POWR': 'power-ledger',
+  'MTL': 'metal',
+  'LOOM': 'loom-network',
+  'DENT': 'dent',
+  'REN': 'republic-protocol',
+  'CELR': 'celer-network',
+  'CTSI': 'cartesi',
+  'BAND': 'band-protocol',
+  'OCEAN': 'ocean-protocol',
+  'LRC': 'loopring',
+  'IOTX': 'iotex',
+  'ANKR': 'ankr',
+  'AUDIO': 'audius',
+  'MASK': 'mask-network',
+  'NKN': 'nkn',
+  'CTXC': 'cortex',
+  'DUSK': 'dusk-network',
+  'PERL': 'perlin',
+  'RUNE': 'thorchain',
+  'ALPHA': 'alpha-finance',
+  'SXP': 'swipe',
+  'CAKE': 'pancakeswap-token',
+  'AUTO': 'auto',
+  'BAKE': 'bakerytoken',
+  'BURGER': 'burger-swap',
+  'SPARTA': 'spartan-protocol-token',
+  'TWT': 'trust-wallet-token',
+  'SFP': 'safemoon',
+  'DODO': 'dodo',
+  'REEF': 'reef-finance',
+  'ALICE': 'my-neighbor-alice',
+  'TLM': 'alien-worlds',
+  'SLP': 'smooth-love-potion',
+  'PYR': 'vulcan-forged',
+  'BETA': 'beta-finance',
+  'RAMP': 'ramp',
+  'HARD': 'kava-lend',
+  'DEGO': 'dego-finance',
+  'NULS': 'nuls',
+  'CHR': 'chromaway',
+  'UNFI': 'unifi-protocol-dao',
+  'CVP': 'concentrated-voting-power',
+  'FOR': 'forta',
+  'PUNDIX': 'pundi-x-2',
+  'LINA': 'linear',
+  'EPIK': 'epik-prime',
+  'CHESS': 'tranchess',
+  'PROS': 'prosper',
+  'FIRO': 'zcoin',
+  'VITE': 'vite',
+  'HIGH': 'highstreet',
+  'MOVR': 'moonriver',
+  'GLMR': 'moonbeam',
+  'KAVA': 'kava',
+  'SCRT': 'secret',
+  'ROSE': 'oasis-network',
+  'KEEP': 'keep-network',
+  'NU': 'nucypher',
+  'BADGER': 'badger-dao',
+  'FARM': 'harvest-finance',
+  'IDLE': 'idle',
+  'COVER': 'cover-protocol',
+  'PICKLE': 'pickle-finance',
+  'VALUE': 'value-liquidity',
+  'CREAM': 'cream-2',
+  'AKRO': 'akropolis',
+  'HEGIC': 'hegic',
+  'RARI': 'rarible',
+  'BOND': 'barnbridge',
+  'ALPHA': 'alpha-finance',
+  'COMBO': 'furucombo',
+  'INDEX': 'index-cooperative',
+  'ARMOR': 'armor',
+  'DOUGH': 'piedao-dough-v2',
+  'SWRV': 'swerve',
+  'BASED': 'based-money',
+  'WBTC': 'wrapped-bitcoin',
+  'WETH': 'weth',
+  'USDC': 'usd-coin',
+  'USDT': 'tether',
+  'BUSD': 'binance-usd',
+  'DAI': 'dai',
+  'TUSD': 'true-usd',
+  'PAX': 'paxos-standard',
+  'HUSD': 'husd',
+  'GUSD': 'gemini-dollar',
+  'SUSD': 'nusd',
+  'DUSD': 'dusd',
+  'MUSD': 'musd',
+  'OUSD': 'origin-dollar',
+  'LUSD': 'liquity-usd',
+  'FRAX': 'frax',
+  'FEI': 'fei-protocol',
+  'TRIBE': 'tribe-2',
+  'RAI': 'rai',
+  'FLOAT': 'float-protocol-float',
+  'BANK': 'float-protocol-bank',
+  'AMPL': 'ampleforth',
+  'SPELL': 'spell-token',
+  'ICE': 'ice-token',
+  'TIME': 'wonderland',
+  'MEMO': 'wonderland',
+  'BOBA': 'boba-network',
+  'METIS': 'metis-token',
+  'SYN': 'synapse-2',
+  'NOIA': 'noia-network',
+  'POLS': 'polkastarter',
+  'OM': 'mantra-dao',
+  'SAND': 'the-sandbox',
+  'MANA': 'decentraland',
+  'AXS': 'axie-infinity',
+  'SLP': 'smooth-love-potion',
+  'ALICE': 'my-neighbor-alice',
+  'TLM': 'alien-worlds',
+  'WIN': 'wink',
+  'BTT': 'bittorrent-2',
+  'JST': 'just',
+  'SUN': 'sun-token',
+  'NFT': 'apenft',
+  'REEF': 'reef-finance',
+  'DODO': 'dodo',
+  'CAKE': 'pancakeswap-token',
+  'BUNNY': 'pancake-bunny',
+  'BURGER': 'burger-swap',
+  'SPARTA': 'spartan-protocol-token',
+  'AUTO': 'auto',
+  'BAKE': 'bakerytoken',
+  'HARD': 'kava-lend',
+  'SWP': 'kava-swap',
+  'USDX': 'usdx',
+  'XVS': 'venus',
+  'VAI': 'vai',
+  'BTCB': 'bitcoin-bep2',
+  'BETH': 'binance-eth',
+  'LTC': 'litecoin',
+  'BCH': 'bitcoin-cash',
+  'XLM': 'stellar',
+  'VET': 'vechain',
+  'FIL': 'filecoin',
+  'THETA': 'theta-token',
+  'TRX': 'tron',
+  'EOS': 'eos',
+  'IOTA': 'iota',
+  'XTZ': 'tezos',
+  'DASH': 'dash',
+  'XMR': 'monero',
+  'ETC': 'ethereum-classic',
+  'NEO': 'neo',
+  'QTUM': 'qtum',
+  'ONT': 'ontology',
+  'ZEC': 'zcash',
+  'WAVES': 'waves',
+  'ICX': 'icon',
+  'LSK': 'lisk',
+  'ZIL': 'zilliqa',
+  'BAT': 'basic-attention-token',
+  'NANO': 'nano',
+  'DGB': 'digibyte',
+  'SC': 'siacoin',
+  'ZEN': 'zencash',
+  'DOGE': 'dogecoin',
+  'XRP': 'ripple'
+}
+
 cryptoAPI.interceptors.response.use(
   response => response,
   error => {
@@ -64,98 +287,28 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     })
   }
 
-  // Fetch spécifique des favoris
+  // Fetch spécifique des favoris - utilise les données déjà chargées
   const fetchFavoriteCryptos = useCallback(async (isRetry = false) => {
     if (favoritesList.length === 0) {
       setFavoriteCryptos([])
       return
     }
     
-    try {
-      setLoading(true)
-      setError(null)
-      if (isRetry) {
-        setIsRetrying(true)
-      }
-
-      const cacheKey = `favorites_${currency}_${favoritesList.map(f => f.symbol).join(',')}`
-      const now = Date.now()
-      
-      // Vérifier le cache (valide pendant 2 minutes)
-      if (cacheRef.current[cacheKey] && 
-          (now - cacheRef.current[cacheKey].timestamp) < 120000) {
-        console.log("📦 Utilisation du cache favoris pour", cacheKey)
-        setFavoriteCryptos(cacheRef.current[cacheKey].data)
-        setLastFetch(new Date(cacheRef.current[cacheKey].timestamp))
-        setRetryCount(0)
-        setIsRetrying(false)
-        setLoading(false)
-        return
-      }
-
-      console.log("🌐 Fetch des favoris pour", cacheKey)
-      
-      // Créer la liste des IDs des favoris
-      const ids = favoritesList.map(fav => fav.symbol.toLowerCase()).join(',')
-      
-      const response = await cryptoAPI.get("/coins/markets", {
-        params: {
-          vs_currency: currency,
-          ids: ids,
-          order: "market_cap_desc",
-          per_page: 250,
-          page: 1,
-          price_change_percentage: "1h,24h,7d",
-          sparkline: false,
-          include_market_cap: true,
-          include_24hr_vol: true,
-          include_24hr_change: true,
-          include_last_updated_at: false
-        }
-      })
-
-      const cryptoData = response.data
-      
-      // Mettre en cache
-      cacheRef.current[cacheKey] = {
-        data: cryptoData,
-        timestamp: now
-      }
-      
-      setFavoriteCryptos(cryptoData)
-      setLastFetch(new Date(now))
-      setRetryCount(0)
-      setIsRetrying(false)
-      
-      console.log(`✅ ${cryptoData.length} favoris chargés et mis en cache`)
-      
-    } catch (err) {
-      setError(err.message)
-      setRetryCount(prev => prev + 1)
-      console.error("Erreur lors du chargement des favoris:", err)
-      
-      // Retry plus agressif
-      const shouldRetry = err.code === "ECONNABORTED" || 
-                         err.response?.status >= 500 || 
-                         err.code === "NETWORK_ERROR" ||
-                         err.message?.includes("Network Error") ||
-                         err.message?.includes("timeout") ||
-                         !err.response
-      
-      if (shouldRetry && retryCount < 5) {
-        setIsRetrying(true)
-        const retryDelay = Math.min(3000 + (retryCount * 2000), 15000) // 3s, 5s, 7s, 9s, 11s
-        
-        setTimeout(() => {
-          fetchFavoriteCryptos(true)
-        }, retryDelay)
-      } else {
-        setIsRetrying(false)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }, [favoritesList, currency, retryCount])
+    console.log("🌐 Filtrage des favoris depuis allCryptos")
+    console.log("Favoris recherchés:", favoritesList.map(f => f.symbol))
+    console.log("Cryptos disponibles:", allCryptos.slice(0, 5).map(c => c.symbol))
+    
+    // Filtrer les cryptos depuis allCryptos basé sur les symboles des favoris
+    const favoriteSymbols = favoritesList.map(fav => fav.symbol.toUpperCase())
+    const filteredFavorites = allCryptos.filter(crypto => 
+      favoriteSymbols.includes(crypto.symbol.toUpperCase())
+    )
+    
+    console.log("✅ Favoris trouvés:", filteredFavorites.map(f => f.symbol))
+    
+    setFavoriteCryptos(filteredFavorites)
+    
+  }, [favoritesList, allCryptos])
 
   // Fetch complet de toutes les cryptos (250 premières)
   const fetchAllCryptos = async (isRetry = false) => {
@@ -268,10 +421,10 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
 
   // Effet pour charger les favoris
   useEffect(() => {
-    if (favoritesList.length > 0) {
+    if (favoritesList.length > 0 && allCryptos.length > 0) {
       fetchFavoriteCryptos()
     }
-  }, [currency, favoritesList, fetchFavoriteCryptos]) // Quand la devise ou les favoris changent
+  }, [favoritesList, allCryptos, fetchFavoriteCryptos]) // Quand les favoris ou allCryptos changent
 
   // Effet pour traiter l'affichage
   useEffect(() => {

@@ -1,10 +1,12 @@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
-export default function AuthButton() {
+export default function AuthButton({ setIsOpen }) {
   const { data: session, status } = useSession()
   const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter()
 
   const handleSignIn = async () => {
     setIsLoading(true)
@@ -45,11 +47,7 @@ export default function AuthButton() {
           className="block w-full hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5"
           onClick={(e) => {
             e.stopPropagation();
-            // Fermer la navbar si on est sur mobile
-            if (window.innerWidth < 768) {
-              const setIsOpen = window.setNavbarOpen;
-              if (setIsOpen) setIsOpen(false);
-            }
+            if (setIsOpen) setIsOpen(false);
           }}
         >
           <div className="flex items-center gap-3 py-3 px-4 w-full h-full">

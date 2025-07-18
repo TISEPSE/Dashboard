@@ -235,9 +235,9 @@ export default function Navbar({isOpen, setIsOpen}) {
               </Link>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3">
+            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3 pb-20 md:pb-0">
               <div className="w-full">
-                <AuthButton />
+                <AuthButton setIsOpen={setIsOpen} />
               </div>
               <div className="flex items-center justify-between text-sm text-gray-400">
                 <span>v1.0.0</span>

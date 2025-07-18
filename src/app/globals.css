@@ -220,17 +220,10 @@ body {
   }
 }
 
-@keyframes toastBounceIn {
+@keyframes toastSmoothIn {
   0% {
     opacity: 0;
-    transform: translateX(100%) scale(0.3);
-  }
-  50% {
-    opacity: 1;
-    transform: translateX(-10px) scale(1.05);
-  }
-  70% {
-    transform: translateX(5px) scale(0.98);
+    transform: translateX(100%) scale(0.95);
   }
   100% {
     opacity: 1;
@@ -250,7 +243,7 @@ body {
 }
 
 .animate-toast-in {
-  animation: toastBounceIn 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+  animation: toastSmoothIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
 }
 
 .animate-toast-out {
