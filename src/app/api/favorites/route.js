@@ -6,6 +6,9 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId') || 'anonymous'
 
+    // Vérifier la connexion à la base de données
+    await prisma.$connect()
+
     const favorites = await prisma.cryptoFavorite.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' }
@@ -14,7 +17,15 @@ export async function GET(request) {
     return NextResponse.json(favorites)
   } catch (error) {
     console.error('Error fetching favorites:', error)
-    return NextResponse.json({ error: 'Failed to fetch favorites' }, { status: 500 })
+    
+    // Gérer les erreurs de base de données spécifiques
+    if (error.code === 'P1001') {
+      return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
+    }
+    
+    return NextResponse.json({ error: 'Failed to fetch favorites', details: error.message }, { status: 500 })
+  } finally {
+    await prisma.$disconnect()
   }
 }
 
