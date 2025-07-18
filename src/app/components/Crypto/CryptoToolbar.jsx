@@ -162,7 +162,7 @@ const CryptoToolbar = ({
                 {currency === 'eur' ? '€' : '$'}
               </button>
 
-              <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] px-2 py-2 rounded-lg border border-gray-600/30">
+              <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] px-2 py-2 rounded-lg border border-gray-600/30 hidden sm:block">
                 <div className={`w-2 h-2 rounded-full ${loading ? "bg-yellow-400 animate-pulse" : isRetrying ? "bg-orange-400 animate-pulse" : "bg-green-400"}`}></div>
               </div>
             </div>

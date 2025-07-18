@@ -35,58 +35,33 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     setSortOrder,
   } = useCryptoPreferences()
 
+  // Hook pour les favoris
+  const { favorites, isFavorite, refreshFavorites } = useFavorites()
+
   // Récupération des données
   const {
     cryptos,
+    favoriteCryptos,
     loading,
     error,
     retryCount,
     isRetrying,
     refetch,
+    fetchFavorites,
+    processDisplayedCryptos,
     isPaginationEnabled,
     totalCryptos,
     lastFetch,
     cacheStatus,
-  } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder)
-
-  // Hook pour les favoris
-  const { favorites, isFavorite, refreshFavorites } = useFavorites()
-
-  // Fonction de tri des cryptos
-  const sortCryptos = (cryptosList) => {
-    return [...cryptosList].sort((a, b) => {
-      let aValue = a[sortBy]
-      let bValue = b[sortBy]
-
-      if (sortBy === "name") {
-        aValue = aValue.toLowerCase()
-        bValue = bValue.toLowerCase()
-      }
-
-      if (aValue === null || aValue === undefined) return 1
-      if (bValue === null || bValue === undefined) return -1
-
-      if (sortOrder === "asc") {
-        return aValue > bValue ? 1 : -1
-      } else {
-        return aValue < bValue ? 1 : -1
-      }
-    })
-  }
+  } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder, favorites)
 
   // Logique de filtrage
   const filteredCryptos = React.useMemo(() => {
     if (filterType === 'favorites') {
-      // Filtrer les cryptos qui sont dans les favoris
-      const favoriteCryptos = cryptos.filter(crypto => {
-        const isFav = favorites.some(fav => fav.symbol.toLowerCase() === crypto.symbol.toLowerCase())
-        return isFav
-      })
-      // Appliquer le tri sur les favoris
-      return sortCryptos(favoriteCryptos)
+      return favoriteCryptos
     }
     return cryptos
-  }, [cryptos, filterType, favorites, sortBy, sortOrder])
+  }, [cryptos, favoriteCryptos, filterType])
 
   // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {
@@ -112,11 +87,13 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     setCurrentPage(1)
     window.scrollTo({top: 0, behavior: "smooth"})
     
-    // Rafraîchir les favoris quand on passe au filtre favoris
+    // Traiter l'affichage selon le filtre
     if (filterType === 'favorites') {
-      refreshFavorites()
+      processDisplayedCryptos(true) // Afficher les favoris
+    } else {
+      processDisplayedCryptos(false) // Afficher toutes les cryptos
     }
-  }, [perPage, filterType, refreshFavorites])
+  }, [perPage, filterType, processDisplayedCryptos])
 
   // Détection d'interaction pour accélérer les animations
   useEffect(() => {
