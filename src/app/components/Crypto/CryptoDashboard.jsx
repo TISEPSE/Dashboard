@@ -11,7 +11,7 @@ import {
   CryptoLoadingState,
   CryptoRetryNotification,
 } from "../Crypto/CryptoState"
-import { useFavorites } from "../../hook/useFavorites"
+import { useFavoritesContext } from "../../context/FavoritesContext"
 
 const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const {setCryptoPaginationData} = useCryptoContext()
@@ -38,7 +38,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   } = useCryptoPreferences()
 
   // Hook pour les favoris
-  const { favorites, isFavorite, refreshFavorites } = useFavorites()
+  const { favorites, isFavorite, refreshFavorites } = useFavoritesContext()
 
   // Récupération des données
   const {

@@ -93,8 +93,36 @@ export const useFavorites = () => {
   }
 
   useEffect(() => {
-    fetchFavorites()
-  }, [userId, status])
+    if (status === 'loading') return
+    if (!session?.user?.id) {
+      setFavorites([])
+      setLoading(false)
+      setError(null)
+      return
+    }
+
+    const loadFavorites = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch(`/api/favorites?userId=${session.user.id}`)
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Failed to fetch favorites')
+        }
+        const data = await response.json()
+        setFavorites(data)
+      } catch (err) {
+        console.error('Error fetching favorites:', err)
+        setError(err.message)
+        setFavorites([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadFavorites()
+  }, [session?.user?.id, status])
 
   return {
     favorites,

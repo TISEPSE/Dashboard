@@ -6,9 +6,6 @@ export async function GET(request) {
     const { searchParams } = new URL(request.url)
     const userId = searchParams.get('userId') || 'anonymous'
 
-    // Vérifier la connexion à la base de données
-    await prisma.$connect()
-
     const favorites = await prisma.cryptoFavorite.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' }
@@ -18,14 +15,22 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error fetching favorites:', error)
     
+    // Si la table n'existe pas (PostgreSQL)
+    if (error.code === 'P2021' || error.code === '42P01') {
+      console.log('Table does not exist, it should be created via Prisma migrations')
+      return NextResponse.json({ error: 'Database table does not exist. Run: npx prisma db push' }, { status: 503 })
+    }
+    
     // Gérer les erreurs de base de données spécifiques
-    if (error.code === 'P1001') {
+    if (error.code === 'P1001' || error.code === 'P1012') {
       return NextResponse.json({ error: 'Database connection failed' }, { status: 503 })
     }
     
-    return NextResponse.json({ error: 'Failed to fetch favorites', details: error.message }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
+    return NextResponse.json({ 
+      error: 'Failed to fetch favorites', 
+      details: error.message,
+      code: error.code 
+    }, { status: 500 })
   }
 }
 

@@ -1,5 +1,5 @@
 import React from "react"
-import { useFavorites } from "../../hook/useFavorites"
+import { useFavoritesContext } from "../../context/FavoritesContext"
 import { useToast } from "../../hook/useToast"
 import Toast from "../UI/Toast"
 
@@ -73,7 +73,7 @@ const Variation = ({label, value}) => (
 )
 
 const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, hasInteracted = false}, ref) => {
-  const { addFavorite, removeFavorite, isFavorite } = useFavorites()
+  const { addFavorite, removeFavorite, isFavorite } = useFavoritesContext()
   const { toast, showToast, hideToast } = useToast()
   
   // Mémorisation pour éviter le re-render complet

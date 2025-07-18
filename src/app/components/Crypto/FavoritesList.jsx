@@ -1,9 +1,9 @@
 import React from 'react'
-import { useFavorites } from '../../hook/useFavorites'
+import { useFavoritesContext } from '../../context/FavoritesContext'
 import { useSession } from 'next-auth/react'
 
 const FavoritesList = ({ onCryptoSelect }) => {
-  const { favorites, loading, error, removeFavorite } = useFavorites()
+  const { favorites, loading, error, removeFavorite } = useFavoritesContext()
   const { data: session } = useSession()
 
   if (loading) {

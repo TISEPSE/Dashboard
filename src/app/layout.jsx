@@ -5,6 +5,7 @@ import "core-js/stable"
 import "regenerator-runtime/runtime"
 import Navbar from "./components/navbar"
 import { CryptoProvider } from "./context/CryptoContext"
+import { FavoritesProvider } from "./context/FavoritesContext"
 import ErrorBoundary from "./components/ErrorBoundary"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
@@ -22,16 +23,18 @@ export default function RootLayout({ children }) {
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorBoundary>
           <SessionProvider>
-            <CryptoProvider>
-              <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
-              <main
-                className={`transition-all duration-300 ease-in-out ${
-                  isOpen ? "md:ml-64" : "md:ml-16"
-                }`}
-              >
-                {children}
-              </main>
-            </CryptoProvider>
+            <FavoritesProvider>
+              <CryptoProvider>
+                <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
+                <main
+                  className={`transition-all duration-300 ease-in-out ${
+                    isOpen ? "md:ml-64" : "md:ml-16"
+                  }`}
+                >
+                  {children}
+                </main>
+              </CryptoProvider>
+            </FavoritesProvider>
           </SessionProvider>
         </ErrorBoundary>
         {/* <SpeedInsights /> */}
