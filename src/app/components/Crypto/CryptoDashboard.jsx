@@ -52,6 +52,28 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   // Hook pour les favoris
   const { favorites, isFavorite, refreshFavorites } = useFavorites()
 
+  // Fonction de tri des cryptos
+  const sortCryptos = (cryptosList) => {
+    return [...cryptosList].sort((a, b) => {
+      let aValue = a[sortBy]
+      let bValue = b[sortBy]
+
+      if (sortBy === "name") {
+        aValue = aValue.toLowerCase()
+        bValue = bValue.toLowerCase()
+      }
+
+      if (aValue === null || aValue === undefined) return 1
+      if (bValue === null || bValue === undefined) return -1
+
+      if (sortOrder === "asc") {
+        return aValue > bValue ? 1 : -1
+      } else {
+        return aValue < bValue ? 1 : -1
+      }
+    })
+  }
+
   // Logique de filtrage
   const filteredCryptos = React.useMemo(() => {
     if (filterType === 'favorites') {
@@ -60,10 +82,11 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         const isFav = favorites.some(fav => fav.symbol.toLowerCase() === crypto.symbol.toLowerCase())
         return isFav
       })
-      return favoriteCryptos
+      // Appliquer le tri sur les favoris
+      return sortCryptos(favoriteCryptos)
     }
     return cryptos
-  }, [cryptos, filterType, favorites])
+  }, [cryptos, filterType, favorites, sortBy, sortOrder])
 
   // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {

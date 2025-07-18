@@ -20,11 +20,6 @@ const CryptoToolbar = ({
     { value: "market_cap", label: "Capitalisation", shortLabel: "Cap." },
     { value: "current_price", label: "Prix", shortLabel: "Prix" },
     { value: "name", label: "Nom", shortLabel: "Nom" },
-    {
-      value: "price_change_percentage_24h",
-      label: "Variation 24h",
-      shortLabel: "24h",
-    },
     { value: "market_cap_rank", label: "Classement", shortLabel: "Rang" },
   ]
 
