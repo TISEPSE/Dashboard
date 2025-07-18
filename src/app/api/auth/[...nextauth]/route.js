@@ -15,17 +15,22 @@ const authOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
       if (account) {
         token.accessToken = account.access_token
+      }
+      if (user) {
+        token.id = user.id
       }
       return token
     },
     async session({ session, token }) {
       session.accessToken = token.accessToken
+      session.user.id = token.sub || token.id // ID utilisateur unique pour les favoris
       return session
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }
 
 const handler = NextAuth(authOptions)

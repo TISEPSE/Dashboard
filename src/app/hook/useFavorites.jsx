@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react'
+import { useSession } from 'next-auth/react'
 
-export const useFavorites = (userId = 'anonymous') => {
+export const useFavorites = () => {
+  const { data: session } = useSession()
+  const userId = session?.user?.id || 'anonymous'
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)

@@ -1,8 +1,10 @@
 import React from 'react'
 import { useFavorites } from '../../hook/useFavorites'
+import { useSession } from 'next-auth/react'
 
 const FavoritesList = ({ onCryptoSelect }) => {
   const { favorites, loading, error, removeFavorite } = useFavorites()
+  const { data: session } = useSession()
 
   if (loading) {
     return (
@@ -49,8 +51,18 @@ const FavoritesList = ({ onCryptoSelect }) => {
   return (
     <div className="bg-[#2a2d3e] border border-[#3a3d4e] rounded-lg p-4">
       <div className="flex items-center justify-between mb-4">
-        <div className="text-gray-400 text-sm font-medium">
-          {favorites.length} crypto{favorites.length > 1 ? 's' : ''} favori{favorites.length > 1 ? 's' : ''}
+        <div className="flex items-center gap-2">
+          <div className="text-gray-400 text-sm font-medium">
+            {favorites.length} crypto{favorites.length > 1 ? 's' : ''} favori{favorites.length > 1 ? 's' : ''}
+          </div>
+          {session && (
+            <div className="flex items-center gap-1 text-xs bg-green-500/20 text-green-300 px-2 py-1 rounded">
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Privés</span>
+            </div>
+          )}
         </div>
         <div className="w-6 h-6 bg-gradient-to-r from-amber-500/20 to-orange-600/20 rounded-full flex items-center justify-center">
           <svg className="w-3 h-3 text-amber-400" fill="currentColor" viewBox="0 0 24 24">

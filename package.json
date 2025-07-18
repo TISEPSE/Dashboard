@@ -23,6 +23,7 @@
     "@capacitor/splash-screen": "^7.0.1",
     "@prisma/client": "^5.22.0",
     "@vercel/postgres": "^0.10.0",
+    "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.10.0",
     "chart.js": "^4.5.0",
     "core-js": "^3.44.0",

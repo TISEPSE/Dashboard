@@ -5,6 +5,7 @@ import Link from "next/link"
 import {usePathname} from "next/navigation"
 import {FaBars, FaTimes, FaChartBar} from "react-icons/fa"
 import {useCryptoContext} from "../context/CryptoContext"
+import AuthButton from "./Auth/AuthButton"
 
 export default function Navbar({isOpen, setIsOpen}) {
   const [hasMounted, setHasMounted] = useState(false)
@@ -243,7 +244,10 @@ export default function Navbar({isOpen, setIsOpen}) {
               ))}
             </div>
 
-            <div className="mt-auto pt-4 border-t border-gray-600/30">
+            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3">
+              <div className="w-full">
+                <AuthButton />
+              </div>
               <div className="flex items-center justify-between text-sm text-gray-400">
                 <span>v1.0.0</span>
                 <div className="flex items-center gap-2">
