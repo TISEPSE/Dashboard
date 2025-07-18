@@ -62,12 +62,6 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 
       <div className="flex-1 text-sm font-medium">
         {message}
       </div>
-      <button
-        onClick={onClose}
-        className="flex-shrink-0 w-5 h-5 rounded-full hover:bg-white/20 flex items-center justify-center text-xs transition-colors"
-      >
-        ✕
-      </button>
     </div>
   )
 }
