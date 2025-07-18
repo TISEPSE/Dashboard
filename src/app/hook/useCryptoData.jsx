@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, useCallback } from "react"
 import axios from "axios"
 
 const cryptoAPI = axios.create({
@@ -65,7 +65,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
   }
 
   // Fetch spécifique des favoris
-  const fetchFavoriteCryptos = async (isRetry = false) => {
+  const fetchFavoriteCryptos = useCallback(async (isRetry = false) => {
     if (favoritesList.length === 0) {
       setFavoriteCryptos([])
       return
@@ -155,7 +155,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     } finally {
       setLoading(false)
     }
-  }
+  }, [favoritesList, currency, retryCount])
 
   // Fetch complet de toutes les cryptos (250 premières)
   const fetchAllCryptos = async (isRetry = false) => {
@@ -242,7 +242,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
   }
 
   // Filtrer et paginer les données du cache
-  const processDisplayedCryptos = (isShowingFavorites = false) => {
+  const processDisplayedCryptos = useCallback((isShowingFavorites = false) => {
     const sourceData = isShowingFavorites ? favoriteCryptos : allCryptos
     if (sourceData.length === 0) return
 
@@ -259,7 +259,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
       const itemsPerPage = typeof perPage === 'number' ? perPage : 6
       setDisplayedCryptos(sortedData.slice(0, itemsPerPage))
     }
-  }
+  }, [allCryptos, favoriteCryptos, perPage, currentPage, sortBy, sortOrder])
 
   // Effet pour charger les données initiales
   useEffect(() => {
@@ -271,19 +271,19 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     if (favoritesList.length > 0) {
       fetchFavoriteCryptos()
     }
-  }, [currency, favoritesList]) // Quand la devise ou les favoris changent
+  }, [currency, favoritesList, fetchFavoriteCryptos]) // Quand la devise ou les favoris changent
 
   // Effet pour traiter l'affichage
   useEffect(() => {
     processDisplayedCryptos(false) // Toujours afficher les données normales par défaut
-  }, [allCryptos, perPage, currentPage, sortBy, sortOrder])
+  }, [allCryptos, perPage, currentPage, sortBy, sortOrder, processDisplayedCryptos])
 
   // Effet pour traiter l'affichage des favoris
   useEffect(() => {
     if (favoriteCryptos.length > 0) {
       // Ne pas remplacer l'affichage automatiquement
     }
-  }, [favoriteCryptos, perPage, currentPage, sortBy, sortOrder])
+  }, [favoriteCryptos, perPage, currentPage, sortBy, sortOrder, processDisplayedCryptos])
 
   // Auto-refresh périodique silencieux (toutes les 2 minutes)
   useEffect(() => {

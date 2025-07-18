@@ -86,14 +86,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   useEffect(() => {
     setCurrentPage(1)
     window.scrollTo({top: 0, behavior: "smooth"})
-    
-    // Traiter l'affichage selon le filtre
-    if (filterType === 'favorites') {
-      processDisplayedCryptos(true) // Afficher les favoris
-    } else {
-      processDisplayedCryptos(false) // Afficher toutes les cryptos
-    }
-  }, [perPage, filterType, processDisplayedCryptos])
+  }, [perPage, filterType])
 
   // Détection d'interaction pour accélérer les animations
   useEffect(() => {
