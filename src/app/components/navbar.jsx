@@ -62,6 +62,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               : "md:w-16 md:min-w-[64px] -left-full w-0 h-0"
           }
         `}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         <div
           className={`flex items-center justify-between p-4 pt-6 text-xl font-bold bg-gradient-to-b from-[#2a2d3e]/20 via-[#2a2d3e]/10 to-transparent border-b border-gray-600/30 ${
@@ -110,7 +111,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4 md:pointer-events-none"
           }`}
         >
-          <nav className="flex flex-col gap-6 p-6 h-full overflow-auto">
+          <nav className="flex flex-col gap-6 p-6 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             <div 
               className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-500/50 text-white rounded-xl shadow-xl animate-[slideInLeft_0.5s_ease-out]"
               onClick={(e) => e.stopPropagation()}
