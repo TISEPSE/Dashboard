@@ -107,7 +107,7 @@ export default function Navbar({isOpen, setIsOpen}) {
           className={`transition-all duration-300 ease-in-out flex-1 overflow-auto ${
             isOpen
               ? "opacity-100 max-h-screen transform translate-y-0"
-              : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4"
+              : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4 md:pointer-events-none"
           }`}
         >
           <nav className="flex flex-col gap-6 p-6 h-full overflow-auto">
@@ -164,7 +164,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                 className={` transition-all duration-300 ease-in-out px-4 flex flex-col gap-3 ${
                   dashboardOpen
                     ? "max-h-[calc(100vh-80px)] opacity-100 pb-4"
-                    : "max-h-0 opacity-0"
+                    : "max-h-0 opacity-0 pointer-events-none"
                 }`}
                 onClick={(e) => e.stopPropagation()}
               >

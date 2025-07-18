@@ -38,24 +38,29 @@ export default function AuthButton() {
 
   if (session) {
     return (
-      <div className="flex items-center gap-3 bg-[#2a2d3e] px-3 py-2 rounded-lg border border-gray-600/30">
-        <div className="flex items-center gap-2">
-          <img 
-            src={session.user.image} 
-            alt={session.user.name}
-            className="w-6 h-6 rounded-full"
-          />
-          <div className="hidden sm:block">
-            <div className="text-sm font-medium text-white">{session.user.name}</div>
-            <div className="text-xs text-gray-400">{session.user.email}</div>
+      <div className="w-full">
+        <div className="flex items-center gap-3 bg-[#2a2d3e] px-3 py-2.5 rounded-lg border border-gray-600/30">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <img 
+              src={session.user.image} 
+              alt={session.user.name}
+              className="w-7 h-7 rounded-full flex-shrink-0"
+            />
+            <div className="min-w-0 flex-1">
+              <div className="text-sm font-medium text-white truncate">{session.user.name}</div>
+              <div className="text-xs text-gray-400 truncate">{session.user.email}</div>
+            </div>
           </div>
         </div>
         <button
           onClick={handleSignOut}
           disabled={isLoading}
-          className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded transition-colors disabled:opacity-50"
+          className="w-full mt-2 text-xs bg-red-600/80 hover:bg-red-600 text-white px-3 py-2 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
         >
-          {isLoading ? '...' : 'Déconnexion'}
+          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          {isLoading ? 'Déconnexion...' : 'Se déconnecter'}
         </button>
       </div>
     )
@@ -66,7 +71,7 @@ export default function AuthButton() {
       <button
         onClick={handleSignIn}
         disabled={isLoading}
-        className="flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md min-w-[200px]"
+        className="flex items-center justify-center gap-3 bg-white hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-lg border border-gray-300 hover:border-gray-400 transition-all duration-200 disabled:opacity-50 shadow-sm hover:shadow-md w-full max-w-[280px] sm:min-w-[250px]"
       >
         <svg className="w-5 h-5" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
