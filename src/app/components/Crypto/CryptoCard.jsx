@@ -123,14 +123,24 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
                 #{coin.market_cap_rank}
               </span>
             </div>
+            {isFavorite(coin.symbol) && (
+              <div className="absolute -top-[0.2em] -left-[0.2em] w-[1.1em] h-[1.1em] bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full flex items-center justify-center shadow-lg border-2 border-[#2a2d3e]">
+                <span className="text-[0.7em] text-white">⭐</span>
+              </div>
+            )}
           </div>
           <div className="min-w-0">
-            <h3
-              className="text-[1.3em] font-bold text-[#FeFeFe] truncate transition-colors duration-200 ease-in-out"
-              title={coin.name}
-            >
-              {coin.name}
-            </h3>
+            <div className="flex items-center gap-2">
+              <h3
+                className="text-[1.3em] font-bold text-[#FeFeFe] truncate transition-colors duration-200 ease-in-out"
+                title={coin.name}
+              >
+                {coin.name}
+              </h3>
+              {isFavorite(coin.symbol) && (
+                <span className="text-[0.8em] text-yellow-400 animate-pulse">★</span>
+              )}
+            </div>
             <p className="text-[0.75em] text-gray-400 font-medium truncate">
               {coin.symbol.toUpperCase()}
             </p>

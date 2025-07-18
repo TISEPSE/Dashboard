@@ -1,13 +1,14 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession, signIn } from 'next-auth/react'
+import { useSession, signIn, signOut } from 'next-auth/react'
 import Loader from "../../components/Loader"
 
 export default function Profile(){
     const [isLoading, setIsLoading] = useState(true)
     const { data: session, status } = useSession()
     const [isSigningIn, setIsSigningIn] = useState(false)
+    const [isSigningOut, setIsSigningOut] = useState(false)
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1000)
@@ -22,6 +23,17 @@ export default function Profile(){
             console.error('Erreur de connexion:', error)
         } finally {
             setIsSigningIn(false)
+        }
+    }
+
+    const handleSignOut = async () => {
+        setIsSigningOut(true)
+        try {
+            await signOut()
+        } catch (error) {
+            console.error('Erreur de déconnexion:', error)
+        } finally {
+            setIsSigningOut(false)
         }
     }
 
@@ -59,7 +71,7 @@ export default function Profile(){
                     )}
 
                     {session && (
-                        <div className="flex flex-col items-center gap-4">
+                        <div className="flex flex-col items-center gap-6">
                             <div className="flex items-center gap-4 bg-[#2a2d3e] px-6 py-4 rounded-lg border border-gray-600/30">
                                 <img 
                                     src={session.user.image} 
@@ -71,9 +83,21 @@ export default function Profile(){
                                     <p className="text-gray-400">{session.user.email}</p>
                                 </div>
                             </div>
-                            <p className="text-gray-300 text-center">
+                            <p className="text-gray-300 text-center mb-4">
                                 Profil connecté avec succès
                             </p>
+                            <button
+                                onClick={handleSignOut}
+                                disabled={isSigningOut}
+                                className="flex items-center justify-center gap-3 bg-red-600/80 hover:bg-red-600 text-white px-6 py-3 rounded-lg transition-colors disabled:opacity-50 shadow-sm hover:shadow-md"
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                <span className="font-medium">
+                                    {isSigningOut ? 'Déconnexion...' : 'Se déconnecter'}
+                                </span>
+                            </button>
                         </div>
                     )}
                 </div>

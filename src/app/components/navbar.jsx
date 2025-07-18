@@ -211,38 +211,28 @@ export default function Navbar({isOpen, setIsOpen}) {
               className="flex flex-col gap-3"
               onClick={(e) => e.stopPropagation()}
             >
-              {[
-                {href: "/Dashboard/Profile", label: "Profil", icon: "👤"},
-                {
-                  href: "/Dashboard/Parametre",
-                  label: "Paramètres",
-                  icon: "⚙️",
-                },
-              ].map((item, index) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`block w-full hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
-                    pathname === item.href
-                      ? "bg-blue-600/30 text-blue-300 border-blue-500/50 shadow-xl"
-                      : "text-gray-200"
-                  }`}
-                  style={{
-                    animationDelay: `${0.8 + index * 0.2}s`
-                  }}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsOpen(false);
-                  }}
-                >
-                  <div className="flex items-center gap-3 py-3 px-4 w-full h-full">
-                    <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
-                    <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-300 flex-1">
-                      {item.label}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+              <Link
+                href="/Dashboard/Parametre"
+                className={`block w-full hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
+                  pathname === "/Dashboard/Parametre"
+                    ? "bg-blue-600/30 text-blue-300 border-blue-500/50 shadow-xl"
+                    : "text-gray-200"
+                }`}
+                style={{
+                  animationDelay: "0.8s"
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
+              >
+                <div className="flex items-center gap-3 py-3 px-4 w-full h-full">
+                  <span className="text-lg transition-transform duration-300 group-hover:scale-110">⚙️</span>
+                  <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-300 flex-1">
+                    Paramètres
+                  </span>
+                </div>
+              </Link>
             </div>
 
             <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3">

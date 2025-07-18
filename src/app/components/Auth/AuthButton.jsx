@@ -1,5 +1,6 @@
 import { useSession, signIn, signOut } from 'next-auth/react'
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function AuthButton() {
   const { data: session, status } = useSession()
@@ -39,19 +40,30 @@ export default function AuthButton() {
   if (session) {
     return (
       <div className="w-full">
-        <div className="flex items-center gap-3 bg-[#2a2d3e] px-3 py-2.5 rounded-lg border border-gray-600/30">
-          <div className="flex items-center gap-2 flex-1 min-w-0">
+        <Link
+          href="/Dashboard/Profile"
+          className="block w-full hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5"
+          onClick={(e) => {
+            e.stopPropagation();
+            // Fermer la navbar si on est sur mobile
+            if (window.innerWidth < 768) {
+              const setIsOpen = window.setNavbarOpen;
+              if (setIsOpen) setIsOpen(false);
+            }
+          }}
+        >
+          <div className="flex items-center gap-3 py-3 px-4 w-full h-full">
             <img 
               src={session.user.image} 
               alt={session.user.name}
-              className="w-7 h-7 rounded-full flex-shrink-0"
+              className="w-8 h-8 rounded-full flex-shrink-0 transition-transform duration-300 group-hover:scale-110"
             />
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium text-white truncate">{session.user.name}</div>
+              <div className="text-sm font-medium text-white truncate group-hover:translate-x-0.5 transition-transform duration-300">{session.user.name}</div>
               <div className="text-xs text-gray-400 truncate">{session.user.email}</div>
             </div>
           </div>
-        </div>
+        </Link>
       </div>
     )
   }
