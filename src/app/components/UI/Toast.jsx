@@ -1,19 +1,33 @@
 import React, { useState, useEffect } from 'react'
 
 const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 }) => {
+  const [shouldRender, setShouldRender] = useState(false)
+  const [animationClass, setAnimationClass] = useState('')
+
   useEffect(() => {
     if (isVisible) {
+      setShouldRender(true)
+      // Petite attente pour déclencher l'animation d'entrée
+      setTimeout(() => {
+        setAnimationClass('animate-toast-in')
+      }, 10)
+      
       const timer = setTimeout(() => {
-        onClose()
+        setAnimationClass('animate-toast-out')
+        // Attendre la fin de l'animation avant de masquer
+        setTimeout(() => {
+          setShouldRender(false)
+          onClose()
+        }, 300)
       }, duration)
       return () => clearTimeout(timer)
     }
   }, [isVisible, onClose, duration])
 
-  if (!isVisible) return null
+  if (!shouldRender) return null
 
   const getToastStyles = () => {
-    const baseStyles = "fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center gap-3 max-w-sm"
+    const baseStyles = `fixed top-4 right-4 z-50 px-4 py-3 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out flex items-center gap-3 max-w-sm ${animationClass}`
     
     switch (type) {
       case 'success':

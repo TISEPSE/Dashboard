@@ -8,6 +8,7 @@ import { CryptoProvider } from "./context/CryptoContext"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import { SpeedInsights } from "@vercel/speed-insights/next"
+import "./utils/suppressDevErrors"
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] })
