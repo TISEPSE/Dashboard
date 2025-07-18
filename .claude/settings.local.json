@@ -13,7 +13,9 @@
       "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
       "Bash(npx dotenv -e .env.local -- npm run db:migrate:*)",
       "Bash(npx dotenv -e .env.local -- npm run dev:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)"
     ],
     "deny": []
   }
