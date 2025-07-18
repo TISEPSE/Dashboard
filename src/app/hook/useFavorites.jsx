@@ -2,13 +2,21 @@ import { useState, useEffect } from 'react'
 import { useSession } from 'next-auth/react'
 
 export const useFavorites = () => {
-  const { data: session } = useSession()
-  const userId = session?.user?.id || 'anonymous'
+  const { data: session, status } = useSession()
+  const userId = session?.user?.id
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
   const fetchFavorites = async () => {
+    // Ne pas charger les favoris si l'utilisateur n'est pas connecté
+    if (status === 'loading') return
+    if (!session?.user?.id) {
+      setFavorites([])
+      setLoading(false)
+      return
+    }
+
     try {
       setLoading(true)
       const response = await fetch(`/api/favorites?userId=${userId}`)
@@ -23,6 +31,11 @@ export const useFavorites = () => {
   }
 
   const addFavorite = async (symbol, name) => {
+    // Bloquer l'ajout si pas connecté
+    if (!session?.user?.id) {
+      return { success: false, message: 'Vous devez être connecté pour ajouter des favoris' }
+    }
+
     try {
       const response = await fetch('/api/favorites', {
         method: 'POST',
@@ -44,6 +57,11 @@ export const useFavorites = () => {
   }
 
   const removeFavorite = async (symbol) => {
+    // Bloquer la suppression si pas connecté
+    if (!session?.user?.id) {
+      return { success: false, message: 'Vous devez être connecté pour supprimer des favoris' }
+    }
+
     try {
       // Find the favorite name before removing
       const favorite = favorites.find(fav => fav.symbol === symbol)
@@ -69,7 +87,7 @@ export const useFavorites = () => {
 
   useEffect(() => {
     fetchFavorites()
-  }, [userId])
+  }, [userId, status, session])
 
   return {
     favorites,
