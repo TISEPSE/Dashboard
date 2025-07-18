@@ -50,20 +50,25 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder)
 
   // Hook pour les favoris
-  const { favorites, isFavorite } = useFavorites()
+  const { favorites, isFavorite, refreshFavorites } = useFavorites()
 
   // Logique de filtrage
   const filteredCryptos = React.useMemo(() => {
     if (filterType === 'favorites') {
-      return cryptos.filter(crypto => isFavorite(crypto.symbol))
+      // Filtrer les cryptos qui sont dans les favoris
+      const favoriteCryptos = cryptos.filter(crypto => {
+        const isFav = favorites.some(fav => fav.symbol.toLowerCase() === crypto.symbol.toLowerCase())
+        return isFav
+      })
+      return favoriteCryptos
     }
     return cryptos
-  }, [cryptos, filterType, isFavorite])
+  }, [cryptos, filterType, favorites])
 
-  // Gestion du changement de page (sans scroll automatique)
+  // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {
     setCurrentPage(newPage)
-    // Supprimé: window.scrollTo({top: 0, behavior: "smooth"})
+    window.scrollTo({top: 0, behavior: "smooth"})
   }
 
   // Gestion de la pagination
@@ -82,7 +87,13 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   // Reset de la page courante quand perPage ou filterType change
   useEffect(() => {
     setCurrentPage(1)
-  }, [perPage, filterType])
+    window.scrollTo({top: 0, behavior: "smooth"})
+    
+    // Rafraîchir les favoris quand on passe au filtre favoris
+    if (filterType === 'favorites') {
+      refreshFavorites()
+    }
+  }, [perPage, filterType, refreshFavorites])
 
   // Détection d'interaction pour accélérer les animations
   useEffect(() => {
@@ -132,12 +143,12 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
   // Effet pour déclencher l'animation des cartes (seulement au premier chargement)
   useEffect(() => {
-    if (filteredCryptos.length > 0 && !loading && !showCards) {
+    if (filteredCryptos.length > 0 && !loading) {
       setShowCards(false)
       const timer = setTimeout(() => setShowCards(true), 50)
       return () => clearTimeout(timer)
     }
-  }, [filteredCryptos.length, loading]) // Changé: dépendance sur filteredCryptos.length au lieu de cryptos
+  }, [filteredCryptos.length, loading, filterType]) // Ajout de filterType pour re-déclencher l'animation
 
   // Attendre l'hydratation
   if (!hydrated) return null

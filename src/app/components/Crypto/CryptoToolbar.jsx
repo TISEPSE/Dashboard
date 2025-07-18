@@ -25,13 +25,7 @@ const CryptoToolbar = ({
       label: "Variation 24h",
       shortLabel: "24h",
     },
-    {
-      value: "price_change_percentage_7d_in_currency",
-      label: "Variation 7j",
-      shortLabel: "7j",
-    },
     { value: "market_cap_rank", label: "Classement", shortLabel: "Rang" },
-    { value: "total_volume", label: "Volume 24h", shortLabel: "Vol." },
   ]
 
   const filterOptions = [
@@ -147,7 +141,7 @@ const CryptoToolbar = ({
                   const nextIndex = (currentIndex + 1) % sortOptions.length;
                   setSortBy(sortOptions[nextIndex].value);
                 }}
-                className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] hover:from-[#3a3d4e] hover:to-[#353847] text-white px-3 py-2 rounded-lg text-xs font-medium transition-all duration-200 border border-gray-600/30 hover:border-gray-500/50 flex-1 min-w-0"
+                className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] hover:from-[#3a3d4e] hover:to-[#353847] text-white px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-600/30 hover:border-gray-500/50 flex-1 min-w-0"
               >
                 {sortOptions.find(option => option.value === sortBy)?.shortLabel}
               </button>

@@ -29,23 +29,32 @@ const formatPrice = (price, currency) => {
 }
 
 // Fonction pour formater les gros nombres (market cap, volume)
-const formatLargeNumber = (value, currency) => {
+const formatLargeNumber = (value, currency, isMobile = false) => {
   if (!value || value === 0) return "0"
   
-  if (value >= 1e12) {
-    return (value / 1e12).toFixed(2) + "T"
-  } else if (value >= 1e9) {
-    return (value / 1e9).toFixed(2) + "B"
-  } else if (value >= 1e6) {
-    return (value / 1e6).toFixed(2) + "M"
-  } else if (value >= 1e3) {
-    return (value / 1e3).toFixed(2) + "K"
-  } else {
-    return value.toLocaleString('fr-FR', {
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 2
-    })
+  // Sur mobile, garder le format abrégé
+  if (isMobile) {
+    if (value >= 1e12) {
+      return (value / 1e12).toFixed(2) + "T"
+    } else if (value >= 1e9) {
+      return (value / 1e9).toFixed(2) + "B"
+    } else if (value >= 1e6) {
+      return (value / 1e6).toFixed(2) + "M"
+    } else if (value >= 1e3) {
+      return (value / 1e3).toFixed(2) + "K"
+    } else {
+      return value.toLocaleString('fr-FR', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 2
+      })
+    }
   }
+  
+  // Sur desktop, afficher les chiffres complets
+  return value.toLocaleString('fr-FR', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  })
 }
 
 const Variation = ({label, value}) => (
@@ -177,13 +186,23 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
         <div className="flex justify-between items-center">
           <span className="text-gray-400">Cap. marché</span>
           <span className="font-medium text-gray-200">
-            {formatLargeNumber(coin.market_cap, currency)} {currency === "eur" ? "€" : "$"}
+            <span className="hidden sm:inline">
+              {formatLargeNumber(coin.market_cap, currency, false)} {currency === "eur" ? "€" : "$"}
+            </span>
+            <span className="sm:hidden">
+              {formatLargeNumber(coin.market_cap, currency, true)} {currency === "eur" ? "€" : "$"}
+            </span>
           </span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-gray-400">Volume 24h</span>
           <span className="font-medium text-gray-200">
-            {formatLargeNumber(coin.total_volume, currency)} {currency === "eur" ? "€" : "$"}
+            <span className="hidden sm:inline">
+              {formatLargeNumber(coin.total_volume, currency, false)} {currency === "eur" ? "€" : "$"}
+            </span>
+            <span className="sm:hidden">
+              {formatLargeNumber(coin.total_volume, currency, true)} {currency === "eur" ? "€" : "$"}
+            </span>
           </span>
         </div>
       </div>
