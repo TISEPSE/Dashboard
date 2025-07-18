@@ -14,6 +14,15 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Désactiver complètement les overlays en développement
+  reactStrictMode: false,
+  // Modifier la configuration webpack pour supprimer les overlays
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      config.devtool = 'eval-source-map';
+    }
+    return config;
+  },
 }
 
 module.exports = nextConfig

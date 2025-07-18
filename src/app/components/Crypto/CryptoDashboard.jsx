@@ -173,7 +173,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#212332] text-[#FeFeFe]">
+    <div className="min-h-screen bg-[#212332] text-[#FeFeFe] overflow-x-hidden">
       {/* Barre d'outils */}
       <CryptoToolbar
         sortBy={sortBy}
@@ -192,7 +192,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
       />
 
       {/* Contenu principal */}
-      <div className="max-w-9xl mx-auto px-6 py-6 pb-24 sm:pb-6">
+      <div className="max-w-9xl mx-auto px-6 py-6 pb-6">
         
         {/* Section Favoris */}
         <div className="mb-6">
