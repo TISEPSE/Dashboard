@@ -12,6 +12,7 @@ import {
   CryptoLoadingState,
   CryptoRetryNotification,
 } from "../Crypto/CryptoState"
+import { useFavorites } from "../../hook/useFavorites"
 
 const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const {setCryptoPaginationData} = useCryptoContext()
@@ -19,6 +20,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const [hasInteracted, setHasInteracted] = useState(false)
   const [showFavorites, setShowFavorites] = useState(false)
   const [showCards, setShowCards] = useState(false)
+  const [filterType, setFilterType] = useState('all')
 
   // Récupération des préférences
   const {
@@ -47,6 +49,17 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     cacheStatus,
   } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder)
 
+  // Hook pour les favoris
+  const { favorites, isFavorite } = useFavorites()
+
+  // Logique de filtrage
+  const filteredCryptos = React.useMemo(() => {
+    if (filterType === 'favorites') {
+      return cryptos.filter(crypto => isFavorite(crypto.symbol))
+    }
+    return cryptos
+  }, [cryptos, filterType, isFavorite])
+
   // Gestion du changement de page (sans scroll automatique)
   const handlePageChange = newPage => {
     setCurrentPage(newPage)
@@ -64,12 +77,12 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
   // Calculer le nombre total de pages possibles
   const totalPages = Math.ceil(totalCryptos / 40)
-  const isNextDisabled = currentPage >= totalPages || cryptos.length < 40
+  const isNextDisabled = currentPage >= totalPages || filteredCryptos.length < 40
 
-  // Reset de la page courante quand perPage change
+  // Reset de la page courante quand perPage ou filterType change
   useEffect(() => {
     setCurrentPage(1)
-  }, [perPage])
+  }, [perPage, filterType])
 
   // Détection d'interaction pour accélérer les animations
   useEffect(() => {
@@ -119,12 +132,12 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
   // Effet pour déclencher l'animation des cartes (seulement au premier chargement)
   useEffect(() => {
-    if (cryptos.length > 0 && !loading && !showCards) {
+    if (filteredCryptos.length > 0 && !loading && !showCards) {
       setShowCards(false)
       const timer = setTimeout(() => setShowCards(true), 50)
       return () => clearTimeout(timer)
     }
-  }, [cryptos.length, loading]) // Changé: dépendance sur cryptos.length au lieu de cryptos
+  }, [filteredCryptos.length, loading]) // Changé: dépendance sur filteredCryptos.length au lieu de cryptos
 
   // Attendre l'hydratation
   if (!hydrated) return null
@@ -163,6 +176,8 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         loading={loading}
         isRetrying={isRetrying}
         retryCount={retryCount}
+        filterType={filterType}
+        setFilterType={setFilterType}
       />
 
       {/* Contenu principal */}
@@ -206,7 +221,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
         {/* Grille des cryptos */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
-          {showCards && cryptos.map((coin, index) => (
+          {showCards && filteredCryptos.map((coin, index) => (
             <CryptoCard
               key={coin.id}
               coin={coin}
@@ -225,7 +240,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
             <CryptoPagination
               currentPage={currentPage}
               onPageChange={handlePageChange}
-              cryptosLength={cryptos.length}
+              cryptosLength={filteredCryptos.length}
               perPage={perPage}
               totalCryptos={totalCryptos}
             />

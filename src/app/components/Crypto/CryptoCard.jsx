@@ -1,5 +1,7 @@
 import React from "react"
 import { useFavorites } from "../../hook/useFavorites"
+import { useToast } from "../../hook/useToast"
+import Toast from "../UI/Toast"
 
 // Fonction pour formater les prix avec précision (sans arrondi)
 const formatPrice = (price, currency) => {
@@ -63,6 +65,7 @@ const Variation = ({label, value}) => (
 
 const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = false}) => {
   const { addFavorite, removeFavorite, isFavorite } = useFavorites()
+  const { toast, showToast, hideToast } = useToast()
   
   // Mémorisation pour éviter le re-render complet
   const memoizedCoin = React.useMemo(() => coin, [
@@ -76,25 +79,37 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
 
   const handleAddToFavorites = async (e) => {
     e.stopPropagation()
+    let result
     if (isFavorite(coin.symbol)) {
-      await removeFavorite(coin.symbol)
+      result = await removeFavorite(coin.symbol)
     } else {
-      await addFavorite(coin.symbol, coin.name)
+      result = await addFavorite(coin.symbol, coin.name)
+    }
+    
+    if (result) {
+      showToast(result.message, result.success ? 'success' : 'error')
     }
   }
 
   return (
-    <div
-      className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
-                 transition-all duration-400 group cursor-pointer flex flex-col h-[16em]
-                 hover:border-[#3A6FF8]
-                 hover:bg-[#2f3240] hover:scale-[1.02] hover:-translate-y-1
-                 relative 
-                 animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0`}
-      style={{
-        animationDelay: `${index * 0.02}s`
-      }}
-    >
+    <>
+      <Toast
+        message={toast.message}
+        type={toast.type}
+        isVisible={toast.isVisible}
+        onClose={hideToast}
+      />
+      <div
+        className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
+                   transition-all duration-400 group cursor-pointer flex flex-col h-[16em]
+                   hover:border-[#3A6FF8]
+                   hover:bg-[#2f3240] hover:scale-[1.02] hover:-translate-y-1
+                   relative 
+                   animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0`}
+        style={{
+          animationDelay: `${index * 0.02}s`
+        }}
+      >
       <div className="flex justify-between items-start mb-3">
         <div className="flex items-center gap-[0.6em] flex-1 min-w-0">
           <div className="relative">
@@ -165,10 +180,10 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
 
       <div className="flex gap-[0.5em] mt-auto">
         <button
-          onClick={() => onAddClick?.(coin)}
+          onClick={handleAddToFavorites}
           className="flex-1 bg-gradient-to-r from-emerald-600 to-emerald-700 text-white py-[0.6em] px-[1em] rounded-[0.4em] font-medium text-[0.8em] border border-emerald-500/20 transform transition-all duration-500 ease-out hover:from-emerald-500 hover:to-emerald-600 hover:shadow-lg hover:shadow-emerald-500/30 hover:border-emerald-400/60 hover:scale-[1.03] hover:-translate-y-[2px] active:scale-[0.97] active:translate-y-[0px] active:duration-150"
         >
-          Ajouter
+          {isFavorite(coin.symbol) ? 'Retirer' : 'Ajouter'}
         </button>
         <button
           onClick={() => onInfoClick?.(coin)}
@@ -177,7 +192,8 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
           Info
         </button>
       </div>
-    </div>
+      </div>
+    </>
   )
 }
 

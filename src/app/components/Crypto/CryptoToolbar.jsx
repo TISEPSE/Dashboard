@@ -13,6 +13,8 @@ const CryptoToolbar = ({
   loading,
   isRetrying,
   retryCount,
+  filterType,
+  setFilterType,
 }) => {
   const sortOptions = [
     { value: "market_cap", label: "Capitalisation", shortLabel: "Cap." },
@@ -30,6 +32,11 @@ const CryptoToolbar = ({
     },
     { value: "market_cap_rank", label: "Classement", shortLabel: "Rang" },
     { value: "total_volume", label: "Volume 24h", shortLabel: "Vol." },
+  ]
+
+  const filterOptions = [
+    { value: "all", label: "Tous", shortLabel: "Tous", icon: "🌐" },
+    { value: "favorites", label: "Favoris", shortLabel: "Fav.", icon: "⭐" },
   ]
 
   return (
@@ -66,6 +73,25 @@ const CryptoToolbar = ({
                   {sortOrder === 'desc' ? '🔽' : '🔼'}
                 </button>
               </div>
+            </div>
+
+            {/* Filtre */}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.707A1 1 0 013 7V4z" />
+                  </svg>
+                </div>
+                <span className="text-sm font-medium text-gray-300">Filtre</span>
+              </div>
+              <button
+                onClick={() => setFilterType(filterType === 'all' ? 'favorites' : 'all')}
+                className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] hover:from-[#3a3d4e] hover:to-[#353847] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 border border-gray-600/30 hover:border-gray-500/50 min-w-[100px] flex items-center gap-2"
+              >
+                <span>{filterOptions.find(option => option.value === filterType)?.icon}</span>
+                <span>{filterOptions.find(option => option.value === filterType)?.label}</span>
+              </button>
             </div>
 
             {/* Devise */}
@@ -130,6 +156,12 @@ const CryptoToolbar = ({
                 className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] hover:from-[#3a3d4e] hover:to-[#353847] text-white px-2 py-2 rounded-lg text-xs transition-all duration-200 border border-gray-600/30 hover:border-gray-500/50 w-8 flex items-center justify-center"
               >
                 {sortOrder === 'desc' ? '🔽' : '🔼'}
+              </button>
+              <button
+                onClick={() => setFilterType(filterType === 'all' ? 'favorites' : 'all')}
+                className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] hover:from-[#3a3d4e] hover:to-[#353847] text-white px-2 py-2 rounded-lg text-xs transition-all duration-200 border border-gray-600/30 hover:border-gray-500/50 w-8 flex items-center justify-center"
+              >
+                {filterOptions.find(option => option.value === filterType)?.icon}
               </button>
             </div>
 

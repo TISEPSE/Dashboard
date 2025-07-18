@@ -176,15 +176,15 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder)
     processDisplayedCryptos()
   }, [allCryptos, perPage, currentPage, sortBy, sortOrder])
 
-  // Auto-refresh périodique silencieux (toutes les 10 secondes)
+  // Auto-refresh périodique silencieux (toutes les 2 minutes)
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isRetrying && !loading) {
-        console.log("🔄 Auto-refresh silencieux du cache (temps réel)")
+        console.log("🔄 Auto-refresh silencieux du cache")
         // Fetch silencieux sans changer l'état de loading
         fetchAllCryptosSilently()
       }
-    }, 10000) // 10 secondes pour du temps réel
+    }, 120000) // 2 minutes pour respecter les limites API
     
     return () => clearInterval(interval)
   }, [currency, isRetrying, loading])

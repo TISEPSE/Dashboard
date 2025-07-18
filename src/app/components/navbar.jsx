@@ -181,7 +181,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 hover:text-blue-300 hover:bg-white/10 transition-all duration-300 py-3 px-3 rounded-lg group hover:scale-105 hover:shadow-lg animate-[slideInFromLeft_0.4s_ease-out] border border-transparent hover:border-blue-400/30 ${
+                    className={`block w-full hover:text-blue-300 hover:bg-white/10 transition-all duration-300 rounded-lg group hover:scale-105 hover:shadow-lg animate-[slideInFromLeft_0.4s_ease-out] border border-transparent hover:border-blue-400/30 ${
                       pathname === item.href
                         ? "bg-blue-600/30 text-blue-300 border-blue-400/50 shadow-lg"
                         : "text-gray-200"
@@ -194,10 +194,12 @@ export default function Navbar({isOpen, setIsOpen}) {
                       setIsOpen(false);
                     }}
                   >
-                    <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
-                    <span className="font-medium group-hover:translate-x-2 transition-transform duration-300">
-                      {item.label}
-                    </span>
+                    <div className="flex items-center gap-2 py-3 px-3 w-full h-full">
+                      <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
+                      <span className="font-medium group-hover:translate-x-2 transition-transform duration-300 flex-1">
+                        {item.label}
+                      </span>
+                    </div>
                   </Link>
                 ))}
               </div>
@@ -218,7 +220,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center gap-3 hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 py-3 px-4 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
+                  className={`block w-full hover:text-blue-300 hover:bg-gradient-to-r hover:from-blue-600/15 hover:to-blue-600/10 hover:border-blue-500/50 hover:shadow-lg hover:shadow-blue-600/25 transition-all duration-300 rounded-lg group border border-gray-500/40 bg-gradient-to-r from-[#2a2d3e] to-[#252837] shadow-lg transform hover:scale-105 hover:-translate-y-0.5 animate-[slideInRight_0.5s_ease-out] ${
                     pathname === item.href
                       ? "bg-blue-600/30 text-blue-300 border-blue-500/50 shadow-xl"
                       : "text-gray-200"
@@ -231,10 +233,12 @@ export default function Navbar({isOpen, setIsOpen}) {
                     setIsOpen(false);
                   }}
                 >
-                  <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
-                  <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-300">
-                    {item.label}
-                  </span>
+                  <div className="flex items-center gap-3 py-3 px-4 w-full h-full">
+                    <span className="text-lg transition-transform duration-300 group-hover:scale-110">{item.icon}</span>
+                    <span className="font-medium group-hover:translate-x-0.5 transition-transform duration-300 flex-1">
+                      {item.label}
+                    </span>
+                  </div>
                 </Link>
               ))}
             </div>

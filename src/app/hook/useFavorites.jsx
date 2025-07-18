@@ -33,15 +33,19 @@ export const useFavorites = (userId = 'anonymous') => {
       }
       
       await fetchFavorites()
-      return true
+      return { success: true, message: `${name} ajouté aux favoris` }
     } catch (err) {
       setError(err.message)
-      return false
+      return { success: false, message: `Erreur: ${err.message}` }
     }
   }
 
   const removeFavorite = async (symbol) => {
     try {
+      // Find the favorite name before removing
+      const favorite = favorites.find(fav => fav.symbol === symbol)
+      const name = favorite?.name || symbol.toUpperCase()
+      
       const response = await fetch(`/api/favorites?symbol=${symbol}&userId=${userId}`, {
         method: 'DELETE'
       })
@@ -49,10 +53,10 @@ export const useFavorites = (userId = 'anonymous') => {
       if (!response.ok) throw new Error('Failed to remove favorite')
       
       await fetchFavorites()
-      return true
+      return { success: true, message: `${name} retiré des favoris` }
     } catch (err) {
       setError(err.message)
-      return false
+      return { success: false, message: `Erreur: ${err.message}` }
     }
   }
 

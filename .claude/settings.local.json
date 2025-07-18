@@ -6,7 +6,9 @@
       "Bash(npx prisma:*)",
       "Bash(npm run:*)",
       "Bash(rm:*)",
-      "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\lib\\prisma.js\")"
+      "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\lib\\prisma.js\")",
+      "Bash(curl:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }
