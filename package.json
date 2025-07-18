@@ -12,6 +12,8 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
+    "db:migrate": "node scripts/migrate-to-postgres.js",
+    "db:deploy": "prisma migrate deploy",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -20,6 +22,7 @@
     "@capacitor/core": "^7.4.2",
     "@capacitor/splash-screen": "^7.0.1",
     "@prisma/client": "^5.22.0",
+    "@vercel/postgres": "^0.10.0",
     "axios": "^1.10.0",
     "chart.js": "^4.5.0",
     "core-js": "^3.44.0",
@@ -40,6 +43,7 @@
     "@tailwindcss/postcss": "^4.1.11",
     "babel-loader": "^10.0.0",
     "daisyui": "^5.0.46",
+    "dotenv-cli": "^8.0.0",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
     "prisma": "^5.22.0",

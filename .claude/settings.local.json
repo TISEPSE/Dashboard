@@ -8,7 +8,11 @@
       "Bash(rm:*)",
       "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\lib\\prisma.js\")",
       "Bash(curl:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(dotenv -e .env.local -- npx prisma db push:*)",
+      "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
+      "Bash(npx dotenv -e .env.local -- npm run db:migrate:*)",
+      "Bash(npx dotenv -e .env.local -- npm run dev:*)"
     ],
     "deny": []
   }
