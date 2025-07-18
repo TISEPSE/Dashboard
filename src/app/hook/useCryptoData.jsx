@@ -403,7 +403,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     const sortedData = sortCryptos(sourceData)
     
     if (perPage === "all") {
-      // Mode "Tout" : pagination par tranches de 40
+      // Mode "Tout" : pagination par tranches de 40 (pour desktop)
       const startIndex = (currentPage - 1) * 40
       const endIndex = startIndex + 40
       setDisplayedCryptos(sortedData.slice(startIndex, endIndex))
@@ -526,7 +526,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     refetch: fetchAllCryptos,
     fetchFavorites: fetchFavoriteCryptos,
     processDisplayedCryptos,
-    isPaginationEnabled: perPage === "all",
+    isPaginationEnabled: perPage === "all", // Pagination activée en mode "tout"
     totalCryptos: allCryptos.length,
     lastFetch,
     // Informations sur le cache

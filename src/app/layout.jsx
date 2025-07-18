@@ -5,9 +5,10 @@ import "core-js/stable"
 import "regenerator-runtime/runtime"
 import Navbar from "./components/navbar"
 import { CryptoProvider } from "./context/CryptoContext"
+import ErrorBoundary from "./components/ErrorBoundary"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
-import { SpeedInsights } from "@vercel/speed-insights/next"
+// import { SpeedInsights } from "@vercel/speed-insights/next"
 // import "./utils/suppressDevErrors" // Désactivé temporairement
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"] })
@@ -19,19 +20,21 @@ export default function RootLayout({ children }) {
   return (
     <html data-theme="dark" lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <SessionProvider>
-          <CryptoProvider>
-            <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
-            <main
-              className={`transition-all duration-300 ease-in-out ${
-                isOpen ? "md:ml-64" : "md:ml-16"
-              }`}
-            >
-              {children}
-            </main>
-          </CryptoProvider>
-        </SessionProvider>
-        <SpeedInsights />
+        <ErrorBoundary>
+          <SessionProvider>
+            <CryptoProvider>
+              <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
+              <main
+                className={`transition-all duration-300 ease-in-out ${
+                  isOpen ? "md:ml-64" : "md:ml-16"
+                }`}
+              >
+                {children}
+              </main>
+            </CryptoProvider>
+          </SessionProvider>
+        </ErrorBoundary>
+        {/* <SpeedInsights /> */}
       </body>
     </html>
   )

@@ -1,5 +1,5 @@
 "use client"
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useRef, useCallback} from "react"
 import {useCryptoData} from "../../hook/useCryptoData"
 import {useCryptoPreferences} from "../../hook/useCryptoPreferences"
 import {useCryptoContext} from "../../context/CryptoContext"
@@ -19,6 +19,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const [hasInteracted, setHasInteracted] = useState(false)
   const [showCards, setShowCards] = useState(false)
   const [filterType, setFilterType] = useState('all')
+  const [displayedCryptos, setDisplayedCryptos] = useState([])
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
+  const observer = useRef()
 
   // Récupération des préférences
   const {
@@ -105,16 +109,21 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     
     // Appliquer la pagination/limitation
     if (perPage === "all") {
-      // Mode "Tout" : pagination par tranches de 40
-      const startIndex = (currentPage - 1) * 40
-      const endIndex = startIndex + 40
-      return sortedData.slice(startIndex, endIndex)
+      // Mode "Tout" : sur mobile, afficher tout ; sur desktop, paginer par 40
+      if (isMobile) {
+        return sortedData // Tout sur mobile
+      } else {
+        // Pagination par tranches de 40 sur desktop
+        const startIndex = (currentPage - 1) * 40
+        const endIndex = startIndex + 40
+        return sortedData.slice(startIndex, endIndex)
+      }
     } else {
       // Modes spécifiques : afficher exactement le nombre demandé
       const itemsPerPage = typeof perPage === 'number' ? perPage : 6
       return sortedData.slice(0, itemsPerPage)
     }
-  }, [allCryptos, favorites, filterType, sortBy, sortOrder, perPage, currentPage])
+  }, [allCryptos, favorites, filterType, sortBy, sortOrder, perPage, currentPage, isMobile])
 
   // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {
@@ -141,10 +150,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const totalPages = Math.ceil(totalFilteredCryptos / 40)
   const isNextDisabled = currentPage >= totalPages || filteredCryptos.length < 40
 
-  // Reset de la page courante quand perPage ou filterType change
+  // Reset de la page courante quand perPage ou filterType change (sans scroll)
   useEffect(() => {
     setCurrentPage(1)
-    window.scrollTo({top: 0, behavior: "smooth"})
+    // Ne pas scroller automatiquement pour éviter les remontées en haut
   }, [perPage, filterType])
 
   // Détection d'interaction pour accélérer les animations
@@ -193,14 +202,61 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     // Logique d'info ici
   }
 
+  // Détection mobile
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 1024)
+    }
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  // Gestion du scroll infini mobile
+  const loadMoreCryptos = useCallback(() => {
+    if (loadingMore || !isMobile || perPage === "all") return
+    
+    setLoadingMore(true)
+    const nextBatch = 20
+    const currentLength = displayedCryptos.length
+    const nextCryptos = filteredCryptos.slice(0, currentLength + nextBatch)
+    
+    setTimeout(() => {
+      setDisplayedCryptos(nextCryptos)
+      setLoadingMore(false)
+    }, 500)
+  }, [filteredCryptos, displayedCryptos, loadingMore, isMobile, perPage])
+
+  // Observer pour le scroll infini
+  const lastCryptoRef = useCallback((node) => {
+    if (loadingMore || !isMobile || perPage === "all") return
+    if (observer.current) observer.current.disconnect()
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && displayedCryptos.length < filteredCryptos.length) {
+        loadMoreCryptos()
+      }
+    })
+    if (node) observer.current.observe(node)
+  }, [loadingMore, displayedCryptos.length, filteredCryptos.length, loadMoreCryptos, isMobile, perPage])
+
+  // Mise à jour des cryptos affichées
+  useEffect(() => {
+    if (isMobile && perPage !== "all") {
+      setDisplayedCryptos(filteredCryptos.slice(0, 20))
+    } else {
+      // Si perPage === "all" ou desktop, afficher tout
+      setDisplayedCryptos(filteredCryptos)
+    }
+  }, [filteredCryptos, isMobile, perPage])
+
   // Effet pour déclencher l'animation des cartes (seulement au premier chargement)
   useEffect(() => {
-    if (filteredCryptos.length > 0 && !loading) {
+    if (displayedCryptos.length > 0 && !loading) {
       setShowCards(false)
       const timer = setTimeout(() => setShowCards(true), 50)
       return () => clearTimeout(timer)
     }
-  }, [filteredCryptos.length, loading, filterType]) // Ajout de filterType pour re-déclencher l'animation
+  }, [displayedCryptos.length, loading, filterType]) // Ajout de filterType pour re-déclencher l'animation
 
   // Attendre l'hydratation
   if (!hydrated) return null
@@ -252,19 +308,39 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         )}
 
         {/* Grille des cryptos */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
-          {showCards && filteredCryptos.map((coin, index) => (
-            <CryptoCard
-              key={coin.id}
-              coin={coin}
-              currency={currency}
-              onAddClick={handleAddCrypto}
-              onInfoClick={handleInfoCrypto}
-              index={index}
-              hasInteracted={hasInteracted}
-            />
-          ))}
+        <div className="crypto-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
+          {showCards && displayedCryptos.map((coin, index) => {
+            const isLast = index === displayedCryptos.length - 1
+            const shouldAddRef = isLast && isMobile && perPage !== "all"
+            return (
+              <CryptoCard
+                key={coin.id}
+                coin={coin}
+                currency={currency}
+                onAddClick={handleAddCrypto}
+                onInfoClick={handleInfoCrypto}
+                index={index}
+                hasInteracted={hasInteracted}
+                ref={shouldAddRef ? lastCryptoRef : null}
+              />
+            )
+          })}
         </div>
+
+        {/* Indicateur de chargement mobile (seulement si pas en mode "tout") */}
+        {isMobile && loadingMore && perPage !== "all" && (
+          <div className="flex justify-center items-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+            <span className="ml-2 text-gray-400">Chargement...</span>
+          </div>
+        )}
+
+        {/* Message fin de liste mobile (seulement si pas en mode "tout") */}
+        {isMobile && perPage !== "all" && displayedCryptos.length === filteredCryptos.length && displayedCryptos.length > 0 && (
+          <div className="text-center py-8">
+            <p className="text-gray-400">Vous avez vu toutes les cryptomonnaies disponibles</p>
+          </div>
+        )}
 
         {/* Pagination - Affichée seulement sur desktop */}
         {isPaginationEnabled && totalCryptos > 40 && (

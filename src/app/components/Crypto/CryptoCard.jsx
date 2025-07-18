@@ -72,7 +72,7 @@ const Variation = ({label, value}) => (
   </div>
 )
 
-const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = false}) => {
+const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, hasInteracted = false}, ref) => {
   const { addFavorite, removeFavorite, isFavorite } = useFavorites()
   const { toast, showToast, hideToast } = useToast()
   
@@ -109,7 +109,8 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
         onClose={hideToast}
       />
       <div
-        className={`bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
+        ref={ref}
+        className={`crypto-card bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
                    transition-all duration-400 group cursor-pointer flex flex-col h-[16em]
                    hover:border-[#3A6FF8]
                    hover:bg-[#2f3240] hover:scale-[1.02] hover:-translate-y-1
@@ -224,7 +225,7 @@ const CryptoCard = ({coin, currency, onInfoClick, index = 0, hasInteracted = fal
       </div>
     </>
   )
-}
+})
 
 // Mémorisation du composant pour éviter les re-renders inutiles
 export default React.memo(CryptoCard, (prevProps, nextProps) => {
