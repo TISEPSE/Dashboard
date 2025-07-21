@@ -110,13 +110,15 @@ export default function Navbar({isOpen, setIsOpen}) {
         </div>
 
         <div
-          className={`transition-all duration-300 ease-in-out flex-1 overflow-auto ${
+          className={`transition-all duration-300 ease-in-out flex-1 min-h-0 ${
             isOpen
               ? "opacity-100 max-h-screen transform translate-y-0"
               : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4 md:pointer-events-none"
           }`}
         >
-          <nav className="flex flex-col gap-4 p-4 md:px-6 md:py-0 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden">
+            <div className="flex-1 overflow-y-auto p-4 md:px-6 md:py-0" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+              <div className="flex flex-col gap-4 min-h-full">{/* Contenu de navigation */}
             
             {/* Navigation mobile optimisée - Grille des liens principaux */}
             <div className="md:hidden">
@@ -335,8 +337,9 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <span>En ligne</span>
                 </div>
               </div>
+              </div>
             </div>
-          </nav>
+          </div>
         </div>
       </div>
     </>
