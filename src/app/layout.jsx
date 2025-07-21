@@ -26,8 +26,8 @@ export default function RootLayout({ children }) {
               <CryptoProvider>
                 <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
                 <main
-                  className={`transition-all duration-300 ease-in-out pt-0 ${
-                    isOpen ? "md:ml-64" : "md:ml-16"
+                  className={`transition-all duration-300 ease-in-out ${
+                    isOpen ? "ml-64" : "ml-16"
                   }`}
                 >
                   <PageTransition>
