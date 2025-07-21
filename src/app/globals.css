@@ -198,16 +198,61 @@ body {
   }
 }
 
-/* Animation pour les cards de navigation */
-@keyframes slideInFromLeft {
-  from {
+/* Animations brutales pour la navbar */
+@keyframes popIn {
+  0% {
     opacity: 0;
-    transform: translateX(-20px);
+    transform: scale(0.3) rotate(-10deg);
   }
-  to {
+  70% {
+    transform: scale(1.1) rotate(2deg);
+  }
+  100% {
     opacity: 1;
-    transform: translateX(0);
+    transform: scale(1) rotate(0deg);
   }
+}
+
+@keyframes bounce-in {
+  0% {
+    transform: scale(0.3);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.15);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes bounce-icon {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px) rotate(-5deg); }
+  75% { transform: translateX(5px) rotate(5deg); }
+}
+
+/* Classes utilitaires */
+.animate-bounce-in {
+  animation: bounce-in 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.animate-bounce-icon {
+  animation: bounce-icon 2s infinite;
+}
+
+.animate-shake {
+  animation: shake 0.5s ease-in-out;
 }
 
 /* Animations pour les toasts */
