@@ -18,7 +18,7 @@ export default function Paramètre() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] p-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-6">
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col items-center justify-center min-h-screen">
                     <h1 className="text-4xl font-bold text-white mb-4">Paramètre</h1>

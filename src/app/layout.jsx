@@ -1,8 +1,6 @@
 "use client"
 import { useState } from "react"
 import { SessionProvider } from "next-auth/react"
-import "core-js/stable"
-import "regenerator-runtime/runtime"
 import Navbar from "./components/navbar"
 import PageTransition from "./components/PageTransition"
 import { CryptoProvider } from "./context/CryptoContext"
@@ -28,7 +26,7 @@ export default function RootLayout({ children }) {
               <CryptoProvider>
                 <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
                 <main
-                  className={`transition-all duration-300 ease-in-out ${
+                  className={`transition-all duration-300 ease-in-out pt-0 ${
                     isOpen ? "md:ml-64" : "md:ml-16"
                   }`}
                 >

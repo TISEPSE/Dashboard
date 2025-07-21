@@ -29,7 +29,7 @@ const CryptoToolbar = ({
   ]
 
   return (
-    <div className="bg-gradient-to-r from-[#212332] to-[#1a1d29] border-b border-gray-600/20 sticky top-0 z-40 shadow-lg backdrop-blur-sm">
+    <div className="bg-gradient-to-r from-[#212332] to-[#1a1d29] border-b border-gray-600/20 z-40 shadow-lg backdrop-blur-sm">
       <div className="w-full px-4 sm:px-6 py-4">
         {/* Desktop */}
         <div className="hidden md:flex items-center justify-between">

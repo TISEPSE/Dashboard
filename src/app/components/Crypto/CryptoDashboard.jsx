@@ -305,7 +305,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
       />
 
       {/* Contenu principal */}
-      <div className="max-w-9xl mx-auto px-6 py-6 pb-6">
+      <div className="max-w-9xl mx-auto px-6 pt-6 pb-6">
 
         {/* Notification de retry */}
         {isRetrying && cryptos.length > 0 && (

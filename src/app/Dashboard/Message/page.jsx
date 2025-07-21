@@ -2,7 +2,7 @@
 
 export default function MessagePage() {
   return (
-    <div className="min-h-screen bg-[#212332] text-white p-6">
+    <div className="min-h-screen bg-[#212332] text-white px-6">
       <div className="max-w-4xl mx-auto">
         <div className="text-center py-20">
           <div className="w-24 h-24 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-6">

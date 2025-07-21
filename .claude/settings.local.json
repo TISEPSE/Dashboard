@@ -15,9 +15,10 @@
       "Bash(npx dotenv -e .env.local -- npm run dev:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git push:*)",
       "Bash(grep:*)",
-      "Bash(cmd /c:*)"
+      "Bash(cmd /c:*)",
+      "Bash(git checkout:*)",
+      "mcp__ide__getDiagnostics"
     ],
     "deny": []
   }
