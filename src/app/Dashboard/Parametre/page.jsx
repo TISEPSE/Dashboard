@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Button } from 'rsuite';
 import 'rsuite/dist/rsuite-no-reset.min.css';
-import Loader from "../../components/Loader"
+import LoaderPortal from "../../components/LoaderPortal"
 
 export default function Paramètre() {
     const [isLoading, setIsLoading] = useState(true)
@@ -14,7 +14,7 @@ export default function Paramètre() {
     }, [])
 
     if (isLoading) {
-        return <Loader />
+        return <LoaderPortal />
     }
 
     return (

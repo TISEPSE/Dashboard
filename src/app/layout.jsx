@@ -2,6 +2,7 @@
 import { useState } from "react"
 import { SessionProvider } from "next-auth/react"
 import Navbar from "./components/navbar"
+import MobileNavbar from "./components/MobileNavbar"
 import PageTransition from "./components/PageTransition"
 import { CryptoProvider } from "./context/CryptoContext"
 import { FavoritesProvider } from "./context/FavoritesContext"
@@ -25,9 +26,10 @@ export default function RootLayout({ children }) {
             <FavoritesProvider>
               <CryptoProvider>
                 <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
+                <MobileNavbar />
                 <main
                   className={`transition-all duration-300 ease-in-out ${
-                    isOpen ? "ml-64" : "ml-16"
+                    isOpen ? "md:ml-64" : "md:ml-16"
                   }`}
                 >
                   <PageTransition>

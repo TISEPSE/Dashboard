@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import Loader from "../../components/Loader"
+import LoaderPortal from "../../components/LoaderPortal"
 
 export default function Calendrier(){
     const [isLoading, setIsLoading] = useState(true)
@@ -12,7 +12,7 @@ export default function Calendrier(){
     }, [])
 
     if (isLoading) {
-        return <Loader />
+        return <LoaderPortal />
     }
 
     return(

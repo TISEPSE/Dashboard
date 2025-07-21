@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession, signIn, signOut } from 'next-auth/react'
-import Loader from "../../components/Loader"
+import LoaderPortal from "../../components/LoaderPortal"
 
 export default function Profile(){
     const [isLoading, setIsLoading] = useState(true)
@@ -38,7 +38,7 @@ export default function Profile(){
     }
 
     if (isLoading) {
-        return <Loader />
+        return <LoaderPortal />
     }
 
     return(
