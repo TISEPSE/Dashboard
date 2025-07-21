@@ -70,7 +70,7 @@ export default function Navbar({isOpen, setIsOpen}) {
         </div>
 
         <div
-          className={`flex items-center justify-between p-4 md:pt-6 text-xl font-bold bg-gradient-to-b from-[#2a2d3e]/20 via-[#2a2d3e]/10 to-transparent border-b border-gray-600/30 md:border-b ${
+          className={`flex items-center justify-between p-4 md:p-6 text-xl font-bold bg-gradient-to-b from-[#2a2d3e]/20 via-[#2a2d3e]/10 to-transparent border-b border-gray-600/30 md:border-b ${
             isOpen ? "gap-2" : "md:justify-center"
           }`}
           style={{minHeight: "72px"}}
@@ -116,7 +116,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4 md:pointer-events-none"
           }`}
         >
-          <nav className="flex flex-col gap-4 p-4 md:px-6 md:py-6 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <nav className="flex flex-col gap-4 p-4 md:px-6 md:py-0 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             
             {/* Navigation mobile optimisée - Grille des liens principaux */}
             <div className="md:hidden">
