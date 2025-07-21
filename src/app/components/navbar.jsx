@@ -51,15 +51,15 @@ export default function Navbar({isOpen, setIsOpen}) {
         />
       )}
 
-      {/* Navigation mobile - Bottom sheet */}
+      {/* Navigation - Desktop sidebar / Mobile bottom sheet */}
       <div
         className={`
-          fixed z-[60] bg-gradient-to-br from-[#2a2d3e] to-[#212332] text-white flex flex-col border-t border-gray-600/30 overflow-y-auto transition-all duration-300 shadow-2xl
-          md:top-0 md:left-0 md:h-screen md:border-r md:border-t-0
+          fixed z-[60] bg-gradient-to-br from-[#2a2d3e] to-[#212332] text-white flex flex-col overflow-y-auto transition-all duration-300 shadow-2xl
+          md:top-0 md:left-0 md:h-screen md:border-r md:border-gray-600/30 md:rounded-none
           ${
             isOpen
-              ? "md:w-64 bottom-0 left-0 right-0 h-[85vh] max-h-[600px] rounded-t-3xl"
-              : "md:w-16 md:min-w-[64px] -bottom-full left-0 right-0 h-0"
+              ? "md:w-64 bottom-0 left-0 right-0 h-[85vh] max-h-[600px] rounded-t-3xl border-t border-gray-600/30"
+              : "md:w-16 md:min-w-[64px] -bottom-full left-0 right-0 h-0 md:border-r md:border-gray-600/30"
           }
         `}
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
@@ -324,7 +324,7 @@ export default function Navbar({isOpen, setIsOpen}) {
             </div>
 
             {/* Section profil et infos */}
-            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3 pb-4">
+            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3 pb-6 md:pb-4">
               <div className="w-full">
                 <AuthButton setIsOpen={setIsOpen} />
               </div>

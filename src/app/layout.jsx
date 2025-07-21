@@ -4,6 +4,7 @@ import { SessionProvider } from "next-auth/react"
 import "core-js/stable"
 import "regenerator-runtime/runtime"
 import Navbar from "./components/navbar"
+import PageTransition from "./components/PageTransition"
 import { CryptoProvider } from "./context/CryptoContext"
 import { FavoritesProvider } from "./context/FavoritesContext"
 import ErrorBoundary from "./components/ErrorBoundary"
@@ -31,7 +32,9 @@ export default function RootLayout({ children }) {
                     isOpen ? "md:ml-64" : "md:ml-16"
                   }`}
                 >
-                  {children}
+                  <PageTransition>
+                    {children}
+                  </PageTransition>
                 </main>
               </CryptoProvider>
             </FavoritesProvider>
