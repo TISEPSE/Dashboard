@@ -107,7 +107,12 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     // Trier
     const sortedData = sortCryptos(sourceData)
     
-    // Appliquer la pagination/limitation
+    // Pour les favoris, afficher tous sans pagination
+    if (filterType === 'favorites') {
+      return sortedData
+    }
+    
+    // Appliquer la pagination/limitation pour les autres filtres
     if (perPage === "all") {
       // Mode "Tout" : sur mobile, afficher tout ; sur desktop, paginer par 40
       if (isMobile) {
@@ -307,13 +312,50 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
           <CryptoRetryNotification retryCount={retryCount} />
         )}
 
+        {/* Message pour utilisateurs sans favoris */}
+        {filterType === 'favorites' && filteredCryptos.length === 0 && !loading && (
+          <div className="flex flex-col items-center justify-center py-16 px-6">
+            <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/20 rounded-2xl p-8 max-w-md mx-auto text-center shadow-xl">
+              <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-white text-2xl">⭐</span>
+              </div>
+              <h3 className="text-xl font-semibold text-white mb-3">
+                {favorites.length === 0 ? "Aucun favori ajouté" : "Favoris introuvables"}
+              </h3>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                {favorites.length === 0 
+                  ? "Commencez à ajouter des cryptomonnaies à vos favoris en cliquant sur l'étoile des cartes crypto."
+                  : "Vos cryptomonnaies favorites ne sont pas disponibles actuellement. Essayez de rafraîchir la page."
+                }
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+                <button
+                  onClick={() => setFilterType('all')}
+                  className="bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                >
+                  Voir toutes les cryptos
+                </button>
+                {favorites.length > 0 && (
+                  <button
+                    onClick={() => refetch()}
+                    className="bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800 text-white px-6 py-2 rounded-lg text-sm font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+                  >
+                    Actualiser
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Grille des cryptos */}
-        <div className="crypto-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
-          {showCards && displayedCryptos.map((coin, index) => {
-            const isLast = index === displayedCryptos.length - 1
-            const shouldAddRef = isLast && isMobile && perPage !== "all"
-            return (
-              <CryptoCard
+        {filteredCryptos.length > 0 && (
+          <div className="crypto-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
+            {showCards && filteredCryptos.map((coin, index) => {
+              const isLast = index === filteredCryptos.length - 1
+              const shouldAddRef = isLast && isMobile && perPage !== "all" && filterType !== 'favorites'
+              return (
+                <CryptoCard
                 key={coin.id}
                 coin={coin}
                 currency={currency}
@@ -323,9 +365,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
                 hasInteracted={hasInteracted}
                 ref={shouldAddRef ? lastCryptoRef : null}
               />
-            )
-          })}
-        </div>
+              )
+            })}
+          </div>
+        )}
 
         {/* Indicateur de chargement mobile (seulement si pas en mode "tout") */}
         {isMobile && loadingMore && perPage !== "all" && (
@@ -342,8 +385,8 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
           </div>
         )}
 
-        {/* Pagination - Affichée seulement sur desktop */}
-        {isPaginationEnabled && totalCryptos > 40 && (
+        {/* Pagination - Affichée seulement sur desktop et pas pour les favoris */}
+        {isPaginationEnabled && totalCryptos > 40 && filterType !== 'favorites' && (
           <div className="hidden lg:block">
             <CryptoPagination
               currentPage={currentPage}
