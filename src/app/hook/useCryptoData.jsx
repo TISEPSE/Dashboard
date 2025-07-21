@@ -236,16 +236,21 @@ const symbolToId = {
 cryptoAPI.interceptors.response.use(
   response => response,
   error => {
-    if (error.code === "ECONNABORTED") {
-      console.error("Timeout: La requête a pris trop de temps")
-    } else if (error.response?.status === 429) {
-      console.error("Rate limit atteint, veuillez réessayer dans 60 secondes")
-    } else if (error.response?.status >= 500) {
-      console.error("Erreur serveur CoinGecko")
-    } else if (error.code === "NETWORK_ERROR") {
-      console.error("Erreur réseau, vérifiez votre connexion")
-    } else {
-      console.error("Erreur API:", error.message)
+    // Gestion sécurisée des erreurs
+    try {
+      if (error.code === "ECONNABORTED") {
+        console.warn("Timeout: La requête a pris trop de temps")
+      } else if (error.response?.status === 429) {
+        console.warn("Rate limit atteint, veuillez réessayer dans 60 secondes")
+      } else if (error.response?.status >= 500) {
+        console.warn("Erreur serveur CoinGecko")
+      } else if (error.code === "NETWORK_ERROR") {
+        console.warn("Erreur réseau, vérifiez votre connexion")
+      } else if (error.message) {
+        console.warn("Erreur API:", error.message)
+      }
+    } catch (logError) {
+      // Ignorer les erreurs de logging
     }
     return Promise.reject(error)
   }
@@ -367,9 +372,10 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
       console.log(`✅ ${cryptoData.length} cryptos chargées et mises en cache`)
       
     } catch (err) {
-      setError(err.message)
+      const errorMessage = err?.message || "Erreur inconnue lors du chargement"
+      setError(errorMessage)
       setRetryCount(prev => prev + 1)
-      console.error("Erreur lors du chargement des cryptos:", err)
+      console.warn("Erreur lors du chargement des cryptos:", errorMessage)
       
       // Retry plus agressif
       const shouldRetry = err.code === "ECONNABORTED" || 
@@ -510,7 +516,7 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
       setRetryCount(0)
       
     } catch (err) {
-      console.error("Erreur lors du refresh silencieux:", err)
+      console.warn("Erreur lors du refresh silencieux:", err?.message || "Erreur inconnue")
       // En cas d'erreur silencieuse, on ne change pas l'état d'erreur
     }
   }
