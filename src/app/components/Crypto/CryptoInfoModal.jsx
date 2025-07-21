@@ -11,81 +11,159 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
   const [loading, setLoading] = useState(false)
   const [detailedInfo, setDetailedInfo] = useState(null)
 
+  // Cache local pour éviter les requêtes répétées
+  const [dataCache, setDataCache] = useState(new Map())
+  const [requestInProgress, setRequestInProgress] = useState(false)
+  
   // Récupérer les données détaillées de la crypto
   useEffect(() => {
     const fetchDetailedData = async () => {
-      if (!coin?.id) return
+      if (!coin?.id || requestInProgress) return
       
+      // Vérifier le cache (5 minutes)
+      const cacheKey = `${coin.id}_${currency}_${selectedTimeframe}`
+      const cached = dataCache.get(cacheKey)
+      if (cached && (Date.now() - cached.timestamp) < 300000) {
+        console.log('📦 Utilisation du cache modal pour', coin.id)
+        setHistoricalData(cached.historicalData)
+        setDetailedInfo(cached.detailedInfo)
+        return
+      }
+      
+      setRequestInProgress(true)
       setLoading(true)
+      
       try {
-        // Données historiques de prix - CoinGecko
-        const priceResponse = await fetch(
-          `https://api.coingecko.com/api/v3/coins/${coin.id}/market_chart?vs_currency=${currency}&days=${selectedTimeframe}&interval=${selectedTimeframe <= 1 ? 'hourly' : 'daily'}`
-        )
-        const priceData = await priceResponse.json()
+        // Requêtes en parallèle avec timeout réduit
+        const [priceResponse, detailResponse] = await Promise.allSettled([
+          fetch(
+            `https://api.coingecko.com/api/v3/coins/${coin.id}/market_chart?vs_currency=${currency}&days=${selectedTimeframe}&interval=${selectedTimeframe <= 1 ? 'hourly' : 'daily'}`,
+            { timeout: 8000 }
+          ),
+          fetch(
+            `https://api.coingecko.com/api/v3/coins/${coin.id}?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false`,
+            { timeout: 8000 }
+          )
+        ])
         
-        // Informations détaillées - CoinGecko
-        const detailResponse = await fetch(
-          `https://api.coingecko.com/api/v3/coins/${coin.id}?localization=false&tickers=false&market_data=true&community_data=true&developer_data=true&sparkline=true`
-        )
-        const detailData = await detailResponse.json()
+        let priceData = null
+        let detailData = null
         
-        // API alternative CoinCap pour données manquantes
-        let coinCapData = null
-        try {
-          const coinCapResponse = await fetch(`https://api.coincap.io/v2/assets/${coin.symbol.toLowerCase()}`)
-          if (coinCapResponse.ok) {
-            const coinCapResult = await coinCapResponse.json()
-            coinCapData = coinCapResult.data
-          }
-        } catch (err) {
-          console.warn('CoinCap API non disponible:', err)
+        if (priceResponse.status === 'fulfilled' && priceResponse.value.ok) {
+          priceData = await priceResponse.value.json()
+        }
+        
+        if (detailResponse.status === 'fulfilled' && detailResponse.value.ok) {
+          detailData = await detailResponse.value.json()
+        }
+        
+        // Si échec des deux requêtes principales, utiliser les données de base
+        if (!priceData && !detailData) {
+          throw new Error('Impossible de récupérer les données')
         }
 
-        // Fusionner les données avec fallback sur CoinCap
-        const enhancedDetailData = {
+        // Utiliser les données disponibles avec fallback intelligent
+        const enhancedDetailData = detailData ? {
           ...detailData,
           market_data: {
             ...detailData.market_data,
-            // Utiliser CoinCap comme fallback pour les données manquantes
-            ...(coinCapData && {
-              circulating_supply: detailData.market_data?.circulating_supply || parseFloat(coinCapData.supply),
-              max_supply: detailData.market_data?.max_supply || parseFloat(coinCapData.maxSupply),
-              total_supply: detailData.market_data?.total_supply || parseFloat(coinCapData.supply),
-              market_cap: detailData.market_data?.market_cap || { [currency]: parseFloat(coinCapData.marketCapUsd) },
-              total_volume: detailData.market_data?.total_volume || { [currency]: parseFloat(coinCapData.volumeUsd24Hr) },
-              price_change_percentage_24h: detailData.market_data?.price_change_percentage_24h || parseFloat(coinCapData.changePercent24Hr)
-            })
+            // Compléter avec les données de base si nécessaire
+            circulating_supply: detailData.market_data?.circulating_supply || coin.circulating_supply,
+            max_supply: detailData.market_data?.max_supply || coin.max_supply,
+            total_supply: detailData.market_data?.total_supply || coin.total_supply,
+            market_cap: detailData.market_data?.market_cap || { [currency]: coin.market_cap },
+            total_volume: detailData.market_data?.total_volume || { [currency]: coin.total_volume },
+            fully_diluted_valuation: detailData.market_data?.fully_diluted_valuation || { [currency]: coin.fully_diluted_valuation },
+            atl: detailData.market_data?.atl || { [currency]: coin.atl }
           },
           // Scores par défaut si manquants
-          developer_score: detailData.developer_score || Math.random() * 40 + 60, // Score aléatoire entre 60-100
-          community_score: detailData.community_score || Math.random() * 40 + 60,
-          coingecko_rank: detailData.coingecko_rank || detailData.market_cap_rank
+          developer_score: detailData.developer_score || 75,
+          community_score: detailData.community_score || 70,
+          coingecko_rank: detailData.coingecko_rank || detailData.market_cap_rank || coin.market_cap_rank
+        } : {
+          // Fallback complet si pas de données détaillées
+          market_data: {
+            circulating_supply: coin.circulating_supply,
+            max_supply: coin.max_supply,
+            total_supply: coin.total_supply,
+            market_cap: { [currency]: coin.market_cap },
+            total_volume: { [currency]: coin.total_volume },
+            fully_diluted_valuation: { [currency]: coin.fully_diluted_valuation },
+            atl: { [currency]: coin.atl },
+            price_change_percentage_7d: coin.price_change_percentage_7d,
+            price_change_percentage_30d: coin.price_change_percentage_30d_in_currency,
+            price_change_percentage_1y: coin.price_change_percentage_1y_in_currency
+          },
+          developer_score: 75,
+          community_score: 70,
+          coingecko_rank: coin.market_cap_rank,
+          links: {
+            homepage: ['#'],
+            twitter_screen_name: null,
+            subreddit_url: null
+          }
         }
         
-        // Formater les données pour les graphiques
-        const formattedData = priceData.prices?.map((item, index) => ({
+        // Formater les données pour les graphiques avec optimisation
+        const formattedData = priceData?.prices ? priceData.prices.map((item, index) => ({
           timestamp: item[0],
           date: new Date(item[0]).toLocaleDateString(),
           time: new Date(item[0]).toLocaleTimeString(),
           price: item[1],
           volume: priceData.total_volumes?.[index]?.[1] || 0,
           marketCap: priceData.market_caps?.[index]?.[1] || 0,
-        })) || []
+        })) : []
+        
+        // Mettre en cache les résultats
+        const newCache = new Map(dataCache)
+        newCache.set(cacheKey, {
+          historicalData: formattedData,
+          detailedInfo: enhancedDetailData,
+          timestamp: Date.now()
+        })
+        
+        // Nettoyer le cache ancien (garder seulement 10 entrées)
+        if (newCache.size > 10) {
+          const oldestKey = Array.from(newCache.keys())[0]
+          newCache.delete(oldestKey)
+        }
+        
+        setDataCache(newCache)
         
         setHistoricalData(formattedData)
         setDetailedInfo(enhancedDetailData)
       } catch (error) {
-        console.error('Erreur lors du chargement des données:', error)
-        // En cas d'erreur, utiliser les données de base disponibles
-        setDetailedInfo(prev => prev || {
-          market_data: coin,
+        console.warn('Erreur lors du chargement des données:', error.message)
+        
+        // Fallback avec les données de base de la crypto
+        const fallbackData = {
+          market_data: {
+            circulating_supply: coin.circulating_supply,
+            max_supply: coin.max_supply,
+            total_supply: coin.total_supply,
+            market_cap: { [currency]: coin.market_cap },
+            total_volume: { [currency]: coin.total_volume },
+            fully_diluted_valuation: { [currency]: coin.fully_diluted_valuation },
+            atl: { [currency]: coin.atl },
+            price_change_percentage_7d: coin.price_change_percentage_7d,
+            price_change_percentage_30d: coin.price_change_percentage_30d_in_currency,
+            price_change_percentage_1y: coin.price_change_percentage_1y_in_currency
+          },
           developer_score: 75,
           community_score: 70,
-          coingecko_rank: coin.market_cap_rank
-        })
+          coingecko_rank: coin.market_cap_rank,
+          links: {
+            homepage: ['#'],
+            twitter_screen_name: null,
+            subreddit_url: null
+          }
+        }
+        
+        setDetailedInfo(fallbackData)
+        setHistoricalData([])
       } finally {
         setLoading(false)
+        setRequestInProgress(false)
       }
     }
 
@@ -285,12 +363,25 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis 
                         dataKey="timestamp" 
-                        tickFormatter={(value) => new Date(value).toLocaleDateString()}
+                        tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { 
+                          month: 'short', 
+                          day: 'numeric' 
+                        })}
                         stroke="#9CA3AF"
+                        fontSize={12}
+                        tick={{ fill: '#9CA3AF' }}
                       />
                       <YAxis 
-                        tickFormatter={(value) => formatPrice(value)}
+                        tickFormatter={(value) => {
+                          if (value >= 1000) return `${(value/1000).toFixed(0)}k`
+                          if (value >= 1) return value.toFixed(2)
+                          if (value >= 0.01) return value.toFixed(4)
+                          return value.toFixed(6)
+                        }}
                         stroke="#9CA3AF"
+                        fontSize={12}
+                        tick={{ fill: '#9CA3AF' }}
+                        width={80}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Area 
