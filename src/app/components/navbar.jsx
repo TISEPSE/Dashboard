@@ -116,7 +116,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               : "md:opacity-0 md:max-h-0 md:transform md:-translate-y-4 md:pointer-events-none"
           }`}
         >
-          <nav className="flex flex-col gap-4 p-4 md:p-6 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <nav className="flex flex-col gap-4 p-4 md:px-6 md:py-6 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
             
             {/* Navigation mobile optimisée - Grille des liens principaux */}
             <div className="md:hidden">
@@ -324,7 +324,7 @@ export default function Navbar({isOpen, setIsOpen}) {
             </div>
 
             {/* Section profil et infos */}
-            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3 pb-6 md:pb-4">
+            <div className="mt-auto pt-4 border-t border-gray-600/30 space-y-3 pb-6 md:pb-0">
               <div className="w-full">
                 <AuthButton setIsOpen={setIsOpen} />
               </div>
