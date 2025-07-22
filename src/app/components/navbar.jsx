@@ -4,10 +4,13 @@ import {useState, useEffect} from "react"
 import Link from "next/link"
 import {usePathname} from "next/navigation"
 import {FaBars, FaTimes} from "react-icons/fa"
+import { useSession } from 'next-auth/react'
+import AuthButton from "./Auth/AuthButton"
 
 export default function Navbar({isOpen, setIsOpen}) {
   const [hasMounted, setHasMounted] = useState(false)
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   useEffect(() => {
     setHasMounted(true)
@@ -73,7 +76,6 @@ export default function Navbar({isOpen, setIsOpen}) {
                     {href: "/Dashboard/Sante", label: "Santé", icon: "🏥"},
                     {href: "/Dashboard/Finances", label: "Finances", icon: "💰"},
                     {href: "/Dashboard/Calendrier", label: "Calendrier", icon: "📅"},
-                    {href: "/Dashboard/Profile", label: "Profil", icon: "👤"},
                     {href: "/Dashboard/Parametre", label: "Paramètres", icon: "⚙️"},
                   ].map((item) => (
                     <Link
@@ -91,6 +93,38 @@ export default function Navbar({isOpen, setIsOpen}) {
                       </span>
                     </Link>
                   ))}
+                  
+                  {/* Lien Profile avec photo/pseudo si connecté */}
+                  <Link
+                    href="/Dashboard/Profile"
+                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                      pathname === "/Dashboard/Profile"
+                        ? "bg-blue-600/30 text-blue-300 shadow-lg border border-blue-400/50"
+                        : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
+                    }`}
+                  >
+                    {session ? (
+                      <>
+                        <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px]">
+                          <img 
+                            src={session.user.image} 
+                            alt={session.user.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                        <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1 truncate">
+                          {session.user.name}
+                        </span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-lg transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] text-center">👤</span>
+                        <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
+                          Profil
+                        </span>
+                      </>
+                    )}
+                  </Link>
                 </div>
 
                   {/* Section infos */}
@@ -108,29 +142,57 @@ export default function Navbar({isOpen, setIsOpen}) {
 
             {!isOpen && (
               /* Version fermée - icônes uniquement */
-              <div className="flex flex-col gap-2 items-center py-4">
-                {[
-                  {href: "/Dashboard/Crypto", icon: "₿"},
-                  {href: "/Dashboard/Message", icon: "💬"},
-                  {href: "/Dashboard/Meteo", icon: "🌤️"},
-                  {href: "/Dashboard/Sante", icon: "🏥"},
-                  {href: "/Dashboard/Finances", icon: "💰"},
-                  {href: "/Dashboard/Calendrier", icon: "📅"},
-                  {href: "/Dashboard/Profile", icon: "👤"},
-                  {href: "/Dashboard/Parametre", icon: "⚙️"},
-                ].map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                      pathname === item.href
-                        ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
-                        : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
-                    }`}
-                  >
-                    <span className="text-lg transition-all duration-300 ease-in-out">{item.icon}</span>
-                  </Link>
-                ))}
+              <div className="flex flex-col gap-2 items-center py-4 h-full">
+                <div className="flex flex-col gap-2 items-center">
+                  {[
+                    {href: "/Dashboard/Crypto", icon: "₿"},
+                    {href: "/Dashboard/Message", icon: "💬"},
+                    {href: "/Dashboard/Meteo", icon: "🌤️"},
+                    {href: "/Dashboard/Sante", icon: "🏥"},
+                    {href: "/Dashboard/Finances", icon: "💰"},
+                    {href: "/Dashboard/Calendrier", icon: "📅"},
+                    {href: "/Dashboard/Parametre", icon: "⚙️"},
+                  ].map((item) => (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
+                        pathname === item.href
+                          ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
+                          : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
+                      }`}
+                    >
+                      <span className="text-lg transition-all duration-300 ease-in-out">{item.icon}</span>
+                    </Link>
+                  ))}
+                </div>
+                
+                {/* Photo de profil en bas quand connecté */}
+                <div className="mt-auto mb-4">
+                  {session ? (
+                    <Link
+                      href="/Dashboard/Profile"
+                      className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50"
+                    >
+                      <img 
+                        src={session.user.image} 
+                        alt={session.user.name}
+                        className="w-full h-full object-cover rounded-lg"
+                      />
+                    </Link>
+                  ) : (
+                    <Link
+                      href="/Dashboard/Profile"
+                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
+                        pathname === "/Dashboard/Profile"
+                          ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
+                          : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
+                      }`}
+                    >
+                      <span className="text-lg transition-all duration-300 ease-in-out">👤</span>
+                    </Link>
+                  )}
+                </div>
               </div>
             )}
           </nav>

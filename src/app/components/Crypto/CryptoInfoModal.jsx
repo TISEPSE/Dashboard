@@ -296,7 +296,7 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
               <img 
                 src={coin.image} 
                 alt={coin.name}
-                className="w-12 h-12 rounded-full shadow-lg"
+                className="w-12 h-12 rounded-full shadow-lg object-cover object-center"
               />
               <div>
                 <h2 className="text-2xl font-bold text-white">{coin.name}</h2>
@@ -372,14 +372,14 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                 </div>
               </div>
 
-              <div className="bg-gray-900/50 rounded-xl p-4 border border-gray-600/20">
+              <div className="bg-gray-900/50 rounded-xl p-2 sm:p-4 border border-gray-600/20">
                 {loading ? (
-                  <div className="h-56 flex items-center justify-center">
+                  <div className={`${isMobile ? 'h-40' : 'h-56'} flex items-center justify-center`}>
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
                   </div>
                 ) : historicalData && historicalData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height={220}>
-                    <AreaChart data={historicalData}>
+                  <ResponsiveContainer width="100%" height={isMobile ? 160 : 220}>
+                    <AreaChart data={historicalData} margin={{ top: 5, right: isMobile ? 5 : 30, left: isMobile ? 5 : 20, bottom: 5 }}>
                       <defs>
                         <linearGradient id="priceGradient" x1="0" y1="0" x2="0" y2="1">
                           <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8}/>
@@ -389,39 +389,57 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                       <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
                       <XAxis 
                         dataKey="timestamp" 
-                        tickFormatter={(value) => new Date(value).toLocaleDateString('fr-FR', { 
-                          month: 'short', 
-                          day: 'numeric' 
-                        })}
+                        tickFormatter={(value) => {
+                          if (isMobile) {
+                            return new Date(value).toLocaleDateString('fr-FR', { 
+                              day: 'numeric',
+                              month: 'numeric'
+                            })
+                          }
+                          return new Date(value).toLocaleDateString('fr-FR', { 
+                            month: 'short', 
+                            day: 'numeric' 
+                          })
+                        }}
                         stroke="#9CA3AF"
-                        fontSize={12}
+                        fontSize={isMobile ? 10 : 12}
                         tick={{ fill: '#9CA3AF' }}
+                        interval={isMobile ? 'preserveStartEnd' : 0}
+                        tickCount={isMobile ? 4 : 7}
                       />
                       <YAxis 
                         tickFormatter={(value) => {
+                          if (isMobile) {
+                            if (value >= 1e6) return `${(value/1e6).toFixed(1)}M`
+                            if (value >= 1e3) return `${(value/1e3).toFixed(1)}K`
+                            if (value >= 1) return value.toFixed(1)
+                            if (value >= 0.01) return value.toFixed(3)
+                            return value.toFixed(5)
+                          }
                           if (value >= 1000) return `${(value/1000).toFixed(0)}k`
                           if (value >= 1) return value.toFixed(2)
                           if (value >= 0.01) return value.toFixed(4)
                           return value.toFixed(6)
                         }}
                         stroke="#9CA3AF"
-                        fontSize={12}
+                        fontSize={isMobile ? 9 : 12}
                         tick={{ fill: '#9CA3AF' }}
-                        width={80}
+                        width={isMobile ? 50 : 80}
+                        tickCount={isMobile ? 4 : 6}
                       />
                       <Tooltip content={<CustomTooltip />} />
                       <Area 
                         type="monotone" 
                         dataKey="price" 
                         stroke="#3B82F6" 
-                        strokeWidth={2}
+                        strokeWidth={isMobile ? 1.5 : 2}
                         fillOpacity={1} 
                         fill="url(#priceGradient)" 
                       />
                     </AreaChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-56 flex items-center justify-center text-gray-500">
+                  <div className={`${isMobile ? 'h-40' : 'h-56'} flex items-center justify-center text-gray-500`}>
                     Aucune donnée disponible
                   </div>
                 )}
@@ -464,21 +482,21 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                       <div className="text-blue-300 text-sm font-semibold mb-2">Volatilité 7 jours</div>
                       <div className="text-2xl font-bold text-white">
                         {detailedInfo.market_data?.price_change_percentage_7d ? 
-                          `${Math.abs(detailedInfo.market_data.price_change_percentage_7d).toFixed(2)}%` : 'N/A'}
+                          `${Math.abs(detailedInfo.market_data.price_change_percentage_7d).toFixed(2)}%` : 'Indisponible'}
                       </div>
                       <div className="text-sm text-gray-200 mt-1">Écart des prix</div>
                     </div>
                     
                     <div className="bg-gradient-to-br from-purple-900/30 to-purple-800/20 rounded-xl p-6 border border-purple-500/20">
                       <div className="text-purple-300 text-sm font-semibold mb-2">Classement CoinGecko</div>
-                      <div className="text-2xl font-bold text-white">#{detailedInfo.coingecko_rank || 'N/A'}</div>
+                      <div className="text-2xl font-bold text-white">#{detailedInfo.coingecko_rank || 'Indisponible'}</div>
                       <div className="text-sm text-gray-200 mt-1">Position mondiale</div>
                     </div>
                     
                     <div className="bg-gradient-to-br from-green-900/30 to-green-800/20 rounded-xl p-6 border border-green-500/20">
                       <div className="text-green-300 text-sm font-semibold mb-2">Score Développeur</div>
                       <div className="text-2xl font-bold text-white">
-                        {detailedInfo.developer_score ? `${detailedInfo.developer_score.toFixed(1)}/100` : 'N/A'}
+                        {detailedInfo.developer_score ? `${detailedInfo.developer_score.toFixed(1)}/100` : 'Indisponible'}
                       </div>
                       <div className="text-sm text-gray-200 mt-1">Activité GitHub</div>
                     </div>
@@ -486,7 +504,7 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                     <div className="bg-gradient-to-br from-orange-900/30 to-orange-800/20 rounded-xl p-6 border border-orange-500/20">
                       <div className="text-orange-300 text-sm font-semibold mb-2">Score Communauté</div>
                       <div className="text-2xl font-bold text-white">
-                        {detailedInfo.community_score ? `${detailedInfo.community_score.toFixed(1)}/100` : 'N/A'}
+                        {detailedInfo.community_score ? `${detailedInfo.community_score.toFixed(1)}/100` : 'Indisponible'}
                       </div>
                       <div className="text-sm text-gray-200 mt-1">Engagement social</div>
                     </div>
@@ -592,7 +610,7 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                       <div className="text-xl font-bold text-white">
                         {detailedInfo.market_data?.fully_diluted_valuation?.[currency] ? 
                           formatNumberWithCurrency(detailedInfo.market_data.fully_diluted_valuation[currency]) : 
-                          (coin.fully_diluted_valuation ? formatNumberWithCurrency(coin.fully_diluted_valuation) : 'N/A')}
+                          (coin.fully_diluted_valuation ? formatNumberWithCurrency(coin.fully_diluted_valuation) : 'Indisponible')}
                       </div>
                       <div className="text-sm text-gray-200 mt-1">Si toute l'offre était en circulation</div>
                     </div>
@@ -601,7 +619,7 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                       <div className="text-indigo-300 text-sm font-semibold mb-2">Offre Totale</div>
                       <div className="text-xl font-bold text-white">
                         {detailedInfo.market_data.total_supply ? 
-                          `${formatNumber(detailedInfo.market_data.total_supply, 0)} ${coin.symbol?.toUpperCase()}` : 'N/A'}
+                          `${formatNumber(detailedInfo.market_data.total_supply, 0)} ${coin.symbol?.toUpperCase()}` : 'Indisponible'}
                       </div>
                       <div className="text-sm text-gray-200 mt-1">Tokens créés à ce jour</div>
                     </div>
@@ -630,122 +648,127 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                       <div className="text-xl font-bold text-white mb-1">
                         {detailedInfo.market_data?.atl?.[currency] ? 
                           formatPrice(detailedInfo.market_data.atl[currency]) : 
-                          (coin.atl ? formatPrice(coin.atl) : 'N/A')}
+                          (coin.atl ? formatPrice(coin.atl) : 'Indisponible')}
                       </div>
-                      <div className="text-sm text-gray-200">Prix minimum atteint</div>
                     </div>
                     
                     <div className="bg-gradient-to-br from-yellow-900/30 to-yellow-800/20 rounded-xl p-6 border border-yellow-500/20">
                       <div className="text-yellow-300 text-sm font-semibold mb-2">Plus Haut Historique</div>
-                      <div className="text-xl font-bold text-white mb-1">
+                      <div className="text-xl font-bold text-white">
                         {formatPrice(coin.ath)}
                       </div>
-                      <div className="text-sm text-gray-200">Prix maximum atteint</div>
                     </div>
                     
                     <div className={`bg-gradient-to-br ${detailedInfo.market_data?.price_change_percentage_7d >= 0 ? 'from-green-900/30 to-green-800/20' : 'from-red-900/30 to-red-800/20'} rounded-xl p-6 border ${detailedInfo.market_data?.price_change_percentage_7d >= 0 ? 'border-green-500/20' : 'border-red-500/20'}`}>
                       <div className={`${detailedInfo.market_data?.price_change_percentage_7d >= 0 ? 'text-green-300' : 'text-red-300'} text-sm font-semibold mb-2`}>Variation 7 jours</div>
-                      <div className={`text-xl font-bold ${detailedInfo.market_data?.price_change_percentage_7d >= 0 ? 'text-green-400' : 'text-red-400'} mb-1`}>
-                        {detailedInfo.market_data?.price_change_percentage_7d >= 0 ? '+' : ''}{detailedInfo.market_data?.price_change_percentage_7d?.toFixed(2) || 'N/A'}%
+                      <div className={`text-xl font-bold ${detailedInfo.market_data?.price_change_percentage_7d >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {detailedInfo.market_data?.price_change_percentage_7d >= 0 ? '+' : ''}{detailedInfo.market_data?.price_change_percentage_7d?.toFixed(2) || 'Indisponible'}%
                       </div>
-                      <div className="text-sm text-gray-200">Performance hebdomadaire</div>
                     </div>
                     
                     <div className={`bg-gradient-to-br ${detailedInfo.market_data?.price_change_percentage_30d >= 0 ? 'from-green-900/30 to-green-800/20' : 'from-red-900/30 to-red-800/20'} rounded-xl p-6 border ${detailedInfo.market_data?.price_change_percentage_30d >= 0 ? 'border-green-500/20' : 'border-red-500/20'}`}>
                       <div className={`${detailedInfo.market_data?.price_change_percentage_30d >= 0 ? 'text-green-300' : 'text-red-300'} text-sm font-semibold mb-2`}>Variation 30 jours</div>
-                      <div className={`text-xl font-bold ${detailedInfo.market_data?.price_change_percentage_30d >= 0 ? 'text-green-400' : 'text-red-400'} mb-1`}>
-                        {detailedInfo.market_data?.price_change_percentage_30d >= 0 ? '+' : ''}{detailedInfo.market_data?.price_change_percentage_30d?.toFixed(2) || 'N/A'}%
+                      <div className={`text-xl font-bold ${detailedInfo.market_data?.price_change_percentage_30d >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {detailedInfo.market_data?.price_change_percentage_30d >= 0 ? '+' : ''}{detailedInfo.market_data?.price_change_percentage_30d?.toFixed(2) || 'Indisponible'}%
                       </div>
-                      <div className="text-sm text-gray-200">Performance mensuelle</div>
                     </div>
                     
                     <div className={`bg-gradient-to-br ${detailedInfo.market_data?.price_change_percentage_1y >= 0 ? 'from-green-900/30 to-green-800/20' : 'from-red-900/30 to-red-800/20'} rounded-xl p-6 border ${detailedInfo.market_data?.price_change_percentage_1y >= 0 ? 'border-green-500/20' : 'border-red-500/20'}`}>
                       <div className={`${detailedInfo.market_data?.price_change_percentage_1y >= 0 ? 'text-green-300' : 'text-red-300'} text-sm font-semibold mb-2`}>Variation 1 an</div>
-                      <div className={`text-xl font-bold ${detailedInfo.market_data?.price_change_percentage_1y >= 0 ? 'text-green-400' : 'text-red-400'} mb-1`}>
-                        {detailedInfo.market_data?.price_change_percentage_1y >= 0 ? '+' : ''}{detailedInfo.market_data?.price_change_percentage_1y?.toFixed(2) || 'N/A'}%
+                      <div className={`text-xl font-bold ${detailedInfo.market_data?.price_change_percentage_1y >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        {detailedInfo.market_data?.price_change_percentage_1y >= 0 ? '+' : ''}{detailedInfo.market_data?.price_change_percentage_1y?.toFixed(2) || 'Indisponible'}%
                       </div>
-                      <div className="text-sm text-gray-200">Performance annuelle</div>
                     </div>
                   </div>
                   
                   {/* Classement en grand */}
                   <div className="bg-gradient-to-br from-blue-900/40 to-indigo-800/30 rounded-xl p-8 border border-blue-500/20 text-center">
                     <div className="text-blue-300 text-lg font-semibold mb-2">Classement Mondial</div>
-                    <div className="text-5xl font-bold text-blue-400 mb-2">#{detailedInfo.market_cap_rank || 'N/A'}</div>
+                    <div className="text-5xl font-bold text-blue-400 mb-2">#{coin.market_cap_rank || 'Indisponible'}</div>
                     <div className="text-gray-200">Position par capitalisation boursière</div>
                   </div>
                 </div>
 
-                {/* Section Liens Officiels */}
+                {/* Section Liens et Communauté - Redesignée */}
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-8 flex items-center gap-3">
+                  <h3 className="text-xl sm:text-2xl font-bold text-white mb-6 flex items-center gap-3">
                     <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-lg flex items-center justify-center">
                       <FaGlobe className="w-4 h-4 text-white" />
                     </div>
                     Liens & Communauté
                   </h3>
                   
-                  {/* Liens principaux en grand */}
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                    {detailedInfo.links?.homepage?.[0] && (
-                      <a 
-                        href={detailedInfo.links.homepage[0]} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="group bg-gradient-to-br from-blue-900/40 to-blue-800/30 rounded-xl p-6 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-105"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-600/30 rounded-xl flex items-center justify-center group-hover:bg-blue-600/50 transition-colors">
-                              <FaGlobe className="w-6 h-6 text-blue-400" />
-                            </div>
-                            <div>
-                              <div className="text-white font-semibold text-lg">Site Officiel</div>
-                              <div className="text-blue-300 text-sm">Visitez le site web</div>
-                            </div>
-                          </div>
-                          <FaExternalLinkAlt className="w-4 h-4 text-gray-300 group-hover:text-blue-400 transition-colors" />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Section Liens Officiels */}
+                    <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 rounded-xl p-4 sm:p-6 border border-gray-600/20">
+                      <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <div className="w-6 h-6 bg-blue-600/30 rounded-lg flex items-center justify-center">
+                          <FaGlobe className="w-3 h-3 text-blue-400" />
                         </div>
-                      </a>
-                    )}
-                    
-                    {detailedInfo.links?.repos_url?.github?.[0] && (
-                      <a 
-                        href={detailedInfo.links.repos_url.github[0]} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="group bg-gradient-to-br from-gray-900/40 to-gray-800/30 rounded-xl p-6 border border-gray-600/20 hover:border-gray-500/40 transition-all duration-300 hover:scale-105"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-gray-700/30 rounded-xl flex items-center justify-center group-hover:bg-gray-600/50 transition-colors">
-                              <FaGithub className="w-6 h-6 text-gray-400" />
+                        Liens Officiels
+                      </h4>
+                      <div className="space-y-3">
+                        {detailedInfo.links?.homepage?.[0] && (
+                          <a 
+                            href={detailedInfo.links.homepage[0]} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="group flex items-center justify-between p-3 bg-blue-900/20 hover:bg-blue-800/30 rounded-lg border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300"
+                          >
+                            <div className="flex items-center gap-3">
+                              <FaGlobe className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-white text-sm font-medium">Site Officiel</span>
                             </div>
-                            <div>
-                              <div className="text-white font-semibold text-lg">Code Source</div>
-                              <div className="text-gray-300 text-sm">Consultez le GitHub</div>
+                            <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-blue-400 transition-colors" />
+                          </a>
+                        )}
+                        
+                        {detailedInfo.links?.repos_url?.github?.[0] && (
+                          <a 
+                            href={detailedInfo.links.repos_url.github[0]} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="group flex items-center justify-between p-3 bg-gray-900/20 hover:bg-gray-800/30 rounded-lg border border-gray-600/20 hover:border-gray-500/40 transition-all duration-300"
+                          >
+                            <div className="flex items-center gap-3">
+                              <FaGithub className="w-4 h-4 text-gray-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-white text-sm font-medium">Dépôt GitHub</span>
                             </div>
+                            <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-white transition-colors" />
+                          </a>
+                        )}
+
+                        {!detailedInfo.links?.homepage?.[0] && !detailedInfo.links?.repos_url?.github?.[0] && (
+                          <div className="text-center py-4 text-gray-500 text-sm">
+                            Aucun lien officiel disponible
                           </div>
-                          <FaExternalLinkAlt className="w-4 h-4 text-gray-300 group-hover:text-white transition-colors" />
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Section Réseaux Sociaux */}
+                    <div className="bg-gradient-to-br from-gray-900/60 to-gray-800/40 rounded-xl p-4 sm:p-6 border border-gray-600/20">
+                      <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <div className="w-6 h-6 bg-purple-600/30 rounded-lg flex items-center justify-center">
+                          <svg className="w-3 h-3 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
                         </div>
-                      </a>
-                    )}
-                  </div>
-                  
-                  {/* Réseaux sociaux plus compacts */}
-                  {(detailedInfo.links?.twitter_screen_name || detailedInfo.links?.subreddit_url || detailedInfo.links?.facebook_username || detailedInfo.links?.telegram_channel_identifier) && (
-                    <div>
-                      <h4 className="text-lg font-semibold text-white mb-3">Réseaux Sociaux</h4>
-                      <div className="flex flex-wrap gap-3">
+                        Réseaux Sociaux
+                      </h4>
+                      <div className="space-y-3">
                         {detailedInfo.links?.twitter_screen_name && (
                           <a 
                             href={`https://twitter.com/${detailedInfo.links.twitter_screen_name}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="group flex items-center gap-2 bg-gradient-to-r from-blue-900/30 to-blue-800/20 rounded-lg px-4 py-2 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-105"
+                            className="group flex items-center justify-between p-3 bg-blue-900/20 hover:bg-blue-800/30 rounded-lg border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300"
                           >
-                            <FaTwitter className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
-                            <span className="text-white text-sm font-medium">Twitter</span>
+                            <div className="flex items-center gap-3">
+                              <FaTwitter className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-white text-sm font-medium">Twitter</span>
+                            </div>
+                            <span className="text-xs text-gray-400 group-hover:text-blue-300 transition-colors">@{detailedInfo.links.twitter_screen_name}</span>
                           </a>
                         )}
                         
@@ -754,10 +777,13 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                             href={detailedInfo.links.subreddit_url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="group flex items-center gap-2 bg-gradient-to-r from-orange-900/30 to-orange-800/20 rounded-lg px-4 py-2 border border-orange-500/20 hover:border-orange-400/40 transition-all duration-300 hover:scale-105"
+                            className="group flex items-center justify-between p-3 bg-orange-900/20 hover:bg-orange-800/30 rounded-lg border border-orange-500/20 hover:border-orange-400/40 transition-all duration-300"
                           >
-                            <FaReddit className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
-                            <span className="text-white text-sm font-medium">Reddit</span>
+                            <div className="flex items-center gap-3">
+                              <FaReddit className="w-4 h-4 text-orange-400 group-hover:scale-110 transition-transform" />
+                              <span className="text-white text-sm font-medium">Reddit</span>
+                            </div>
+                            <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-orange-400 transition-colors" />
                           </a>
                         )}
                         
@@ -766,12 +792,15 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                             href={`https://facebook.com/${detailedInfo.links.facebook_username}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="group flex items-center gap-2 bg-gradient-to-r from-blue-900/30 to-blue-800/20 rounded-lg px-4 py-2 border border-blue-600/20 hover:border-blue-500/40 transition-all duration-300 hover:scale-105"
+                            className="group flex items-center justify-between p-3 bg-blue-900/20 hover:bg-blue-800/30 rounded-lg border border-blue-600/20 hover:border-blue-500/40 transition-all duration-300"
                           >
-                            <svg className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                            </svg>
-                            <span className="text-white text-sm font-medium">Facebook</span>
+                            <div className="flex items-center gap-3">
+                              <svg className="w-4 h-4 text-blue-500 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                              </svg>
+                              <span className="text-white text-sm font-medium">Facebook</span>
+                            </div>
+                            <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-blue-400 transition-colors" />
                           </a>
                         )}
                         
@@ -780,17 +809,26 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                             href={`https://t.me/${detailedInfo.links.telegram_channel_identifier}`} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="group flex items-center gap-2 bg-gradient-to-r from-blue-900/30 to-blue-800/20 rounded-lg px-4 py-2 border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300 hover:scale-105"
+                            className="group flex items-center justify-between p-3 bg-blue-900/20 hover:bg-blue-800/30 rounded-lg border border-blue-500/20 hover:border-blue-400/40 transition-all duration-300"
                           >
-                            <svg className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
-                              <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
-                            </svg>
-                            <span className="text-white text-sm font-medium">Telegram</span>
+                            <div className="flex items-center gap-3">
+                              <svg className="w-4 h-4 text-blue-400 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>
+                              </svg>
+                              <span className="text-white text-sm font-medium">Telegram</span>
+                            </div>
+                            <FaExternalLinkAlt className="w-3 h-3 text-gray-400 group-hover:text-blue-400 transition-colors" />
                           </a>
+                        )}
+
+                        {!detailedInfo.links?.twitter_screen_name && !detailedInfo.links?.subreddit_url && !detailedInfo.links?.facebook_username && !detailedInfo.links?.telegram_channel_identifier && (
+                          <div className="text-center py-4 text-gray-500 text-sm">
+                            Aucun réseau social disponible
+                          </div>
                         )}
                       </div>
                     </div>
-                  )}
+                  </div>
                 </div>
               </div>
             )}

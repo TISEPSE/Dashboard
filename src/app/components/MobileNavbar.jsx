@@ -5,11 +5,13 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { FaBars } from "react-icons/fa"
 import { motion, AnimatePresence } from "framer-motion"
+import { useSession } from 'next-auth/react'
 
 export default function MobileNavbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
   const pathname = usePathname()
+  const { data: session } = useSession()
 
   useEffect(() => {
     setHasMounted(true)
@@ -32,7 +34,7 @@ export default function MobileNavbar() {
     {href: "/Dashboard/Sante", label: "Santé", icon: "🏥"},
     {href: "/Dashboard/Finances", label: "Finances", icon: "💰"},
     {href: "/Dashboard/Calendrier", label: "Calendrier", icon: "📅"},
-    {href: "/Dashboard/Profile", label: "Profil", icon: "👤"},
+    {href: "/Dashboard/Profile", label: session ? session.user.name : "Profil", icon: "👤", isProfile: true},
     {href: "/Dashboard/Parametre", label: "Paramètres", icon: "⚙️"},
   ]
 
@@ -108,7 +110,7 @@ export default function MobileNavbar() {
             {/* Navigation compacte et équilibrée */}
             <nav className="px-6 pb-12 pt-6">
               <div className="relative">
-                {/* Disposition en 4 colonnes x 2 rangées - plus équilibré */}
+                {/* Disposition des icônes de navigation */}
                 <div className="grid grid-cols-4 gap-4 mb-6">
                   {navigationItems.map((item, index) => (
                     <Link
@@ -133,13 +135,27 @@ export default function MobileNavbar() {
                         <div className="absolute inset-0 rounded-2xl border-2 border-blue-400/30 animate-pulse scale-110"></div>
                       )}
                       
-                      <span className={`text-xl transition-all duration-300 relative z-10 ${
-                        pathname === item.href 
-                          ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
-                          : 'group-hover:scale-110'
-                      }`}>
-                        {item.icon}
-                      </span>
+                      {item.isProfile && session ? (
+                        <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 ${
+                          pathname === item.href 
+                            ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
+                            : 'group-hover:scale-110'
+                        }`}>
+                          <img 
+                            src={session.user.image} 
+                            alt={session.user.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <span className={`text-xl transition-all duration-300 relative z-10 ${
+                          pathname === item.href 
+                            ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
+                            : 'group-hover:scale-110'
+                        }`}>
+                          {item.icon}
+                        </span>
+                      )}
                       
                       {/* Effet glow sous l'icône active */}
                       {pathname === item.href && (
@@ -150,6 +166,7 @@ export default function MobileNavbar() {
                     </Link>
                   ))}
                 </div>
+
 
                 {/* Label dynamique avec animation élégante */}
                 {navigationItems.find(item => pathname === item.href) && (
