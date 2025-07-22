@@ -81,7 +81,8 @@ export async function GET(request, { params }) {
     
     // En cas d'erreur, utiliser le cache si disponible
     const { coinId: errorCoinId } = await params
-    const cacheKey = `${errorCoinId}_${searchParams.get('vs_currency') || 'eur'}_${searchParams.get('days') || '7'}_${searchParams.get('type') || 'details'}`
+    const { searchParams: errorSearchParams } = new URL(request.url)
+    const cacheKey = `${errorCoinId}_${errorSearchParams.get('vs_currency') || 'eur'}_${errorSearchParams.get('days') || '7'}_${errorSearchParams.get('type') || 'details'}`
     if (detailCache.has(cacheKey)) {
       console.log('🔄 Utilisation du cache détail en cas d\'erreur')
       const cached = detailCache.get(cacheKey)

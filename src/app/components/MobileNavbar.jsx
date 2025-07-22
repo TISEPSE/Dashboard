@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { FaBars } from "react-icons/fa"
+import { FaBars, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog } from "react-icons/fa"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from 'next-auth/react'
 
@@ -28,14 +28,14 @@ export default function MobileNavbar() {
   if (!hasMounted) return null
 
   const navigationItems = [
-    {href: "/Dashboard/Crypto", label: "Cryptos", icon: "₿"},
-    {href: "/Dashboard/Message", label: "Messages", icon: "💬"},
-    {href: "/Dashboard/Meteo", label: "Météo", icon: "🌤️"},
-    {href: "/Dashboard/Sante", label: "Santé", icon: "🏥"},
-    {href: "/Dashboard/Finances", label: "Finances", icon: "💰"},
-    {href: "/Dashboard/Calendrier", label: "Calendrier", icon: "📅"},
-    {href: "/Dashboard/Profile", label: session ? session.user.name : "Profil", icon: "👤", isProfile: true},
-    {href: "/Dashboard/Parametre", label: "Paramètres", icon: "⚙️"},
+    {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
+    {href: "/Dashboard/Message", label: "Messages", icon: <FaComments className="text-blue-400" />},
+    {href: "/Dashboard/Meteo", label: "Météo", icon: <FaCloudSun className="text-yellow-400" />},
+    {href: "/Dashboard/Sante", label: "Santé", icon: <FaHeartbeat className="text-red-400" />},
+    {href: "/Dashboard/Finances", label: "Finances", icon: <FaChartLine className="text-green-400" />},
+    {href: "/Dashboard/Calendrier", label: "Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
+    {href: "/Dashboard/Profile", label: session ? session.user.name : "Profil", icon: <FaUser className="text-indigo-400" />, isProfile: true},
+    {href: "/Dashboard/Parametre", label: "Paramètres", icon: <FaCog className="text-gray-400" />},
   ]
 
   return (
@@ -148,13 +148,13 @@ export default function MobileNavbar() {
                           />
                         </div>
                       ) : (
-                        <span className={`text-xl transition-all duration-300 relative z-10 ${
+                        <div className={`text-xl transition-all duration-300 relative z-10 ${
                           pathname === item.href 
                             ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
                             : 'group-hover:scale-110'
                         }`}>
                           {item.icon}
-                        </span>
+                        </div>
                       )}
                       
                       {/* Effet glow sous l'icône active */}

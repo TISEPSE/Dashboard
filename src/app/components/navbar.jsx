@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react"
 import Link from "next/link"
 import {usePathname} from "next/navigation"
-import {FaBars, FaTimes} from "react-icons/fa"
+import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog} from "react-icons/fa"
 import { useSession } from 'next-auth/react'
 import AuthButton from "./Auth/AuthButton"
 
@@ -70,13 +70,13 @@ export default function Navbar({isOpen, setIsOpen}) {
                 {/* Affichage direct des liens avec icônes et textes */}
                 <div className="flex flex-col gap-2">
                   {[
-                    {href: "/Dashboard/Crypto", label: "Cryptos", icon: "₿"},
-                    {href: "/Dashboard/Message", label: "Messages", icon: "💬"},
-                    {href: "/Dashboard/Meteo", label: "Météo", icon: "🌤️"},
-                    {href: "/Dashboard/Sante", label: "Santé", icon: "🏥"},
-                    {href: "/Dashboard/Finances", label: "Finances", icon: "💰"},
-                    {href: "/Dashboard/Calendrier", label: "Calendrier", icon: "📅"},
-                    {href: "/Dashboard/Parametre", label: "Paramètres", icon: "⚙️"},
+                    {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
+                    {href: "/Dashboard/Message", label: "Messages", icon: <FaComments className="text-blue-400" />},
+                    {href: "/Dashboard/Meteo", label: "Météo", icon: <FaCloudSun className="text-yellow-400" />},
+                    {href: "/Dashboard/Sante", label: "Santé", icon: <FaHeartbeat className="text-red-400" />},
+                    {href: "/Dashboard/Finances", label: "Finances", icon: <FaChartLine className="text-green-400" />},
+                    {href: "/Dashboard/Calendrier", label: "Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
+                    {href: "/Dashboard/Parametre", label: "Paramètres", icon: <FaCog className="text-gray-400" />},
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -87,7 +87,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
-                      <span className="text-lg transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] text-center">{item.icon}</span>
+                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg">{item.icon}</div>
                       <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
                         {item.label}
                       </span>
@@ -118,7 +118,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                       </>
                     ) : (
                       <>
-                        <span className="text-lg transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] text-center">👤</span>
+                        <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg"><FaUser className="text-indigo-400" /></div>
                         <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
                           Profil
                         </span>
@@ -145,13 +145,13 @@ export default function Navbar({isOpen, setIsOpen}) {
               <div className="flex flex-col gap-2 items-center py-4 h-full">
                 <div className="flex flex-col gap-2 items-center">
                   {[
-                    {href: "/Dashboard/Crypto", icon: "₿"},
-                    {href: "/Dashboard/Message", icon: "💬"},
-                    {href: "/Dashboard/Meteo", icon: "🌤️"},
-                    {href: "/Dashboard/Sante", icon: "🏥"},
-                    {href: "/Dashboard/Finances", icon: "💰"},
-                    {href: "/Dashboard/Calendrier", icon: "📅"},
-                    {href: "/Dashboard/Parametre", icon: "⚙️"},
+                    {href: "/Dashboard/Crypto", icon: <FaBitcoin className="text-orange-400" />},
+                    {href: "/Dashboard/Message", icon: <FaComments className="text-blue-400" />},
+                    {href: "/Dashboard/Meteo", icon: <FaCloudSun className="text-yellow-400" />},
+                    {href: "/Dashboard/Sante", icon: <FaHeartbeat className="text-red-400" />},
+                    {href: "/Dashboard/Finances", icon: <FaChartLine className="text-green-400" />},
+                    {href: "/Dashboard/Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
+                    {href: "/Dashboard/Parametre", icon: <FaCog className="text-gray-400" />},
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -162,7 +162,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
-                      <span className="text-lg transition-all duration-300 ease-in-out">{item.icon}</span>
+                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg">{item.icon}</div>
                     </Link>
                   ))}
                 </div>
@@ -189,7 +189,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
-                      <span className="text-lg transition-all duration-300 ease-in-out">👤</span>
+                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaUser className="text-indigo-400" /></div>
                     </Link>
                   )}
                 </div>

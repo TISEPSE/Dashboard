@@ -19,7 +19,13 @@
       "Bash(cmd /c:*)",
       "Bash(git checkout:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(node:*)",
+      "Bash(timeout 10 npm run build:*)",
+      "Bash(timeout 15 npm run build)",
+      "Bash(npx next lint:*)",
+      "Bash(awk:*)",
+      "Bash(cp:*)"
     ],
     "deny": []
   }
