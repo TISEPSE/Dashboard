@@ -29,7 +29,7 @@ export default function MobileNavbar() {
     {href: "/Dashboard/Crypto", label: "Cryptos", icon: "₿"},
     {href: "/Dashboard/Message", label: "Messages", icon: "💬"},
     {href: "/Dashboard/Meteo", label: "Météo", icon: "🌤️"},
-    {href: "/Dashboard/Sport", label: "Sport", icon: "⚽"},
+    {href: "/Dashboard/Sante", label: "Santé", icon: "🏥"},
     {href: "/Dashboard/Finances", label: "Finances", icon: "💰"},
     {href: "/Dashboard/Calendrier", label: "Calendrier", icon: "📅"},
     {href: "/Dashboard/Profile", label: "Profil", icon: "👤"},

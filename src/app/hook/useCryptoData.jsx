@@ -3,7 +3,7 @@ import axios from "axios"
 
 const cryptoAPI = axios.create({
   baseURL: "https://api.coingecko.com/api/v3",
-  timeout: 20000, // Timeout plus élevé pour les grosses requêtes
+  timeout: 20000,
   headers: { 
     "Content-Type": "application/json",
     "Accept": "application/json"
@@ -256,21 +256,24 @@ cryptoAPI.interceptors.response.use(
   }
 )
 
-export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder, favoritesList = []) => {
-  const [allCryptos, setAllCryptos] = useState([]) // Cache complet
+export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favoritesList = [], searchQuery = '') => {
+  const [allCryptos, setAllCryptos] = useState([]) // Les 250 cryptos
+  const [displayedCryptos, setDisplayedCryptos] = useState([]) // Page actuelle après tri/filtre
   const [favoriteCryptos, setFavoriteCryptos] = useState([]) // Cache des favoris
-  const [displayedCryptos, setDisplayedCryptos] = useState([]) // Données affichées
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState(null)
   const [retryCount, setRetryCount] = useState(0)
   const [isRetrying, setIsRetrying] = useState(false)
   const [lastFetch, setLastFetch] = useState(null)
+  const [isRefreshing, setIsRefreshing] = useState(false) // Refresh silencieux
   const cacheRef = useRef({})
+  
+  const ITEMS_PER_PAGE = 40
 
   // Clé de cache unique par devise
   const getCacheKey = () => `crypto_${currency}`
 
-  // Tri des cryptos
+  // Tri côté client
   const sortCryptos = (cryptosList) => {
     return [...cryptosList].sort((a, b) => {
       let aValue = a[sortBy]
@@ -292,34 +295,44 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     })
   }
 
-  // Fetch spécifique des favoris - utilise les données déjà chargées
-  const fetchFavoriteCryptos = useCallback(async (isRetry = false) => {
-    if (favoritesList.length === 0) {
+  // Filtrage par recherche
+  const filterBySearch = (cryptosList) => {
+    if (!searchQuery.trim()) return cryptosList
+    
+    const query = searchQuery.toLowerCase()
+    return cryptosList.filter(crypto => 
+      crypto.name.toLowerCase().includes(query) ||
+      crypto.symbol.toLowerCase().includes(query)
+    )
+  }
+
+  // Fetch spécifique des favoris
+  const fetchFavoriteCryptos = useCallback(() => {
+    if (favoritesList.length === 0 || allCryptos.length === 0) {
       setFavoriteCryptos([])
       return
     }
     
-    console.log("🌐 Filtrage des favoris depuis allCryptos")
-    console.log("Favoris recherchés:", favoritesList.map(f => f.symbol))
-    console.log("Cryptos disponibles:", allCryptos.slice(0, 5).map(c => c.symbol))
-    
-    // Filtrer les cryptos depuis allCryptos basé sur les symboles des favoris
+    console.log("⭐ Filtrage des favoris")
     const favoriteSymbols = favoritesList.map(fav => fav.symbol.toUpperCase())
     const filteredFavorites = allCryptos.filter(crypto => 
       favoriteSymbols.includes(crypto.symbol.toUpperCase())
     )
     
-    console.log("✅ Favoris trouvés:", filteredFavorites.map(f => f.symbol))
-    
+    console.log("✅ Favoris trouvés:", filteredFavorites.length)
     setFavoriteCryptos(filteredFavorites)
-    
   }, [favoritesList, allCryptos])
 
-  // Fetch complet de toutes les cryptos (250 premières)
-  const fetchAllCryptos = async (isRetry = false) => {
+  // Fetch des 250 cryptos
+  const fetchAllCryptos = async (isRetry = false, isRefresh = false) => {
     try {
-      setLoading(true)
-      setError(null)
+      if (!isRefresh) {
+        setLoading(true)
+        setError(null)
+      } else {
+        setIsRefreshing(true)
+      }
+      
       if (isRetry) {
         setIsRetrying(true)
       }
@@ -327,9 +340,9 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
       const cacheKey = getCacheKey()
       const now = Date.now()
       
-      // Vérifier le cache (valide pendant 2 minutes)
-      if (cacheRef.current[cacheKey] && 
-          (now - cacheRef.current[cacheKey].timestamp) < 120000) {
+      // Pour le refresh, ignorer le cache ; sinon vérifier le cache (5 minutes)
+      if (!isRefresh && cacheRef.current[cacheKey] && 
+          (now - cacheRef.current[cacheKey].timestamp) < 300000) {
         console.log("📦 Utilisation du cache pour", cacheKey)
         setAllCryptos(cacheRef.current[cacheKey].data)
         setLastFetch(new Date(cacheRef.current[cacheKey].timestamp))
@@ -339,24 +352,21 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
         return
       }
 
-      console.log("🌐 Fetch complet des cryptos pour", cacheKey)
+      const logPrefix = isRefresh ? "🔄 Refresh" : "🌐 Fetch"
+      console.log(`${logPrefix} 250 cryptos pour ${currency}`)
       
-      const response = await cryptoAPI.get("/coins/markets", {
-        params: {
-          vs_currency: currency,
-          order: "market_cap_desc",
-          per_page: 250, // Toujours charger 250 cryptos
-          page: 1,
-          price_change_percentage: "1h,24h,7d",
-          sparkline: false,
-          include_market_cap: true,
-          include_24hr_vol: true,
-          include_24hr_change: true,
-          include_last_updated_at: false
+      const response = await fetch(`/api/crypto?vs_currency=${currency}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
         }
       })
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`)
+      }
 
-      const cryptoData = response.data
+      const cryptoData = await response.json()
       
       // Mettre en cache
       cacheRef.current[cacheKey] = {
@@ -364,162 +374,126 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
         timestamp: now
       }
       
-      setAllCryptos(cryptoData)
+      // Pour le refresh, mise à jour silencieuse seulement si il y a des changements
+      if (isRefresh) {
+        setAllCryptos(prevCryptos => {
+          const hasChanges = prevCryptos.length === 0 || 
+            cryptoData.some((newCoin, index) => {
+              const oldCoin = prevCryptos[index]
+              return !oldCoin || 
+                oldCoin.current_price !== newCoin.current_price ||
+                oldCoin.price_change_percentage_24h !== newCoin.price_change_percentage_24h ||
+                oldCoin.market_cap !== newCoin.market_cap
+            })
+          
+          if (hasChanges) {
+            console.log(`✅ Refresh: données mises à jour`)
+            return cryptoData
+          } else {
+            console.log(`📊 Refresh: aucun changement`)
+            return prevCryptos
+          }
+        })
+      } else {
+        setAllCryptos(cryptoData)
+      }
+      
       setLastFetch(new Date(now))
       setRetryCount(0)
       setIsRetrying(false)
       
-      console.log(`✅ ${cryptoData.length} cryptos chargées et mises en cache`)
+      if (!isRefresh) {
+        console.log(`✅ ${cryptoData.length} cryptos chargées`)
+      }
       
     } catch (err) {
-      const errorMessage = err?.message || "Erreur inconnue lors du chargement"
-      setError(errorMessage)
-      setRetryCount(prev => prev + 1)
-      console.warn("Erreur lors du chargement des cryptos:", errorMessage)
-      
-      // Retry plus agressif
-      const shouldRetry = err.code === "ECONNABORTED" || 
-                         err.response?.status >= 500 || 
-                         err.code === "NETWORK_ERROR" ||
-                         err.message?.includes("Network Error") ||
-                         err.message?.includes("timeout") ||
-                         !err.response
-      
-      if (shouldRetry && retryCount < 5) {
-        setIsRetrying(true)
-        const retryDelay = Math.min(3000 + (retryCount * 2000), 15000) // 3s, 5s, 7s, 9s, 11s
+      if (!isRefresh) {
+        let errorMessage = "Erreur inconnue lors du chargement"
         
-        setTimeout(() => {
-          fetchAllCryptos(true)
-        }, retryDelay)
+        // Messages d'erreur plus spécifiques selon le type d'erreur
+        if (err?.message?.includes('HTTP 429')) {
+          errorMessage = "Limite de requêtes atteinte. Données temporairement indisponibles."
+        } else if (err?.message?.includes('HTTP 503')) {
+          errorMessage = "Service temporairement indisponible. Veuillez réessayer plus tard."
+        } else if (err?.message?.includes('HTTP')) {
+          errorMessage = "Erreur de connexion avec l'API CoinGecko. Certaines données peuvent être manquantes."
+        } else if (err?.message?.includes('NetworkError') || err?.message?.includes('fetch')) {
+          errorMessage = "Erreur de réseau. Vérifiez votre connexion internet."
+        } else {
+          errorMessage = err?.message || errorMessage
+        }
+        
+        setError(errorMessage)
+        setRetryCount(prev => prev + 1)
+        console.warn("Erreur lors du chargement des cryptos:", errorMessage)
+        
+        if (retryCount < 3) {
+          setIsRetrying(true)
+          const retryDelay = Math.min(2000 + (retryCount * 1000), 5000)
+          
+          setTimeout(() => {
+            fetchAllCryptos(true, isRefresh)
+          }, retryDelay)
+        } else {
+          setIsRetrying(false)
+        }
       } else {
-        setIsRetrying(false)
+        console.warn("Erreur refresh silencieux:", err?.message)
       }
     } finally {
-      setLoading(false)
+      if (!isRefresh) {
+        setLoading(false)
+      } else {
+        setIsRefreshing(false)
+      }
     }
   }
 
-  // Filtrer et paginer les données du cache
-  const processDisplayedCryptos = useCallback((isShowingFavorites = false) => {
-    const sourceData = isShowingFavorites ? favoriteCryptos : allCryptos
-    if (sourceData.length === 0) return
-
-    // Trier d'abord
-    const sortedData = sortCryptos(sourceData)
-    
-    if (perPage === "all") {
-      // Mode "Tout" : pagination par tranches de 40 (pour desktop)
-      const startIndex = (currentPage - 1) * 40
-      const endIndex = startIndex + 40
-      setDisplayedCryptos(sortedData.slice(startIndex, endIndex))
-    } else {
-      // Modes spécifiques : afficher exactement le nombre demandé
-      const itemsPerPage = typeof perPage === 'number' ? perPage : 6
-      setDisplayedCryptos(sortedData.slice(0, itemsPerPage))
-    }
-  }, [allCryptos, favoriteCryptos, perPage, currentPage, sortBy, sortOrder])
-
-  // Effet pour charger les données initiales
+  // Effet pour charger les 250 cryptos
   useEffect(() => {
     fetchAllCryptos()
   }, [currency]) // Seulement quand la devise change
 
   // Effet pour charger les favoris
   useEffect(() => {
-    if (favoritesList.length > 0 && allCryptos.length > 0) {
-      fetchFavoriteCryptos()
-    }
-  }, [favoritesList, allCryptos, fetchFavoriteCryptos]) // Quand les favoris ou allCryptos changent
+    fetchFavoriteCryptos()
+  }, [favoritesList, allCryptos, fetchFavoriteCryptos])
 
-  // Effet pour traiter l'affichage
+  // Effet pour traiter l'affichage (recherche + tri + pagination côté client)
   useEffect(() => {
-    processDisplayedCryptos(false) // Toujours afficher les données normales par défaut
-  }, [allCryptos, perPage, currentPage, sortBy, sortOrder, processDisplayedCryptos])
-
-  // Effet pour traiter l'affichage des favoris
-  useEffect(() => {
-    if (favoriteCryptos.length > 0) {
-      // Ne pas remplacer l'affichage automatiquement
+    if (allCryptos.length === 0) {
+      setDisplayedCryptos([])
+      return
     }
-  }, [favoriteCryptos, perPage, currentPage, sortBy, sortOrder, processDisplayedCryptos])
 
-  // Auto-refresh périodique silencieux (toutes les 2 minutes)
+    let processedCryptos = allCryptos
+    
+    // 1. Filtrer par recherche
+    processedCryptos = filterBySearch(processedCryptos)
+    
+    // 2. Trier
+    processedCryptos = sortCryptos(processedCryptos)
+    
+    // 3. Paginer
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE
+    const endIndex = startIndex + ITEMS_PER_PAGE
+    const paginatedCryptos = processedCryptos.slice(startIndex, endIndex)
+    
+    console.log(`📊 Page ${currentPage}: ${paginatedCryptos.length} cryptos (${startIndex + 1}-${Math.min(endIndex, processedCryptos.length)} sur ${processedCryptos.length})`)
+    setDisplayedCryptos(paginatedCryptos)
+  }, [allCryptos, currentPage, sortBy, sortOrder, searchQuery])
+
+  // Auto-refresh périodique silencieux
   useEffect(() => {
     const interval = setInterval(() => {
-      if (!isRetrying && !loading) {
-        console.log("🔄 Auto-refresh silencieux du cache")
-        // Fetch silencieux sans changer l'état de loading
-        fetchAllCryptosSilently()
+      if (!isRetrying && !loading && !isRefreshing) {
+        console.log("🔄 Auto-refresh silencieux des 250 cryptos")
+        fetchAllCryptos(false, true) // isRefresh = true
       }
-    }, 120000) // 2 minutes pour respecter les limites API
+    }, 120000) // 2 minutes
     
     return () => clearInterval(interval)
-  }, [currency, isRetrying, loading])
-
-  // Fonction de refresh silencieux avec mise à jour granulaire
-  const fetchAllCryptosSilently = async () => {
-    try {
-      setError(null)
-      
-      const cacheKey = getCacheKey()
-      const now = Date.now()
-      
-      console.log("🌐 Fetch silencieux des cryptos pour", cacheKey)
-      
-      const response = await cryptoAPI.get("/coins/markets", {
-        params: {
-          vs_currency: currency,
-          order: "market_cap_desc",
-          per_page: 250,
-          page: 1,
-          price_change_percentage: "1h,24h,7d",
-          sparkline: false,
-          include_market_cap: true,
-          include_24hr_vol: true,
-          include_24hr_change: true,
-          include_last_updated_at: false
-        }
-      })
-
-      const newCryptoData = response.data
-      
-      // Mise à jour granulaire : ne changer que si les données sont différentes
-      setAllCryptos(prevCryptos => {
-        // Vérifier s'il y a des changements significatifs
-        const hasChanges = prevCryptos.length === 0 || 
-          newCryptoData.some((newCoin, index) => {
-            const oldCoin = prevCryptos[index]
-            return !oldCoin || 
-              oldCoin.current_price !== newCoin.current_price ||
-              oldCoin.price_change_percentage_24h_in_currency !== newCoin.price_change_percentage_24h_in_currency ||
-              oldCoin.market_cap !== newCoin.market_cap ||
-              oldCoin.total_volume !== newCoin.total_volume
-          })
-        
-        if (hasChanges) {
-          console.log(`🔄 Mise à jour granulaire de ${newCryptoData.length} cryptos`)
-          return newCryptoData
-        } else {
-          console.log("📊 Aucun changement détecté, pas de mise à jour")
-          return prevCryptos
-        }
-      })
-      
-      // Mettre en cache
-      cacheRef.current[cacheKey] = {
-        data: newCryptoData,
-        timestamp: now
-      }
-      
-      setLastFetch(new Date(now))
-      setRetryCount(0)
-      
-    } catch (err) {
-      console.warn("Erreur lors du refresh silencieux:", err?.message || "Erreur inconnue")
-      // En cas d'erreur silencieuse, on ne change pas l'état d'erreur
-    }
-  }
+  }, [currency, isRetrying, loading, isRefreshing])
 
   return {
     cryptos: displayedCryptos,
@@ -529,11 +503,14 @@ export const useCryptoData = (currency, perPage, currentPage, sortBy, sortOrder,
     error,
     retryCount,
     isRetrying,
-    refetch: fetchAllCryptos,
+    isRefreshing,
+    refetch: () => fetchAllCryptos(),
     fetchFavorites: fetchFavoriteCryptos,
-    processDisplayedCryptos,
-    isPaginationEnabled: perPage === "all", // Pagination activée en mode "tout"
+    isPaginationEnabled: true, // Pagination toujours activée
+    itemsPerPage: ITEMS_PER_PAGE,
     totalCryptos: allCryptos.length,
+    filteredCryptosCount: filterBySearch(allCryptos).length,
+    maxCryptos: 250, // Limite CoinGecko
     lastFetch,
     // Informations sur le cache
     cacheStatus: {

@@ -5,7 +5,8 @@ import Toast from "../UI/Toast"
 
 // Fonction pour formater les prix avec précision (sans arrondi)
 const formatPrice = (price, currency) => {
-  if (!price || price === 0) return "0"
+  if (!price && price !== 0) return "Indisponible"
+  if (price === 0) return "0"
   
   // Pour les prix très petits (< 0.01), afficher jusqu'à 8 décimales
   if (price < 0.01) {
@@ -30,7 +31,8 @@ const formatPrice = (price, currency) => {
 
 // Fonction pour formater les gros nombres (market cap, volume)
 const formatLargeNumber = (value, currency, isMobile = false) => {
-  if (!value || value === 0) return "0"
+  if (!value && value !== 0) return "Indisponible"
+  if (value === 0) return "0"
   
   // Sur mobile, garder le format abrégé
   if (isMobile) {
@@ -60,21 +62,31 @@ const formatLargeNumber = (value, currency, isMobile = false) => {
 const Variation = ({label, value}) => (
   <div className="flex items-center gap-[0.3em] text-[0.75em]">
     <span className="text-gray-400 font-medium">{label}</span>
-    <span
-      className={`font-semibold px-[0.4em] py-[0.1em] rounded ${
-        value >= 0
-          ? "bg-emerald-500/20 text-emerald-300"
-          : "bg-red-500/20 text-red-300"
-      }`}
-    >
-      {value >= 0 ? '+' : ''}{value?.toFixed(2)}%
-    </span>
+    {value !== null && value !== undefined ? (
+      <span
+        className={`font-semibold px-[0.4em] py-[0.1em] rounded ${
+          value >= 0
+            ? "bg-emerald-500/20 text-emerald-300"
+            : "bg-red-500/20 text-red-300"
+        }`}
+      >
+        {value >= 0 ? '+' : ''}{value.toFixed(2)}%
+      </span>
+    ) : (
+      <span className="text-gray-500 text-xs bg-gray-600/20 px-[0.4em] py-[0.1em] rounded">
+        N/A
+      </span>
+    )}
   </div>
 )
 
 const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, hasInteracted = false}, ref) => {
   const { addFavorite, removeFavorite, isFavorite } = useFavoritesContext()
   const { toast, showToast, hideToast } = useToast()
+  
+  // Vérifier si les données essentielles sont manquantes
+  const hasMissingData = !coin.current_price && coin.current_price !== 0
+  const hasMissingMarketData = (!coin.market_cap && coin.market_cap !== 0) || (!coin.total_volume && coin.total_volume !== 0)
   
   // Mémorisation pour éviter le re-render complet
   const memoizedCoin = React.useMemo(() => coin, [
@@ -126,7 +138,7 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
             <img
               src={coin.image}
               alt={coin.name}
-              className="w-[2.2em] h-[2.2em] rounded-full"
+              className="w-[2.2em] h-[2.2em] rounded-full object-cover object-center"
             />
             <div className="absolute -top-[0.4em] -right-[0.4em] w-[1.3em] h-[1.3em] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg border-2 border-[#2a2d3e]">
               <span className="text-[0.6em] font-bold text-white leading-none">
@@ -170,28 +182,47 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
       </div>
 
       <div className="mb-4">
-        <div
-          className="text-[1.6em] font-bold text-[#FeFeFe] truncate"
-          title={`${formatPrice(coin.current_price, currency)} ${
-            currency === "eur" ? "€" : "$"
-          }`}
-        >
-          {formatPrice(coin.current_price, currency)}{" "}
-          <span className="text-[0.7em] text-[#FeFeFe]">
-            {currency === "eur" ? "€" : "$"}
-          </span>
-        </div>
+        {hasMissingData ? (
+          <div className="bg-orange-900/20 border border-orange-500/30 rounded-lg p-3 text-center">
+            <div className="text-orange-400 text-sm font-medium mb-1">
+              📊 Données temporairement indisponibles
+            </div>
+            <div className="text-orange-300/70 text-xs leading-relaxed">
+              Informations momentanément indisponibles.<br/>
+              Veuillez recharger la page ou revenir plus tard.
+            </div>
+          </div>
+        ) : (
+          <div
+            className="text-[1.6em] font-bold text-[#FeFeFe] truncate"
+            title={`${formatPrice(coin.current_price, currency)} ${
+              currency === "eur" ? "€" : "$"
+            }`}
+          >
+            {formatPrice(coin.current_price, currency)}{" "}
+            <span className="text-[0.7em] text-[#FeFeFe]">
+              {currency === "eur" ? "€" : "$"}
+            </span>
+          </div>
+        )}
       </div>
 
       <div className="space-y-[0.3em] text-[0.8em] text-gray-400 mb-4">
+        {hasMissingMarketData && !hasMissingData ? (
+          <div className="bg-yellow-900/20 border border-yellow-500/30 rounded-lg p-2 text-center">
+            <div className="text-yellow-400 text-xs font-medium">
+              ⚠️ Données de marché partielles
+            </div>
+          </div>
+        ) : null}
         <div className="flex justify-between items-center">
           <span className="text-gray-400">Cap. marché</span>
           <span className="font-medium text-gray-200">
             <span className="hidden sm:inline">
-              {formatLargeNumber(coin.market_cap, currency, false)} {currency === "eur" ? "€" : "$"}
+              {formatLargeNumber(coin.market_cap, currency, false)} {coin.market_cap !== undefined ? (currency === "eur" ? "€" : "$") : ""}
             </span>
             <span className="sm:hidden">
-              {formatLargeNumber(coin.market_cap, currency, true)} {currency === "eur" ? "€" : "$"}
+              {formatLargeNumber(coin.market_cap, currency, true)} {coin.market_cap !== undefined ? (currency === "eur" ? "€" : "$") : ""}
             </span>
           </span>
         </div>
@@ -199,10 +230,10 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
           <span className="text-gray-400">Volume 24h</span>
           <span className="font-medium text-gray-200">
             <span className="hidden sm:inline">
-              {formatLargeNumber(coin.total_volume, currency, false)} {currency === "eur" ? "€" : "$"}
+              {formatLargeNumber(coin.total_volume, currency, false)} {coin.total_volume !== undefined ? (currency === "eur" ? "€" : "$") : ""}
             </span>
             <span className="sm:hidden">
-              {formatLargeNumber(coin.total_volume, currency, true)} {currency === "eur" ? "€" : "$"}
+              {formatLargeNumber(coin.total_volume, currency, true)} {coin.total_volume !== undefined ? (currency === "eur" ? "€" : "$") : ""}
             </span>
           </span>
         </div>

@@ -27,6 +27,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const [isMobile, setIsMobile] = useState(false)
   const [selectedCrypto, setSelectedCrypto] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const observer = useRef()
 
   // Récupération des préférences
@@ -34,8 +35,6 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     hydrated,
     currency,
     setCurrency,
-    perPage,
-    setPerPage,
     sortBy,
     setSortBy,
     sortOrder,
@@ -51,20 +50,20 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   // Récupération des données
   const {
     cryptos,
-    allCryptos,
     favoriteCryptos,
     loading,
     error,
     retryCount,
     isRetrying,
+    isRefreshing,
     refetch,
     fetchFavorites,
-    processDisplayedCryptos,
     isPaginationEnabled,
-    totalCryptos,
+    itemsPerPage,
+    maxCryptos,
     lastFetch,
     cacheStatus,
-  } = useCryptoData(currency, perPage, currentPage, sortBy, sortOrder, favorites)
+  } = useCryptoData(currency, currentPage, sortBy, sortOrder, favorites, searchQuery)
 
   // Tri des cryptos
   const sortCryptos = (cryptosList) => {
@@ -88,55 +87,21 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     })
   }
 
-  // Logique de filtrage et pagination complète
+  // Logique de filtrage simplifiée
   const filteredCryptos = React.useMemo(() => {
     console.log("🔍 Filtrage - Type:", filterType)
     
-    let sourceData = []
-    
     if (filterType === 'favorites') {
-      // Filtrer les favoris depuis allCryptos
-      if (favorites.length > 0 && allCryptos.length > 0) {
-        const favoriteSymbols = favorites.map(fav => fav.symbol.toUpperCase())
-        sourceData = allCryptos.filter(crypto => 
-          favoriteSymbols.includes(crypto.symbol.toUpperCase())
-        )
-        console.log("Favoris trouvés:", sourceData.map(c => c.symbol))
-      } else {
-        sourceData = []
-      }
+      // Utiliser les favoris pré-filtrés et les trier
+      const sortedFavorites = sortCryptos(favoriteCryptos)
+      console.log("⭐ Favoris affichés:", sortedFavorites.length)
+      return sortedFavorites
     } else {
-      // Utiliser allCryptos pour les filtres normaux
-      sourceData = allCryptos
+      // Utiliser les cryptos de la page (déjà triés et paginés côté hook)
+      console.log("📊 Cryptos page affichés:", cryptos.length)
+      return cryptos
     }
-
-    if (sourceData.length === 0) return []
-
-    // Trier
-    const sortedData = sortCryptos(sourceData)
-    
-    // Pour les favoris, afficher tous sans pagination
-    if (filterType === 'favorites') {
-      return sortedData
-    }
-    
-    // Appliquer la pagination/limitation pour les autres filtres
-    if (perPage === "all") {
-      // Mode "Tout" : sur mobile, afficher tout ; sur desktop, paginer par 40
-      if (isMobile) {
-        return sortedData // Tout sur mobile
-      } else {
-        // Pagination par tranches de 40 sur desktop
-        const startIndex = (currentPage - 1) * 40
-        const endIndex = startIndex + 40
-        return sortedData.slice(startIndex, endIndex)
-      }
-    } else {
-      // Modes spécifiques : afficher exactement le nombre demandé
-      const itemsPerPage = typeof perPage === 'number' ? perPage : 6
-      return sortedData.slice(0, itemsPerPage)
-    }
-  }, [allCryptos, favorites, filterType, sortBy, sortOrder, perPage, currentPage, isMobile])
+  }, [cryptos, favoriteCryptos, filterType, sortBy, sortOrder])
 
   // Gestion du changement de page avec scroll automatique
   const handlePageChange = newPage => {
@@ -153,21 +118,20 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
     handlePageChange(currentPage + 1)
   }
 
-  // Calculer le nombre total de pages possibles
-  const totalFilteredCryptos = filterType === 'favorites' ? 
-    (favorites.length > 0 && allCryptos.length > 0 ? 
-      allCryptos.filter(crypto => 
-        favorites.map(fav => fav.symbol.toUpperCase()).includes(crypto.symbol.toUpperCase())
-      ).length : 0) : 
-    totalCryptos
-  const totalPages = Math.ceil(totalFilteredCryptos / 40)
-  const isNextDisabled = currentPage >= totalPages || filteredCryptos.length < 40
+  // Calcul de pagination basé sur les 250 cryptos max (ou résultats de recherche)
+  const maxPages = filterType === 'favorites' ? 1 : Math.ceil(maxCryptos / itemsPerPage)
+  const totalPages = maxPages
+  
+  // Désactiver "Suivant" si on dépasse la limite ou pas assez de cryptos
+  const isNextDisabled = filterType === 'favorites' || 
+                        currentPage >= maxPages ||
+                        cryptos.length < itemsPerPage
 
-  // Reset de la page courante quand perPage ou filterType change (sans scroll)
+  // Reset de la page courante quand filterType, tri ou recherche change (sans scroll)
   useEffect(() => {
     setCurrentPage(1)
     // Ne pas scroller automatiquement pour éviter les remontées en haut
-  }, [perPage, filterType])
+  }, [filterType, sortBy, sortOrder, searchQuery])
 
   // Détection d'interaction pour accélérer les animations
   useEffect(() => {
@@ -233,7 +197,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
   // Gestion du scroll infini mobile
   const loadMoreCryptos = useCallback(() => {
-    if (loadingMore || !isMobile || perPage === "all") return
+    if (loadingMore || !isMobile) return
     
     setLoadingMore(true)
     const nextBatch = 20
@@ -244,11 +208,11 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
       setDisplayedCryptos(nextCryptos)
       setLoadingMore(false)
     }, 500)
-  }, [filteredCryptos, displayedCryptos, loadingMore, isMobile, perPage])
+  }, [filteredCryptos, displayedCryptos, loadingMore, isMobile])
 
   // Observer pour le scroll infini
   const lastCryptoRef = useCallback((node) => {
-    if (loadingMore || !isMobile || perPage === "all") return
+    if (loadingMore || !isMobile) return
     if (observer.current) observer.current.disconnect()
     observer.current = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting && displayedCryptos.length < filteredCryptos.length) {
@@ -256,26 +220,26 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
       }
     })
     if (node) observer.current.observe(node)
-  }, [loadingMore, displayedCryptos.length, filteredCryptos.length, loadMoreCryptos, isMobile, perPage])
+  }, [loadingMore, displayedCryptos.length, filteredCryptos.length, loadMoreCryptos, isMobile])
 
   // Mise à jour des cryptos affichées
   useEffect(() => {
-    if (isMobile && perPage !== "all") {
+    if (isMobile && filterType !== 'favorites') {
       setDisplayedCryptos(filteredCryptos.slice(0, 20))
     } else {
-      // Si perPage === "all" ou desktop, afficher tout
+      // Desktop ou favoris, afficher tout
       setDisplayedCryptos(filteredCryptos)
     }
-  }, [filteredCryptos, isMobile, perPage])
+  }, [filteredCryptos, isMobile, filterType])
 
-  // Effet pour déclencher l'animation des cartes (seulement au premier chargement)
+  // Effet pour déclencher l'animation des cartes (seulement pour les changements de page)
   useEffect(() => {
-    if (displayedCryptos.length > 0 && !loading) {
+    if (displayedCryptos.length > 0 && !loading && !isRefreshing) {
       setShowCards(false)
       const timer = setTimeout(() => setShowCards(true), 50)
       return () => clearTimeout(timer)
     }
-  }, [displayedCryptos.length, loading, filterType]) // Ajout de filterType pour re-déclencher l'animation
+  }, [displayedCryptos.length, loading, filterType, currentPage]) // Animation sur changement de page/filtre
 
   // Attendre l'hydratation
   if (!hydrated) return null
@@ -309,13 +273,13 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         setSortOrder={setSortOrder}
         currency={currency}
         setCurrency={setCurrency}
-        perPage={perPage}
-        setPerPage={setPerPage}
         loading={loading}
         isRetrying={isRetrying}
         retryCount={retryCount}
         filterType={filterType}
         setFilterType={setFilterType}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
       />
 
       {/* Contenu principal */}
@@ -400,7 +364,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
           <div className="crypto-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mb-5">
             {showCards && filteredCryptos.map((coin, index) => {
               const isLast = index === filteredCryptos.length - 1
-              const shouldAddRef = isLast && isMobile && perPage !== "all" && filterType !== 'favorites'
+              const shouldAddRef = isLast && isMobile && filterType !== 'favorites' && filterType !== 'favorites'
               return (
                 <CryptoCard
                 key={coin.id}
@@ -418,7 +382,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         )}
 
         {/* Indicateur de chargement mobile (seulement si pas en mode "tout") */}
-        {isMobile && loadingMore && perPage !== "all" && (
+        {isMobile && loadingMore && filterType !== 'favorites' && (
           <div className="flex justify-center items-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
             <span className="ml-2 text-gray-400">Chargement...</span>
@@ -426,21 +390,22 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
         )}
 
         {/* Message fin de liste mobile (seulement si pas en mode "tout") */}
-        {isMobile && perPage !== "all" && displayedCryptos.length === filteredCryptos.length && displayedCryptos.length > 0 && (
+        {isMobile && filterType !== 'favorites' && displayedCryptos.length === filteredCryptos.length && displayedCryptos.length > 0 && (
           <div className="text-center py-8">
             <p className="text-gray-400">Vous avez vu toutes les cryptomonnaies disponibles</p>
           </div>
         )}
 
         {/* Pagination - Affichée seulement sur desktop et pas pour les favoris */}
-        {isPaginationEnabled && totalCryptos > 40 && filterType !== 'favorites' && (
+        {isPaginationEnabled && cryptos.length > 0 && filterType !== 'favorites' && (
           <div className="hidden lg:block">
             <CryptoPagination
               currentPage={currentPage}
               onPageChange={handlePageChange}
               cryptosLength={filteredCryptos.length}
-              perPage={perPage}
-              totalCryptos={totalCryptos}
+              itemsPerPage={itemsPerPage}
+              totalPages={totalPages}
+              hasNextPage={!isNextDisabled}
             />
           </div>
         )}

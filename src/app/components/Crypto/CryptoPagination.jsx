@@ -4,8 +4,9 @@ const CryptoPagination = ({
   currentPage,
   onPageChange,
   cryptosLength,
-  perPage,
-  totalCryptos = 0,
+  itemsPerPage = 40,
+  totalPages = 1,
+  hasNextPage = true,
   className = ""
 }) => {
   const handlePrevious = () => {
@@ -16,9 +17,8 @@ const CryptoPagination = ({
     onPageChange(currentPage + 1)
   }
 
-  // Calculer le nombre total de pages possibles
-  const totalPages = Math.ceil(totalCryptos / 40)
-  const isNextDisabled = currentPage >= totalPages || cryptosLength < 40
+  // État des boutons
+  const isNextDisabled = !hasNextPage || cryptosLength < itemsPerPage
 
   return (
     <>
@@ -40,7 +40,7 @@ const CryptoPagination = ({
             Page {currentPage} / {totalPages}
           </span>
           <span className="text-xs text-gray-400">
-            ({cryptosLength} sur {totalCryptos})
+            ({cryptosLength} cryptos)
           </span>
         </div>
 

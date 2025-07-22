@@ -18,7 +18,8 @@
       "Bash(grep:*)",
       "Bash(cmd /c:*)",
       "Bash(git checkout:*)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(mv:*)"
     ],
     "deny": []
   }
