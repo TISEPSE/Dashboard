@@ -25,7 +25,9 @@
       "Bash(timeout 15 npm run build)",
       "Bash(npx next lint:*)",
       "Bash(awk:*)",
-      "Bash(cp:*)"
+      "Bash(cp:*)",
+      "Bash(chmod:*)",
+      "Bash(bash:*)"
     ],
     "deny": []
   }
