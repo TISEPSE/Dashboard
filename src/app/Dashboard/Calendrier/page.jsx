@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi, FaWifiSlash } from "react-icons/fa"
+import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
 import AddEventModal from "../../components/Calendar/AddEventModal"
 import DayEventsModal from "../../components/Calendar/DayEventsModal"
@@ -11,6 +11,7 @@ import EditEventModal from "../../components/Calendar/EditEventModal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
 import { useCalendar } from "../../hooks/useCalendar"
 import { EVENT_COLORS } from "../../services/localCalendar"
+import Notification from "../../components/Notification"
 
 export default function Calendrier(){
     const [isLoading, setIsLoading] = useState(true)
@@ -28,6 +29,7 @@ export default function Calendrier(){
         events, 
         loadingEvents, 
         syncStatus, 
+        notification,
         loadEvents, 
         addEvent, 
         updateEvent, 
@@ -470,7 +472,10 @@ export default function Calendrier(){
                                 {session ? (
                                     <FaWifi className="w-4 h-4 text-green-400" />
                                 ) : (
-                                    <FaWifiSlash className="w-4 h-4 text-amber-400" />
+                                    <div className="w-4 h-4 text-amber-400 relative">
+                                        <FaWifi className="w-4 h-4" />
+                                        <div className="absolute inset-0 bg-amber-400 transform rotate-45 w-0.5 h-5 top-0 left-2"></div>
+                                    </div>
                                 )}
                                 <div className={`w-3 h-3 rounded-full ${session ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`}></div>
                             </div>
@@ -516,6 +521,12 @@ export default function Calendrier(){
                 }}
                 onSave={updateEvent}
                 event={selectedEvent}
+            />
+
+            {/* Notification */}
+            <Notification 
+                notification={notification}
+                onClose={() => {}} 
             />
         </div>
     )

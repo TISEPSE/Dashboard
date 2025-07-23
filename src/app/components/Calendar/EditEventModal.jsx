@@ -10,8 +10,10 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
     summary: '',
     description: '',
     location: '',
-    start: '',
-    end: '',
+    startDate: '',
+    startTime: '',
+    endDate: '',
+    endTime: '',
     colorId: '1'
   })
   const [isLoading, setIsLoading] = useState(false)
@@ -19,19 +21,28 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
   useEffect(() => {
     if (event && isOpen) {
       // Préparer les données du formulaire
-      const startDate = event.start?.dateTime ? 
-        new Date(event.start.dateTime).toISOString().slice(0, 16) : 
-        ''
-      const endDate = event.end?.dateTime ? 
-        new Date(event.end.dateTime).toISOString().slice(0, 16) : 
-        ''
+      let startDate = '', startTime = '', endDate = '', endTime = ''
+      
+      if (event.start?.dateTime) {
+        const start = new Date(event.start.dateTime)
+        startDate = start.toISOString().split('T')[0]
+        startTime = start.toTimeString().slice(0, 5)
+      }
+      
+      if (event.end?.dateTime) {
+        const end = new Date(event.end.dateTime)
+        endDate = end.toISOString().split('T')[0]
+        endTime = end.toTimeString().slice(0, 5)
+      }
 
       setFormData({
         summary: event.summary || '',
         description: event.description || '',
         location: event.location || '',
-        start: startDate,
-        end: endDate,
+        startDate,
+        startTime,
+        endDate,
+        endTime,
         colorId: event.colorId || '1'
       })
     }
@@ -54,12 +65,16 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     
-    if (!formData.summary.trim() || !formData.start || !formData.end) {
+    if (!formData.summary.trim() || !formData.startDate || !formData.startTime || !formData.endDate || !formData.endTime) {
       alert('Veuillez remplir tous les champs obligatoires')
       return
     }
 
-    if (new Date(formData.start) >= new Date(formData.end)) {
+    // Construire les dates ISO
+    const startISO = `${formData.startDate}T${formData.startTime}:00`
+    const endISO = `${formData.endDate}T${formData.endTime}:00`
+
+    if (new Date(endISO) <= new Date(startISO)) {
       alert('La date de fin doit être après la date de début')
       return
     }
@@ -69,8 +84,8 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
       await onSave({
         ...formData,
         id: event.id,
-        start: new Date(formData.start).toISOString(),
-        end: new Date(formData.end).toISOString()
+        start: startISO,
+        end: endISO
       })
       onClose()
     } catch (error) {
@@ -149,48 +164,91 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
               </div>
             </div>
 
-            {/* Horaires */}
-            <div>
-              <label className="block text-gray-300 text-sm font-medium mb-3">
-                <FaClock className="inline w-4 h-4 mr-2 text-[#3A6FF8]" />
-                Horaires de l'événement
-              </label>
-              <div className="bg-gradient-to-br from-[#3a3d4e]/40 to-[#2a2d3e]/40 rounded-2xl p-6 border border-gray-600/30 shadow-inner">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Début */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                      <label className="text-sm font-semibold text-green-400 uppercase tracking-wide">
-                        Début
-                      </label>
+            {/* Programmation de l'événement */}
+            <div className="space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-white mb-1">Programmation</h3>
+                <p className="text-gray-400 text-sm">Définissez les dates et heures de votre événement</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Section Dates */}
+                <div className="bg-gradient-to-br from-blue-600/20 to-blue-800/20 rounded-2xl p-5 border border-blue-500/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                      <FaCalendarAlt className="w-5 h-5 text-white" />
                     </div>
-                    <div className="bg-[#4a4d5e]/50 rounded-xl p-4 border border-gray-600/40">
+                    <div>
+                      <h4 className="text-blue-300 font-semibold">Dates</h4>
+                      <p className="text-blue-200/70 text-xs">Jours de l'événement</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-blue-200 text-sm font-medium mb-2">
+                        Du *
+                      </label>
                       <input
-                        type="datetime-local"
-                        value={formData.start}
-                        onChange={(e) => setFormData(prev => ({ ...prev, start: e.target.value }))}
-                        className="w-full bg-[#5a5d6e] border border-gray-500/50 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+                        type="date"
+                        value={formData.startDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                        className="w-full bg-blue-900/30 border border-blue-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-blue-200 text-sm font-medium mb-2">
+                        Au *  
+                      </label>
+                      <input
+                        type="date"
+                        value={formData.endDate}
+                        onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                        className="w-full bg-blue-900/30 border border-blue-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 transition-all"
                         disabled={isLoading}
                         required
                       />
                     </div>
                   </div>
+                </div>
 
-                  {/* Fin */}
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                      <label className="text-sm font-semibold text-red-400 uppercase tracking-wide">
-                        Fin
-                      </label>
+                {/* Section Heures */}
+                <div className="bg-gradient-to-br from-orange-600/20 to-orange-800/20 rounded-2xl p-5 border border-orange-500/30">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center">
+                      <FaClock className="w-5 h-5 text-white" />
                     </div>
-                    <div className="bg-[#4a4d5e]/50 rounded-xl p-4 border border-gray-600/40">
+                    <div>
+                      <h4 className="text-orange-300 font-semibold">Heures</h4>
+                      <p className="text-orange-200/70 text-xs">Créneaux horaires</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-orange-200 text-sm font-medium mb-2">
+                        De *
+                      </label>
                       <input
-                        type="datetime-local"
-                        value={formData.end}
-                        onChange={(e) => setFormData(prev => ({ ...prev, end: e.target.value }))}
-                        className="w-full bg-[#5a5d6e] border border-gray-500/50 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all"
+                        type="time"
+                        value={formData.startTime}
+                        onChange={(e) => setFormData(prev => ({ ...prev, startTime: e.target.value }))}
+                        className="w-full bg-orange-900/30 border border-orange-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-orange-200 text-sm font-medium mb-2">
+                        À *
+                      </label>
+                      <input
+                        type="time"
+                        value={formData.endTime}
+                        onChange={(e) => setFormData(prev => ({ ...prev, endTime: e.target.value }))}
+                        className="w-full bg-orange-900/30 border border-orange-500/50 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-orange-400 focus:border-orange-400 transition-all"
                         disabled={isLoading}
                         required
                       />
