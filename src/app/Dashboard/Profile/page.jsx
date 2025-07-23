@@ -53,7 +53,7 @@ export default function Profile(){
                     {session && (
                         <div className="flex flex-col items-center gap-6">
                             <div className="flex items-center gap-4 bg-[#2a2d3e] px-6 py-4 rounded-lg border border-gray-600/30">
-                                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 overflow-hidden">
+                                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] overflow-hidden">
                                     {session.user.image ? (
                                         <img 
                                             src={session.user.image} 

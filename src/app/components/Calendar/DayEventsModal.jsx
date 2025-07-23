@@ -5,8 +5,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { FaTimes, FaEdit, FaTrash, FaClock, FaMapMarkerAlt, FaAlignLeft } from "react-icons/fa"
 
 const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, onDeleteEvent }) => {
-  const [selectedEvent, setSelectedEvent] = useState(null)
-
   if (!isOpen || !selectedDate) return null
 
   const formatDate = (date) => {
@@ -27,19 +25,20 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
     })
   }
 
-  const handleEventClick = (event) => {
-    setSelectedEvent(selectedEvent?.id === event.id ? null : event)
-  }
-
   const handleEdit = (event) => {
     onEditEvent(event)
     onClose()
   }
 
-  const handleDelete = (event) => {
+  const handleDelete = async (event) => {
     if (confirm(`Supprimer l'événement "${event.summary}" ?`)) {
-      onDeleteEvent(event.id)
-      onClose()
+      try {
+        await onDeleteEvent(event.id)
+        // Ne pas fermer automatiquement pour voir le résultat
+      } catch (error) {
+        console.error('Erreur lors de la suppression:', error)
+        alert('Erreur lors de la suppression de l\'événement')
+      }
     }
   }
 
@@ -96,19 +95,11 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
             ) : (
               <div className="space-y-3">
                 {events.map((event, index) => (
-                  <motion.div
+                  <div
                     key={event.id || index}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className={`bg-gradient-to-r from-[#3a3d4e] to-[#2f3240] rounded-xl p-4 border transition-all duration-200 cursor-pointer ${
-                      selectedEvent?.id === event.id 
-                        ? 'border-[#3A6FF8] shadow-lg shadow-[#3A6FF8]/20' 
-                        : 'border-gray-600/30 hover:border-gray-500/50'
-                    }`}
-                    onClick={() => handleEventClick(event)}
+                    className="bg-gradient-to-r from-[#3a3d4e] to-[#2f3240] rounded-xl p-4 border border-gray-600/30 hover:border-gray-500/50"
                   >
-                    <div className="flex items-start justify-between">
+                    <div className="flex items-start justify-between mb-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-white text-base truncate mb-2">
                           {event.summary || 'Sans titre'}
@@ -146,40 +137,24 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
                       </div>
                     </div>
 
-                    {/* Actions - Visible when selected */}
-                    <AnimatePresence>
-                      {selectedEvent?.id === event.id && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0 }}
-                          animate={{ opacity: 1, height: 'auto', marginTop: 16, paddingTop: 16 }}
-                          exit={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0 }}
-                          transition={{ duration: 0.3, ease: "easeInOut" }}
-                          className="flex gap-2 border-t border-gray-600/30 overflow-hidden"
-                        >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleEdit(event)
-                            }}
-                            className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
-                          >
-                            <FaEdit className="w-3 h-3" />
-                            Modifier
-                          </button>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              handleDelete(event)
-                            }}
-                            className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
-                          >
-                            <FaTrash className="w-3 h-3" />
-                            Supprimer
-                          </button>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
+                    {/* Actions - Toujours visibles */}
+                    <div className="flex gap-2 pt-4 border-t border-gray-600/30">
+                      <button
+                        onClick={() => handleEdit(event)}
+                        className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
+                      >
+                        <FaEdit className="w-3 h-3" />
+                        Modifier
+                      </button>
+                      <button
+                        onClick={() => handleDelete(event)}
+                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
+                      >
+                        <FaTrash className="w-3 h-3" />
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             )}

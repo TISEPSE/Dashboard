@@ -32,6 +32,8 @@ export default function Calendrier(){
     useEffect(() => {
         if (session?.accessToken) {
             loadGoogleCalendarEvents()
+        } else {
+            setEvents([]) // Clear events if no session
         }
     }, [session, currentDate, viewMode])
 
@@ -70,12 +72,14 @@ export default function Calendrier(){
                 // Assurer qu'on va jusqu'à la fin de la journée
                 timeMax.setHours(23, 59, 59, 999)
             } else if (viewMode === 'week') {
-                // Début de la semaine (dimanche)
+                // Début de la semaine (lundi)
                 timeMin = new Date(now)
-                timeMin.setDate(now.getDate() - now.getDay())
+                const dayOfWeek = now.getDay()
+                const mondayAdjustment = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+                timeMin.setDate(now.getDate() - mondayAdjustment)
                 timeMin.setHours(0, 0, 0, 0)
                 
-                // Fin de la semaine (samedi)
+                // Fin de la semaine (dimanche)
                 timeMax = new Date(timeMin)
                 timeMax.setDate(timeMin.getDate() + 6)
                 timeMax.setHours(23, 59, 59, 999)
@@ -153,24 +157,30 @@ export default function Calendrier(){
 
     const handleDeleteEvent = async (eventId) => {
         try {
+            console.log('🗑️ Suppression de l\'événement:', eventId)
+            
             const response = await fetch(`/api/calendar/events/${eventId}`, {
                 method: 'DELETE',
                 headers: {
+                    'Content-Type': 'application/json',
                     'Authorization': `Bearer ${session.accessToken}`
                 }
             })
 
             if (response.ok) {
-                console.log('✅ Événement supprimé')
+                console.log('✅ Événement supprimé avec succès')
                 // Recharger tous les événements pour synchroniser
                 await loadGoogleCalendarEvents()
+                return true
             } else {
                 const error = await response.json()
+                console.error('❌ Erreur API suppression:', error)
                 throw new Error(error.error || 'Erreur lors de la suppression')
             }
         } catch (error) {
-            console.error('Erreur suppression événement:', error)
-            alert('Erreur lors de la suppression de l\'événement')
+            console.error('❌ Erreur suppression événement:', error)
+            alert(`Erreur lors de la suppression: ${error.message}`)
+            return false
         }
     }
 
@@ -215,14 +225,18 @@ export default function Calendrier(){
         setCurrentDate(newDate)
     }
 
-    // Générer le calendrier mensuel
+    // Générer le calendrier mensuel (commence par Lundi)
     const generateMonthCalendar = () => {
         const year = currentDate.getFullYear()
         const month = currentDate.getMonth()
         const firstDay = new Date(year, month, 1)
         const lastDay = new Date(year, month + 1, 0)
         const startDate = new Date(firstDay)
-        startDate.setDate(startDate.getDate() - firstDay.getDay())
+        
+        // Ajuster pour commencer par Lundi (0 = dimanche, 1 = lundi, etc.)
+        const dayOfWeek = firstDay.getDay()
+        const mondayAdjustment = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+        startDate.setDate(startDate.getDate() - mondayAdjustment)
         
         const days = []
         const current = new Date(startDate)
@@ -296,8 +310,8 @@ export default function Calendrier(){
     }
 
     return(
-        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-4 sm:px-6">
-            <div className="max-w-7xl mx-auto py-6">
+        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-2 sm:px-4 lg:px-6">
+            <div className="max-w-full xl:max-w-[1400px] mx-auto py-6">
                 {/* Header avec contrôles */}
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}
@@ -400,7 +414,7 @@ export default function Calendrier(){
                         <div className="p-6">
                             {/* En-têtes des jours */}
                             <div className="grid grid-cols-7 gap-1 mb-4">
-                                {['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'].map((day, index) => (
+                                {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
                                     <div key={index} className="p-3 text-center">
                                         <span className="text-gray-400 font-medium text-sm">{day}</span>
                                     </div>

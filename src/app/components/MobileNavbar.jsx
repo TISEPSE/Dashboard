@@ -136,7 +136,7 @@ export default function MobileNavbar() {
                       )}
                       
                       {item.isProfile && session ? (
-                        <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 ${
+                        <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] ${
                           pathname === item.href 
                             ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
                             : 'group-hover:scale-110'

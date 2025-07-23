@@ -106,7 +106,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                   >
                     {session ? (
                       <>
-                        <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+                        <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]">
                           {session.user.image ? (
                             <img 
                               src={session.user.image} 
@@ -178,7 +178,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                   {session ? (
                     <Link
                       href="/Dashboard/Profile"
-                      className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50 bg-gradient-to-br from-indigo-500 to-purple-600"
+                      className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
                     >
                       {session.user.image ? (
                         <img 
