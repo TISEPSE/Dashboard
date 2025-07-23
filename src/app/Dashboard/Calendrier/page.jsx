@@ -16,6 +16,7 @@ export default function Calendrier(){
     const [showAddEvent, setShowAddEvent] = useState(false)
     const [selectedEventDate, setSelectedEventDate] = useState(null)
     const [loadingEvents, setLoadingEvents] = useState(false)
+    const [testResult, setTestResult] = useState(null)
     const { data: session } = useSession()
 
     useEffect(() => {
@@ -31,10 +32,20 @@ export default function Calendrier(){
     }, [session, currentDate, viewMode])
 
     const loadGoogleCalendarEvents = async () => {
-        if (!session?.accessToken) return
+        if (!session?.accessToken) {
+            console.log('❌ Pas de session ou token manquant:', { 
+                hasSession: !!session, 
+                hasToken: !!session?.accessToken 
+            })
+            return
+        }
         
         setLoadingEvents(true)
-        console.log('🔄 Rechargement des événements...', { viewMode, currentDate: currentDate.toDateString() })
+        console.log('🔄 Rechargement des événements...', { 
+            viewMode, 
+            currentDate: currentDate.toDateString(),
+            tokenPresent: !!session.accessToken
+        })
         
         try {
             // Calculer les dates de début et fin basées sur le mode d'affichage
@@ -156,6 +167,18 @@ export default function Calendrier(){
         } catch (error) {
             console.error('Erreur suppression événement:', error)
             alert('Erreur lors de la suppression de l\'événement')
+        }
+    }
+
+    const testCalendarAPI = async () => {
+        try {
+            const response = await fetch('/api/calendar/test')
+            const data = await response.json()
+            setTestResult(data)
+            console.log('🧪 Résultat test API:', data)
+        } catch (error) {
+            console.error('❌ Erreur test API:', error)
+            setTestResult({ error: error.message })
         }
     }
 
@@ -317,6 +340,15 @@ export default function Calendrier(){
                                 ))}
                             </div>
 
+                            {/* Bouton test API */}
+                            <button
+                                onClick={testCalendarAPI}
+                                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                            >
+                                <span className="text-xs">🧪</span>
+                                <span className="hidden sm:inline">Test</span>
+                            </button>
+
                             {/* Bouton refresh */}
                             <button
                                 onClick={loadGoogleCalendarEvents}
@@ -389,13 +421,14 @@ export default function Calendrier(){
                                             <div className={`text-sm font-medium mb-2 relative ${
                                                 isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
                                             }`}>
-                                                <span className={isCurrentDay ? 'relative z-10' : ''}>
-                                                    {date.getDate()}
-                                                </span>
-                                                {isCurrentDay && (
-                                                    <div className="absolute inset-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center -top-1 -left-1">
-                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                {isCurrentDay ? (
+                                                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <span className="text-white font-bold text-sm">
+                                                            {date.getDate()}
+                                                        </span>
                                                     </div>
+                                                ) : (
+                                                    <span>{date.getDate()}</span>
                                                 )}
                                             </div>
                                             
@@ -455,6 +488,20 @@ export default function Calendrier(){
                         </div>
                     )}
                 </motion.div>
+
+                {/* Résultat du test API (temporaire pour debug) */}
+                {testResult && (
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-6 p-4 bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl border border-purple-500/20"
+                    >
+                        <h4 className="text-white font-bold mb-2">🧪 Résultat du test API</h4>
+                        <pre className="text-xs text-gray-300 overflow-auto">
+                            {JSON.stringify(testResult, null, 2)}
+                        </pre>
+                    </motion.div>
+                )}
 
                 {/* Statistiques rapides */}
                 <motion.div 

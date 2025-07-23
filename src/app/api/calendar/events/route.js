@@ -7,8 +7,19 @@ export async function GET(request) {
   try {
     const session = await getServerSession(authOptions)
     
+    console.log('🔍 Vérification session:', {
+      hasSession: !!session,
+      hasAccessToken: !!session?.accessToken,
+      userId: session?.user?.id,
+      tokenLength: session?.accessToken?.length
+    })
+    
     if (!session?.accessToken) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+      console.log('❌ Pas de token d\'accès')
+      return NextResponse.json({ 
+        error: "Token d'accès manquant - reconnectez-vous", 
+        needsReauth: true 
+      }, { status: 401 })
     }
 
     // Configuration de l'API Google Calendar

@@ -17,7 +17,14 @@ const authOptions = {
     async jwt({ token, account, user }) {
       try {
         if (account) {
+          console.log('🔑 Token reçu:', { 
+            access_token: account.access_token ? 'Présent' : 'Absent',
+            refresh_token: account.refresh_token ? 'Présent' : 'Absent',
+            scope: account.scope 
+          })
           token.accessToken = account.access_token
+          token.refreshToken = account.refresh_token
+          token.accessTokenExpires = account.expires_at
         }
         if (user) {
           token.id = user.id
@@ -31,7 +38,16 @@ const authOptions = {
     async session({ session, token }) {
       try {
         session.accessToken = token.accessToken
-        session.user.id = token.sub || token.id // ID utilisateur unique pour les favoris
+        session.refreshToken = token.refreshToken
+        session.accessTokenExpires = token.accessTokenExpires
+        session.user.id = token.sub || token.id
+        
+        console.log('📋 Session créée:', {
+          accessToken: session.accessToken ? 'Présent' : 'Absent',
+          userId: session.user.id,
+          expires: session.accessTokenExpires
+        })
+        
         return session
       } catch (error) {
         console.error("Session callback error:", error)
