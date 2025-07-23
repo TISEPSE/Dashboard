@@ -309,7 +309,7 @@ export default function Calendrier(){
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => navigateDate(-1)}
-                                className="p-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
+                                className="p-3 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
                             >
                                 <FaChevronLeft className="w-4 h-4" />
                             </button>
@@ -329,7 +329,7 @@ export default function Calendrier(){
                             
                             <button
                                 onClick={() => navigateDate(1)}
-                                className="p-3 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105"
+                                className="p-3 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
                             >
                                 <FaChevronRight className="w-4 h-4" />
                             </button>
@@ -338,7 +338,7 @@ export default function Calendrier(){
                         {/* Contrôles */}
                         <div className="flex items-center gap-3">
                             {/* Sélecteur de vue */}
-                            <div className="flex bg-gray-700/30 rounded-xl p-1">
+                            <div className="flex bg-[#3a3d4e]/50 rounded-xl p-1 border border-gray-600/20">
                                 {[
                                     { key: 'month', icon: FaCalendarAlt, label: 'Mois' },
                                     { key: 'week', icon: FaCalendarWeek, label: 'Semaine' },
@@ -349,8 +349,8 @@ export default function Calendrier(){
                                         onClick={() => setViewMode(key)}
                                         className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                                             viewMode === key 
-                                                ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg'
-                                                : 'text-gray-300 hover:text-white hover:bg-gray-600/30'
+                                                ? 'bg-[#3A6FF8] text-white shadow-lg transform scale-105'
+                                                : 'text-gray-300 hover:text-white hover:bg-[#4a4d5e]/50'
                                         }`}
                                         title={label}
                                     >
@@ -408,7 +408,7 @@ export default function Calendrier(){
                             </div>
 
                             {/* Grille du calendrier */}
-                            <div className="grid grid-cols-7 gap-1">
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2">
                                 {generateMonthCalendar().map((date, index) => {
                                     const dayEvents = getEventsForDay(date)
                                     const isCurrentDay = isToday(date)
@@ -418,7 +418,7 @@ export default function Calendrier(){
                                         <motion.div
                                             key={index}
                                             whileHover={{ scale: 1.02 }}
-                                            className={`min-h-[120px] p-2 border border-gray-600/20 rounded-lg transition-all duration-200 cursor-pointer ${
+                                            className={`min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 border border-gray-600/20 rounded-lg transition-all duration-200 cursor-pointer ${
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg'
                                                     : isInCurrentMonth
@@ -435,12 +435,12 @@ export default function Calendrier(){
                                                 }
                                             }}
                                         >
-                                            <div className={`text-sm font-medium mb-2 relative ${
+                                            <div className={`text-xs sm:text-sm font-medium mb-1 sm:mb-2 relative ${
                                                 isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
                                             }`}>
                                                 {isCurrentDay ? (
-                                                    <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                                        <span className="text-white font-bold text-sm">
+                                                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <span className="text-white font-bold text-xs sm:text-sm">
                                                             {date.getDate()}
                                                         </span>
                                                     </div>
@@ -450,33 +450,35 @@ export default function Calendrier(){
                                             </div>
                                             
                                             {/* Événements du jour */}
-                                            <div className="space-y-1">
-                                                {dayEvents.slice(0, 3).map((event, eventIndex) => (
+                                            <div className="space-y-0.5 sm:space-y-1">
+                                                {dayEvents.slice(0, 2).map((event, eventIndex) => (
                                                     <div
                                                         key={eventIndex}
-                                                        className="text-xs p-1 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all group relative"
+                                                        className="text-xs p-0.5 sm:p-1 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all"
                                                         title={event.summary}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="truncate flex-1">{event.summary}</span>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    if (confirm('Supprimer cet événement ?')) {
-                                                                        handleDeleteEvent(event.id)
-                                                                    }
-                                                                }}
-                                                                className="opacity-0 group-hover:opacity-100 ml-1 text-red-300 hover:text-red-200 transition-all"
-                                                            >
-                                                                <FaTrash className="w-2 h-2" />
-                                                            </button>
-                                                        </div>
+                                                        <span className="truncate block">{event.summary}</span>
                                                     </div>
                                                 ))}
-                                                {dayEvents.length > 3 && (
+                                                {/* Afficher un événement supplémentaire sur desktop */}
+                                                {dayEvents.length > 2 && (
+                                                    <div className="hidden sm:block">
+                                                        <div
+                                                            className="text-xs p-1 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all"
+                                                            title={dayEvents[2].summary}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <span className="truncate block">{dayEvents[2].summary}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {dayEvents.length > 2 && (
                                                     <div className="text-xs text-gray-400 font-medium">
-                                                        +{dayEvents.length - 3} autres
+                                                        <span className="sm:hidden">+{dayEvents.length - 2} autres</span>
+                                                        <span className="hidden sm:inline">
+                                                            {dayEvents.length > 3 ? `+${dayEvents.length - 3} autres` : ''}
+                                                        </span>
                                                     </div>
                                                 )}
                                             </div>

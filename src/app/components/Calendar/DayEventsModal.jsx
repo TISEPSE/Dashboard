@@ -150,10 +150,11 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
                     <AnimatePresence>
                       {selectedEvent?.id === event.id && (
                         <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          exit={{ opacity: 0, height: 0 }}
-                          className="flex gap-2 mt-4 pt-4 border-t border-gray-600/30"
+                          initial={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0 }}
+                          animate={{ opacity: 1, height: 'auto', marginTop: 16, paddingTop: 16 }}
+                          exit={{ opacity: 0, height: 0, marginTop: 0, paddingTop: 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          className="flex gap-2 border-t border-gray-600/30 overflow-hidden"
                         >
                           <button
                             onClick={(e) => {
