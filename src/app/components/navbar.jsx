@@ -77,7 +77,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                     {href: "/Dashboard/Sante", label: "Santé", icon: <FaHeartbeat className="text-red-400" />},
                     {href: "/Dashboard/Finances", label: "Finances", icon: <FaChartLine className="text-green-400" />},
                     {href: "/Dashboard/Calendrier", label: "Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
-                    {href: "/Dashboard/Parametre", label: "Paramètres", icon: <FaCog className="text-gray-400" />},
+                    {href: "/Dashboard/Parametres", label: "Paramètres", icon: <FaCog className="text-gray-400" />},
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -157,7 +157,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                     {href: "/Dashboard/Sante", icon: <FaHeartbeat className="text-red-400" />},
                     {href: "/Dashboard/Finances", icon: <FaChartLine className="text-green-400" />},
                     {href: "/Dashboard/Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
-                    {href: "/Dashboard/Parametre", icon: <FaCog className="text-gray-400" />},
+                    {href: "/Dashboard/Parametres", icon: <FaCog className="text-gray-400" />},
                   ].map((item) => (
                     <Link
                       key={item.href}

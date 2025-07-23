@@ -18,13 +18,6 @@ const ColorPicker = ({ selectedColorId = '1', onColorChange, className = '' }) =
 
   return (
     <div className={`space-y-3 ${className}`}>
-      {/* Indicateur de connexion Google */}
-      {isGoogleConnected && (
-        <div className="flex items-center gap-2 text-xs text-green-400 bg-green-500/10 px-3 py-2 rounded-lg border border-green-500/20">
-          <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-          Couleurs Google Calendar synchronisées
-        </div>
-      )}
       
       {/* Aperçu de la couleur sélectionnée */}
       <div className="flex items-center gap-3 p-3 bg-gray-700/30 rounded-xl border border-gray-600/30">
@@ -35,15 +28,12 @@ const ColorPicker = ({ selectedColorId = '1', onColorChange, className = '' }) =
           style={{ backgroundColor: getColor(selectedColorId).background }}
         />
         <div className="flex-1">
-          <p className="text-white text-sm font-medium">
-            Couleur sélectionnée
-            {loading && <span className="ml-2 text-xs text-gray-400">(Chargement...)</span>}
-          </p>
-          <p className="text-gray-400 text-xs">
-            {justChanged === selectedColorId ? '✨ Couleur mise à jour !' : 
-             isGoogleConnected ? 'Couleurs synchronisées avec Google Calendar' :
-             'Couleurs locales (mode hors ligne)'}
-          </p>
+          {loading && <span className="text-xs text-gray-400">(Chargement...)</span>}
+          {justChanged === selectedColorId && (
+            <p className="text-green-400 text-xs">
+              ✨ Couleur mise à jour !
+            </p>
+          )}
         </div>
       </div>
 

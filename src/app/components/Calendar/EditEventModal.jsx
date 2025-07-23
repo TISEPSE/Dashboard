@@ -294,9 +294,9 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                 <textarea
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="w-full bg-[#3a3d4e] border border-gray-600/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3A6FF8] focus:border-transparent resize-none"
+                  className="w-full bg-[#3a3d4e] border border-gray-600/50 rounded-xl pl-10 pr-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3A6FF8] focus:border-transparent resize-none h-[120px]"
                   placeholder="Détails de l'événement..."
-                  rows="3"
+                  rows="6"
                   disabled={isLoading}
                 />
               </div>

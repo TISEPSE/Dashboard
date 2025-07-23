@@ -2,17 +2,16 @@
 
 // Couleurs prédéfinies pour les événements (structure identique à la couleur verte fonctionnelle)
 export const EVENT_COLORS = {
-  '1': { background: '#1976D2', text: '#ffffff', name: 'Bleu' }, 
+  '1': { background: '#039BE6', text: '#ffffff', name: 'Bleu' }, // Couleur principale - première dans la palette
   '2': { background: '#33B679', text: '#ffffff', name: 'Sauge' }, // Couleur verte fonctionnelle - modèle de référence
   '3': { background: '#8E24AA', text: '#ffffff', name: 'Raisin' },
   '4': { background: '#E67C73', text: '#ffffff', name: 'Fleur' },
   '5': { background: '#F6BF26', text: '#000000', name: 'Banane' },
   '6': { background: '#F4511E', text: '#ffffff', name: 'Tangerine' },
-  '7': { background: '#039BE5', text: '#ffffff', name: 'Paon' },
-  '8': { background: '#616161', text: '#ffffff', name: 'Graphite' },
-  '9': { background: '#3F51B5', text: '#ffffff', name: 'Myrtille' },
-  '10': { background: '#0B8043', text: '#ffffff', name: 'Basilic' }, // Autre couleur verte
-  '11': { background: '#D50000', text: '#ffffff', name: 'Tomate' }
+  '7': { background: '#1976D2', text: '#ffffff', name: 'Paon' },
+  '8': { background: '#3F51B5', text: '#ffffff', name: 'Myrtille' },
+  '9': { background: '#0B8043', text: '#ffffff', name: 'Basilic' }, // Autre couleur verte
+  '10': { background: '#D50000', text: '#ffffff', name: 'Tomate' }
 }
 
 // Récupérer les couleurs Google Calendar réelles

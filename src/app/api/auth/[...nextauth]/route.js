@@ -1,6 +1,46 @@
 import NextAuth from "next-auth"
 import GoogleProvider from "next-auth/providers/google"
 
+// Fonction pour rafraîchir le token d'accès
+async function refreshAccessToken(token) {
+  try {
+    const url = "https://oauth2.googleapis.com/token"
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded",
+      },
+      body: new URLSearchParams({
+        client_id: process.env.GOOGLE_CLIENT_ID,
+        client_secret: process.env.GOOGLE_CLIENT_SECRET,
+        grant_type: "refresh_token",
+        refresh_token: token.refreshToken,
+      }),
+    })
+
+    const refreshedTokens = await response.json()
+
+    if (!response.ok) {
+      console.error('❌ Erreur rafraîchissement token:', refreshedTokens)
+      throw refreshedTokens
+    }
+
+    console.log('✅ Token rafraîchi avec succès')
+    return {
+      ...token,
+      accessToken: refreshedTokens.access_token,
+      accessTokenExpires: Date.now() + refreshedTokens.expires_in * 1000,
+      refreshToken: refreshedTokens.refresh_token ?? token.refreshToken, // Garder l'ancien si pas de nouveau
+    }
+  } catch (error) {
+    console.error('❌ Impossible de rafraîchir le token:', error)
+    return {
+      ...token,
+      error: "RefreshAccessTokenError",
+    }
+  }
+}
+
 const authOptions = {
   providers: [
     GoogleProvider({
@@ -9,6 +49,8 @@ const authOptions = {
       authorization: {
         params: {
           scope: "openid email profile https://www.googleapis.com/auth/calendar",
+          access_type: "offline",
+          prompt: "consent",
         },
       },
     }),
@@ -16,6 +58,7 @@ const authOptions = {
   callbacks: {
     async jwt({ token, account, user }) {
       try {
+        // Connexion initiale
         if (account) {
           console.log('🔑 Token reçu:', { 
             access_token: account.access_token ? 'Présent' : 'Absent',
@@ -24,11 +67,23 @@ const authOptions = {
           })
           token.accessToken = account.access_token
           token.refreshToken = account.refresh_token
-          token.accessTokenExpires = account.expires_at
+          token.accessTokenExpires = account.expires_at * 1000 // Convertir en millisecondes
         }
         if (user) {
           token.id = user.id
         }
+
+        // Vérifier si le token doit être rafraîchi
+        if (Date.now() < token.accessTokenExpires) {
+          return token
+        }
+
+        // Token expiré, essayer de le rafraîchir
+        if (token.refreshToken) {
+          console.log('🔄 Tentative de rafraîchissement du token...')
+          return await refreshAccessToken(token)
+        }
+
         return token
       } catch (error) {
         console.error("JWT callback error:", error)
@@ -41,11 +96,13 @@ const authOptions = {
         session.refreshToken = token.refreshToken
         session.accessTokenExpires = token.accessTokenExpires
         session.user.id = token.sub || token.id
+        session.error = token.error
         
         console.log('📋 Session créée:', {
           accessToken: session.accessToken ? 'Présent' : 'Absent',
           userId: session.user.id,
-          expires: session.accessTokenExpires
+          expires: session.accessTokenExpires,
+          hasError: !!session.error
         })
         
         return session

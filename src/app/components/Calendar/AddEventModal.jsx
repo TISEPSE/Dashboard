@@ -164,8 +164,8 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleInputChange('description', e.target.value)}
-                  className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none"
-                  rows={3}
+                  className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 resize-none h-[120px]"
+                  rows={6}
                   placeholder="Description de l'événement (optionnel)"
                 />
               </div>

@@ -51,7 +51,7 @@ export default function Calendrier(){
     }
 
     useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 1000)
+        const timer = setTimeout(() => setIsLoading(false), 300)
         return () => clearTimeout(timer)
     }, [])
 
@@ -276,9 +276,22 @@ export default function Calendrier(){
                     className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl shadow-2xl border border-gray-600/20 overflow-hidden"
                 >
                     {loadingEvents && (
-                        <div className="absolute inset-0 bg-black/20 backdrop-blur-sm z-10 flex items-center justify-center">
-                            <div className="animate-spin rounded-full h-8 w-8 border-2 border-blue-500 border-t-transparent"></div>
-                        </div>
+                        <motion.div 
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="absolute top-4 right-4 z-10 bg-gray-800/95 backdrop-blur-sm rounded-full p-2.5 shadow-lg border border-gray-600/40"
+                        >
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
+                                className="w-5 h-5 text-blue-400"
+                            >
+                                <svg viewBox="0 0 24 24" fill="currentColor" className="w-full h-full">
+                                    <path d="M12 2L13.09 8.26L22 9L13.09 9.74L12 16L10.91 9.74L2 9L10.91 8.26L12 2Z" />
+                                </svg>
+                            </motion.div>
+                        </motion.div>
                     )}
 
                     {viewMode === 'month' && (

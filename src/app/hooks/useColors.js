@@ -35,7 +35,7 @@ export const useColors = () => {
         console.log('⚠️ Fallback sur les couleurs locales')
       }
     } catch (error) {
-      console.error('❌ Erreur chargement couleurs Google:', error)
+      console.warn('⚠️ Erreur chargement couleurs Google (utilisation couleurs locales):', error.message)
       setColors(EVENT_COLORS)
       setIsGoogleConnected(false)
     } finally {

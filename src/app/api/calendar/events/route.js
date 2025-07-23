@@ -10,14 +10,17 @@ export async function GET(request) {
     console.log('🔍 Vérification session:', {
       hasSession: !!session,
       hasAccessToken: !!session?.accessToken,
+      hasRefreshToken: !!session?.refreshToken,
       userId: session?.user?.id,
-      tokenLength: session?.accessToken?.length
+      tokenLength: session?.accessToken?.length,
+      hasError: !!session?.error,
+      errorType: session?.error
     })
     
-    if (!session?.accessToken) {
-      console.log('❌ Pas de token d\'accès')
+    if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
+      console.log('❌ Pas de token d\'accès ou erreur de rafraîchissement')
       return NextResponse.json({ 
-        error: "Token d'accès manquant - reconnectez-vous", 
+        error: "Session expirée - reconnectez-vous", 
         needsReauth: true 
       }, { status: 401 })
     }
@@ -28,8 +31,21 @@ export async function GET(request) {
       process.env.GOOGLE_CLIENT_SECRET
     )
 
-    oauth2Client.setCredentials({
+    // Configuration des credentials avec refresh token si disponible
+    const credentials = {
       access_token: session.accessToken
+    }
+    
+    if (session.refreshToken) {
+      credentials.refresh_token = session.refreshToken
+    }
+    
+    oauth2Client.setCredentials(credentials)
+    
+    console.log('🔑 Credentials configurés:', {
+      hasAccessToken: !!credentials.access_token,
+      hasRefreshToken: !!credentials.refresh_token,
+      accessTokenLength: credentials.access_token?.length
     })
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
@@ -64,18 +80,35 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('Erreur API Calendar:', error)
+    console.error('❌ Erreur API Calendar:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      details: error.response?.data || error.details
+    })
     
-    if (error.code === 401) {
+    // Gestion spécifique des erreurs d'authentification
+    if (error.code === 401 || error.status === 401 || error.message?.includes('authentication')) {
+      console.log('🔄 Token expiré, demande de reconnexion')
       return NextResponse.json({ 
-        error: "Token d'accès expiré",
-        needsReauth: true 
+        error: "Session Google expirée - reconnectez-vous",
+        needsReauth: true,
+        authError: true
       }, { status: 401 })
     }
 
+    // Gestion des erreurs de permissions
+    if (error.code === 403 || error.status === 403) {
+      return NextResponse.json({ 
+        error: "Permissions insuffisantes pour accéder à Google Calendar",
+        needsReauth: true 
+      }, { status: 403 })
+    }
+
+    // Autres erreurs
     return NextResponse.json({ 
       error: "Erreur lors de la récupération des événements",
-      details: error.message 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 })
   }
 }
@@ -142,18 +175,23 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('Erreur création événement:', error)
+    console.error('❌ Erreur création événement:', {
+      message: error.message,
+      code: error.code,
+      status: error.status
+    })
     
-    if (error.code === 401) {
+    if (error.code === 401 || error.status === 401 || error.message?.includes('authentication')) {
       return NextResponse.json({ 
-        error: "Token d'accès expiré",
-        needsReauth: true 
+        error: "Session Google expirée - reconnectez-vous",
+        needsReauth: true,
+        authError: true
       }, { status: 401 })
     }
 
     return NextResponse.json({ 
       error: "Erreur lors de la création de l'événement",
-      details: error.message 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 })
   }
 }
@@ -221,18 +259,23 @@ export async function PUT(request) {
     })
 
   } catch (error) {
-    console.error('Erreur modification événement:', error)
+    console.error('❌ Erreur modification événement:', {
+      message: error.message,
+      code: error.code,
+      status: error.status
+    })
     
-    if (error.code === 401) {
+    if (error.code === 401 || error.status === 401 || error.message?.includes('authentication')) {
       return NextResponse.json({ 
-        error: "Token d'accès expiré",
-        needsReauth: true 
+        error: "Session Google expirée - reconnectez-vous",
+        needsReauth: true,
+        authError: true
       }, { status: 401 })
     }
 
     return NextResponse.json({ 
       error: "Erreur lors de la modification de l'événement",
-      details: error.message 
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
     }, { status: 500 })
   }
 }
