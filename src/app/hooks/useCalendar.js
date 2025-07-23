@@ -373,7 +373,6 @@ export const useCalendar = () => {
     if (session?.accessToken && !syncStatus) {
       const timer = setTimeout(() => {
         console.log('🔄 Auto-synchronisation lors de la connexion Google...')
-        showNotification('Connexion Google détectée - synchronisation en cours...', 'info')
         syncWithGoogle(false) // Garder la sync auto mais sans les notifications de résultat
       }, 2000) // Attendre 2s après la connexion
       

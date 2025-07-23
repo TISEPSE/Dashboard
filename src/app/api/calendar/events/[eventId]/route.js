@@ -13,7 +13,7 @@ export async function PUT(request, { params }) {
 
     const { eventId } = params
     const body = await request.json()
-    const { summary, description, start, end, location } = body
+    const { summary, description, start, end, location, colorId } = body
 
     // Configuration de l'API Google Calendar
     const oauth2Client = new google.auth.OAuth2(
@@ -39,6 +39,11 @@ export async function PUT(request, { params }) {
       summary: summary || existingEvent.data.summary,
       description: description || existingEvent.data.description,
       location: location || existingEvent.data.location,
+    }
+
+    // Mettre à jour la couleur si fournie
+    if (colorId) {
+      updatedEvent.colorId = colorId
     }
 
     if (start) {
@@ -132,10 +137,12 @@ export async function DELETE(request, { params }) {
       }, { status: 401 })
     }
 
-    if (error.code === 404) {
-      return NextResponse.json({ 
-        error: "Événement non trouvé" 
-      }, { status: 404 })
+    if (error.code === 404 || error.message === 'Resource has been deleted') {
+      // L'événement a déjà été supprimé - considérer comme un succès
+      console.log('Événement déjà supprimé, succès silencieux')
+      return NextResponse.json({
+        message: "Événement supprimé avec succès"
+      })
     }
 
     return NextResponse.json({ 
