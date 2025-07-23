@@ -45,7 +45,11 @@ export const FavoritesProvider = ({ children }) => {
 
   const addFavorite = async (symbol, name) => {
     if (!session?.user?.id) {
-      return { success: false, message: 'Vous devez être connecté pour ajouter des favoris' }
+      return { 
+        success: false, 
+        message: 'Connectez-vous avec Google pour ajouter des favoris',
+        needsAuth: true 
+      }
     }
 
     try {
@@ -74,7 +78,11 @@ export const FavoritesProvider = ({ children }) => {
 
   const removeFavorite = async (symbol) => {
     if (!session?.user?.id) {
-      return { success: false, message: 'Vous devez être connecté pour supprimer des favoris' }
+      return { 
+        success: false, 
+        message: 'Connectez-vous avec Google pour gérer vos favoris',
+        needsAuth: true 
+      }
     }
 
     try {

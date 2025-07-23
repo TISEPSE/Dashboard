@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 
-const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 }) => {
+const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000, needsAuth = false }) => {
   const [shouldRender, setShouldRender] = useState(false)
   const [animationClass, setAnimationClass] = useState('')
 
@@ -9,7 +9,7 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 
       setShouldRender(true)
       // Petite attente pour déclencher l'animation d'entrée
       setTimeout(() => {
-        setAnimationClass('animate-toast-in')
+        setAnimationClass(needsAuth ? 'animate-toast-in animate-shake' : 'animate-toast-in')
       }, 10)
       
       const timer = setTimeout(() => {
@@ -19,10 +19,10 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 
           setShouldRender(false)
           onClose()
         }, 300)
-      }, duration)
+      }, needsAuth ? duration * 1.5 : duration) // Plus long pour les erreurs d'auth
       return () => clearTimeout(timer)
     }
-  }, [isVisible, onClose, duration])
+  }, [isVisible, onClose, duration, needsAuth])
 
   if (!shouldRender) return null
 
@@ -33,7 +33,7 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000 
       case 'success':
         return `${baseStyles} bg-emerald-600 text-white border border-emerald-500`
       case 'error':
-        return `${baseStyles} bg-red-600 text-white border border-red-500`
+        return `${baseStyles} ${needsAuth ? 'bg-gradient-to-r from-blue-600 to-indigo-600' : 'bg-red-600'} text-white border ${needsAuth ? 'border-blue-500' : 'border-red-500'}`
       case 'info':
         return `${baseStyles} bg-blue-600 text-white border border-blue-500`
       default:

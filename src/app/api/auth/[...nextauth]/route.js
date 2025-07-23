@@ -8,7 +8,7 @@ const authOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy",
       authorization: {
         params: {
-          scope: "openid email profile",
+          scope: "openid email profile https://www.googleapis.com/auth/calendar",
         },
       },
     }),

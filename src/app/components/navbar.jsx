@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react"
 import Link from "next/link"
 import {usePathname} from "next/navigation"
-import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog} from "react-icons/fa"
+import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog, FaHome} from "react-icons/fa"
 import { useSession } from 'next-auth/react'
 import AuthButton from "./Auth/AuthButton"
 
@@ -70,6 +70,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                 {/* Affichage direct des liens avec icônes et textes */}
                 <div className="flex flex-col gap-2">
                   {[
+                    {href: "/", label: "Accueil", icon: <FaHome className="text-emerald-400" />},
                     {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
                     {href: "/Dashboard/Message", label: "Messages", icon: <FaComments className="text-blue-400" />},
                     {href: "/Dashboard/Meteo", label: "Météo", icon: <FaCloudSun className="text-yellow-400" />},
@@ -145,6 +146,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               <div className="flex flex-col gap-2 items-center py-4 h-full">
                 <div className="flex flex-col gap-2 items-center">
                   {[
+                    {href: "/", icon: <FaHome className="text-emerald-400" />},
                     {href: "/Dashboard/Crypto", icon: <FaBitcoin className="text-orange-400" />},
                     {href: "/Dashboard/Message", icon: <FaComments className="text-blue-400" />},
                     {href: "/Dashboard/Meteo", icon: <FaCloudSun className="text-yellow-400" />},

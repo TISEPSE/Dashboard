@@ -108,7 +108,7 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
     }
     
     if (result) {
-      showToast(result.message, result.success ? 'success' : 'error')
+      showToast(result.message, result.success ? 'success' : 'error', result.needsAuth)
     }
   }
 
@@ -119,6 +119,7 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
         type={toast.type}
         isVisible={toast.isVisible}
         onClose={hideToast}
+        needsAuth={toast.needsAuth}
       />
       <div
         ref={ref}

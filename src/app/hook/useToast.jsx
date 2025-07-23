@@ -7,8 +7,8 @@ export const useToast = () => {
     type: 'success' 
   })
 
-  const showToast = useCallback((message, type = 'success') => {
-    setToast({ isVisible: true, message, type })
+  const showToast = useCallback((message, type = 'success', needsAuth = false) => {
+    setToast({ isVisible: true, message, type, needsAuth })
   }, [])
 
   const hideToast = useCallback(() => {
