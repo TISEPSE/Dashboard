@@ -10,7 +10,7 @@ import DayEventsModal from "../../components/Calendar/DayEventsModal"
 import EditEventModal from "../../components/Calendar/EditEventModal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
 import { useCalendar } from "../../hooks/useCalendar"
-import { EVENT_COLORS } from "../../services/localCalendar"
+import { useColors } from "../../hooks/useColors"
 import Notification from "../../components/Notification"
 
 export default function Calendrier(){
@@ -24,7 +24,7 @@ export default function Calendrier(){
     const [selectedEvent, setSelectedEvent] = useState(null)
     const { data: session } = useSession()
     
-    // Utiliser le hook du calendrier
+    // Utiliser les hooks du calendrier et des couleurs
     const { 
         events, 
         loadingEvents, 
@@ -36,6 +36,19 @@ export default function Calendrier(){
         deleteEvent, 
         syncWithGoogle 
     } = useCalendar()
+
+    const { getColor, isGoogleConnected } = useColors()
+
+    // Fonction pour gérer le clic sur un jour (pour mobile et desktop)
+    const handleDayClick = (date) => {
+        const dayEvents = getEventsForDay(date)
+        setSelectedEventDate(date)
+        if (dayEvents.length > 0) {
+            setShowDayEvents(true)
+        } else {
+            setShowAddEvent(true)
+        }
+    }
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1000)
@@ -289,24 +302,16 @@ export default function Calendrier(){
                                     return (
                                         <motion.div
                                             key={index}
-                                            whileHover={{ scale: 1.02 }}
+                                            whileHover={{ scale: window.innerWidth >= 768 ? 1.02 : 1 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className={`min-h-[80px] sm:min-h-[120px] lg:min-h-[140px] p-1 sm:p-2 lg:p-3 border border-gray-600/20 rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-200 cursor-pointer ${
+                                            className={`min-h-[100px] sm:min-h-[120px] lg:min-h-[140px] p-2 sm:p-2 lg:p-3 border border-gray-600/20 rounded-xl sm:rounded-xl lg:rounded-2xl transition-all duration-200 cursor-pointer touch-manipulation active:scale-95 ${
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg'
                                                     : isInCurrentMonth
-                                                    ? 'bg-gradient-to-br from-gray-700/20 to-gray-800/20 hover:from-gray-600/30 hover:to-gray-700/30'
+                                                    ? 'bg-gradient-to-br from-gray-700/20 to-gray-800/20 md:hover:from-gray-600/30 md:hover:to-gray-700/30'
                                                     : 'bg-gray-800/10 text-gray-500'
-                                            }`}
-                                            onClick={() => {
-                                                const dayEvents = getEventsForDay(date)
-                                                setSelectedEventDate(date)
-                                                if (dayEvents.length > 0) {
-                                                    setShowDayEvents(true)
-                                                } else {
-                                                    setShowAddEvent(true)
-                                                }
-                                            }}
+                                            } ${dayEvents.length > 0 ? 'ring-1 ring-blue-500/20' : ''}`}
+                                            onClick={() => handleDayClick(date)}
                                         >
                                             <div className={`text-xs sm:text-sm lg:text-base font-medium mb-1 sm:mb-2 lg:mb-3 relative ${
                                                 isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
@@ -325,17 +330,23 @@ export default function Calendrier(){
                                             {/* Événements du jour */}
                                             <div className="space-y-0.5 sm:space-y-1 lg:space-y-1.5 flex-1">
                                                 {dayEvents.slice(0, 2).map((event, eventIndex) => {
-                                                    const eventColor = EVENT_COLORS[event.colorId] || EVENT_COLORS['1']
+                                                    const eventColor = getColor(event.colorId)
                                                     return (
                                                         <div
                                                             key={eventIndex}
-                                                            className="text-xs sm:text-xs lg:text-sm p-0.5 sm:p-1 lg:p-1.5 rounded truncate cursor-pointer hover:brightness-110 transition-all touch-manipulation"
+                                                            className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation min-h-[28px] sm:min-h-[32px] lg:min-h-[36px] flex items-center"
                                                             style={{
                                                                 backgroundColor: eventColor.background,
                                                                 color: eventColor.text
                                                             }}
                                                             title={event.summary}
-                                                            onClick={(e) => e.stopPropagation()}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                // Sur mobile, ouvrir directement le modal des événements du jour
+                                                                if (window.innerWidth < 768) {
+                                                                    handleDayClick(day)
+                                                                }
+                                                            }}
                                                         >
                                                             <span className="truncate block font-medium">{event.summary}</span>
                                                         </div>
@@ -345,16 +356,21 @@ export default function Calendrier(){
                                                 {dayEvents.length > 2 && (
                                                     <div className="hidden lg:block">
                                                         {(() => {
-                                                            const eventColor = EVENT_COLORS[dayEvents[2].colorId] || EVENT_COLORS['1']
+                                                            const eventColor = getColor(dayEvents[2].colorId)
                                                             return (
                                                                 <div
-                                                                    className="text-sm p-1.5 rounded truncate cursor-pointer hover:brightness-110 transition-all touch-manipulation"
+                                                                    className="text-sm p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation min-h-[36px] flex items-center"
                                                                     style={{
                                                                         backgroundColor: eventColor.background,
                                                                         color: eventColor.text
                                                                     }}
                                                                     title={dayEvents[2].summary}
-                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        if (window.innerWidth < 768) {
+                                                                            handleDayClick(day)
+                                                                        }
+                                                                    }}
                                                                 >
                                                                     <span className="truncate block font-medium">{dayEvents[2].summary}</span>
                                                                 </div>
@@ -366,16 +382,21 @@ export default function Calendrier(){
                                                 {dayEvents.length > 3 && (
                                                     <div className="hidden xl:block">
                                                         {(() => {
-                                                            const eventColor = EVENT_COLORS[dayEvents[3].colorId] || EVENT_COLORS['1']
+                                                            const eventColor = getColor(dayEvents[3].colorId)
                                                             return (
                                                                 <div
-                                                                    className="text-sm p-1.5 rounded truncate cursor-pointer hover:brightness-110 transition-all touch-manipulation"
+                                                                    className="text-sm p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation min-h-[36px] flex items-center"
                                                                     style={{
                                                                         backgroundColor: eventColor.background,
                                                                         color: eventColor.text
                                                                     }}
                                                                     title={dayEvents[3].summary}
-                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation()
+                                                                        if (window.innerWidth < 768) {
+                                                                            handleDayClick(day)
+                                                                        }
+                                                                    }}
                                                                 >
                                                                     <span className="truncate block font-medium">{dayEvents[3].summary}</span>
                                                                 </div>

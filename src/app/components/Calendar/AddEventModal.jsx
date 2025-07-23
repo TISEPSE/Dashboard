@@ -71,6 +71,9 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
 
       await onSave(eventData)
       
+      // Attendre que l'événement soit visible avant de fermer le modal
+      await new Promise(resolve => setTimeout(resolve, 600))
+      
       // Réinitialiser le formulaire
       setFormData({
         summary: '',
@@ -84,6 +87,9 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
       })
       
       onClose()
+      
+      // Recharger la page pour s'assurer que tout est synchronisé
+      window.location.reload()
     } catch (err) {
       setError(err.message)
     } finally {

@@ -81,13 +81,21 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
 
     setIsLoading(true)
     try {
-      await onSave({
+      const eventDataToSave = {
         ...formData,
         id: event.id,
         start: startISO,
         end: endISO
-      })
+      }
+      console.log('🎨 Données d\'événement à sauvegarder:', eventDataToSave)
+      await onSave(eventDataToSave)
+      
+      // Attendre que les modifications soient visibles avant de fermer le modal
+      await new Promise(resolve => setTimeout(resolve, 600))
       onClose()
+      
+      // Recharger la page pour s'assurer que tout est synchronisé
+      window.location.reload()
     } catch (error) {
       console.error('Erreur lors de la modification:', error)
       alert(`Erreur lors de la modification: ${error.message}`)

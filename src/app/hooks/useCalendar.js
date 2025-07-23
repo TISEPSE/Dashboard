@@ -146,6 +146,8 @@ export const useCalendar = () => {
         if (response.ok) {
           const data = await response.json()
           console.log('✅ Événement Google créé:', data.event.summary)
+          // Recharger les événements pour mettre à jour l'affichage
+          setTimeout(() => reloadCurrentEvents(true), 500)
           return data.event
         } else {
           throw new Error('Erreur API Google')
@@ -155,6 +157,8 @@ export const useCalendar = () => {
         console.log('📱 Ajout événement local...')
         const localEvent = addLocalEvent(eventData)
         console.log('✅ Événement local créé:', localEvent.summary)
+        // Recharger les événements pour mettre à jour l'affichage
+        setTimeout(() => reloadCurrentEvents(true), 500)
         return localEvent
       }
     } catch (error) {
@@ -163,6 +167,8 @@ export const useCalendar = () => {
       if (session?.accessToken) {
         console.log('🔄 Fallback: sauvegarde locale...')
         const localEvent = addLocalEvent(eventData)
+        // Recharger les événements pour mettre à jour l'affichage
+        setTimeout(() => reloadCurrentEvents(true), 500)
         return localEvent
       }
       throw error
@@ -181,7 +187,7 @@ export const useCalendar = () => {
         console.log('✅ Événement local modifié')
         showNotification('💾 Modification sauvegardée localement', 'success')
         // Recharger les événements pour mettre à jour l'affichage
-        setTimeout(() => reloadCurrentEvents(true), 100)
+        setTimeout(() => reloadCurrentEvents(true), 500)
         return updatedEvent
       } else {
         // Événement Google à modifier
@@ -196,14 +202,20 @@ export const useCalendar = () => {
                 'Authorization': `Bearer ${session.accessToken}`
               },
               body: JSON.stringify(eventData)
-            })
+          })
+          
+          console.log('🎨 Requête de modification envoyée:', {
+            eventId: eventData.id,
+            colorId: eventData.colorId,
+            summary: eventData.summary
+          })
 
             if (response.ok) {
               const data = await response.json()
               console.log('✅ Événement Google modifié')
               showNotification('Événement synchronisé avec Google Calendar', 'success')
               // Recharger les événements pour mettre à jour l'affichage
-              setTimeout(() => reloadCurrentEvents(true), 100)
+              setTimeout(() => reloadCurrentEvents(true), 500)
               return data.event
             } else {
               throw new Error('Erreur API Google')
@@ -211,9 +223,13 @@ export const useCalendar = () => {
           } catch (error) {
             console.log('⚠️ Échec modification Google, sauvegarde en attente...', error)
             // Fallback: sauvegarder la modification en attente
+            console.log('🎨 Sauvegarde modification en attente (couleur incluse):', {
+              eventId: eventData.id,
+              colorId: eventData.colorId
+            })
             addPendingUpdate(eventData.id, eventData)
             showNotification('Modification sauvegardée - sera synchronisée plus tard', 'warning')
-            setTimeout(() => reloadCurrentEvents(true), 100) // Recharger pour appliquer visuellement
+            setTimeout(() => reloadCurrentEvents(true), 500) // Recharger pour appliquer visuellement
             return eventData
           }
         } else {
@@ -221,7 +237,7 @@ export const useCalendar = () => {
           console.log('📴 Hors ligne: sauvegarde modification en attente...')
           addPendingUpdate(eventData.id, eventData)
           showNotification('Mode hors ligne - modification sera synchronisée à la connexion', 'info')
-          setTimeout(() => reloadCurrentEvents(true), 100) // Recharger pour appliquer visuellement
+          setTimeout(() => reloadCurrentEvents(true), 500) // Recharger pour appliquer visuellement
           return eventData
         }
       }
@@ -241,6 +257,8 @@ export const useCalendar = () => {
         console.log('🗑️ Suppression événement local...')
         deleteLocalEvent(eventId)
         console.log('✅ Événement local supprimé')
+        // Recharger les événements pour mettre à jour l'affichage
+        setTimeout(() => reloadCurrentEvents(true), 500)
         return true
       } else if (session?.accessToken) {
         // Supprimer événement Google
@@ -255,6 +273,8 @@ export const useCalendar = () => {
 
         if (response.ok) {
           console.log('✅ Événement Google supprimé')
+          // Recharger les événements pour mettre à jour l'affichage
+          setTimeout(() => reloadCurrentEvents(true), 500)
           return true
         } else {
           const error = await response.json()
@@ -336,6 +356,12 @@ export const useCalendar = () => {
               id: eventId,
               ...updates
             })
+          })
+          
+          console.log('🎨 Synchronisation modification avec colorId:', {
+            eventId,
+            colorId: updates.colorId,
+            allUpdates: updates
           })
 
           if (response.ok) {

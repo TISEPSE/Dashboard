@@ -1,18 +1,84 @@
 // Service pour gérer le calendrier local (sans connexion Google)
 
-// Couleurs prédéfinies pour les événements
+// Couleurs prédéfinies pour les événements (structure identique à la couleur verte fonctionnelle)
 export const EVENT_COLORS = {
-  '1': { background: '#1976D2', text: '#ffffff' }, // Bleu vrai
-  '2': { background: '#33B679', text: '#ffffff' }, // Sauge
-  '3': { background: '#8E24AA', text: '#ffffff' }, // Raisin
-  '4': { background: '#E67C73', text: '#ffffff' }, // Fleur
-  '5': { background: '#F6BF26', text: '#000000' }, // Banane
-  '6': { background: '#F4511E', text: '#ffffff' }, // Tangerine
-  '7': { background: '#039BE5', text: '#ffffff' }, // Paon
-  '8': { background: '#616161', text: '#ffffff' }, // Graphite
-  '9': { background: '#3F51B5', text: '#ffffff' }, // Myrtille
-  '10': { background: '#0B8043', text: '#ffffff' }, // Basilic
-  '11': { background: '#D50000', text: '#ffffff' }  // Tomate
+  '1': { background: '#1976D2', text: '#ffffff', name: 'Bleu' }, 
+  '2': { background: '#33B679', text: '#ffffff', name: 'Sauge' }, // Couleur verte fonctionnelle - modèle de référence
+  '3': { background: '#8E24AA', text: '#ffffff', name: 'Raisin' },
+  '4': { background: '#E67C73', text: '#ffffff', name: 'Fleur' },
+  '5': { background: '#F6BF26', text: '#000000', name: 'Banane' },
+  '6': { background: '#F4511E', text: '#ffffff', name: 'Tangerine' },
+  '7': { background: '#039BE5', text: '#ffffff', name: 'Paon' },
+  '8': { background: '#616161', text: '#ffffff', name: 'Graphite' },
+  '9': { background: '#3F51B5', text: '#ffffff', name: 'Myrtille' },
+  '10': { background: '#0B8043', text: '#ffffff', name: 'Basilic' }, // Autre couleur verte
+  '11': { background: '#D50000', text: '#ffffff', name: 'Tomate' }
+}
+
+// Récupérer les couleurs Google Calendar réelles
+export const fetchGoogleColors = async (accessToken) => {
+  if (!accessToken) return null
+  
+  try {
+    const response = await fetch('/api/calendar/colors', {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    })
+    
+    if (response.ok) {
+      const data = await response.json()
+      return data.event || null
+    }
+  } catch (error) {
+    console.error('❌ Erreur récupération couleurs Google:', error)
+  }
+  
+  return null
+}
+
+// Convertir les couleurs Google en format utilisable (structure identique à la couleur verte)
+export const convertGoogleColors = (googleColors) => {
+  if (!googleColors) return EVENT_COLORS
+  
+  const convertedColors = {}
+  
+  Object.entries(googleColors).forEach(([colorId, colorData]) => {
+    // Structure identique à la couleur verte fonctionnelle
+    convertedColors[colorId] = {
+      background: colorData.background,
+      text: getContrastColor(colorData.background),
+      name: colorData.name || `Couleur ${colorId}`,
+      googleOriginal: true // Marqueur pour identifier les couleurs Google
+    }
+    
+    console.log(`🎨 Couleur ${colorId} convertie:`, convertedColors[colorId])
+  })
+  
+  // Ajouter les couleurs locales comme fallback si manquantes
+  Object.entries(EVENT_COLORS).forEach(([colorId, colorData]) => {
+    if (!convertedColors[colorId]) {
+      convertedColors[colorId] = { ...colorData, googleOriginal: false }
+    }
+  })
+  
+  return convertedColors
+}
+
+// Calculer la couleur de texte optimale (blanc ou noir) selon la luminosité du background
+const getContrastColor = (backgroundColor) => {
+  // Convertir hex en RGB
+  const hex = backgroundColor.replace('#', '')
+  const r = parseInt(hex.substr(0, 2), 16)
+  const g = parseInt(hex.substr(2, 2), 16)
+  const b = parseInt(hex.substr(4, 2), 16)
+  
+  // Calculer la luminosité
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255
+  
+  // Retourner blanc ou noir selon la luminosité
+  return luminance > 0.5 ? '#000000' : '#ffffff'
 }
 
 const STORAGE_KEY = 'dashboard_local_events'

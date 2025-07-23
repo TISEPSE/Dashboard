@@ -126,8 +126,9 @@ export async function POST(request) {
     }
 
     // Ajouter la couleur si spécifiée
-    if (colorId && colorId >= '1' && colorId <= '11') {
-      event.colorId = colorId
+    if (colorId) {
+      event.colorId = colorId.toString()
+      console.log('🎨 Couleur appliquée:', colorId)
     }
 
     const response = await calendar.events.insert({
@@ -203,8 +204,9 @@ export async function PUT(request) {
     }
 
     // Ajouter la couleur si spécifiée
-    if (colorId && colorId >= '1' && colorId <= '11') {
-      event.colorId = colorId
+    if (colorId) {
+      event.colorId = colorId.toString()
+      console.log('🎨 Couleur appliquée:', colorId)
     }
 
     const response = await calendar.events.update({
