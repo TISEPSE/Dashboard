@@ -115,9 +115,13 @@ export const useCalendar = () => {
   }, [session, lastTimeRange.timeMin, lastTimeRange.timeMax])
 
   // Fonction pour recharger avec la dernière plage connue
-  const reloadCurrentEvents = useCallback(() => {
+  const reloadCurrentEvents = useCallback((forceRefresh = false) => {
     if (lastTimeRange.timeMin && lastTimeRange.timeMax) {
       console.log('🔄 Rechargement avec plage existante:', lastTimeRange)
+      if (forceRefresh) {
+        // Vider les événements en cours pour forcer un rechargement complet
+        setEvents([])
+      }
       loadEvents(lastTimeRange.timeMin, lastTimeRange.timeMax)
     } else {
       console.log('⚠️ Aucune plage de temps disponible pour le rechargement')
@@ -177,7 +181,7 @@ export const useCalendar = () => {
         console.log('✅ Événement local modifié')
         showNotification('💾 Modification sauvegardée localement', 'success')
         // Recharger les événements pour mettre à jour l'affichage
-        reloadCurrentEvents()
+        setTimeout(() => reloadCurrentEvents(true), 100)
         return updatedEvent
       } else {
         // Événement Google à modifier
@@ -199,7 +203,7 @@ export const useCalendar = () => {
               console.log('✅ Événement Google modifié')
               showNotification('Événement synchronisé avec Google Calendar', 'success')
               // Recharger les événements pour mettre à jour l'affichage
-              reloadCurrentEvents()
+              setTimeout(() => reloadCurrentEvents(true), 100)
               return data.event
             } else {
               throw new Error('Erreur API Google')
@@ -209,7 +213,7 @@ export const useCalendar = () => {
             // Fallback: sauvegarder la modification en attente
             addPendingUpdate(eventData.id, eventData)
             showNotification('Modification sauvegardée - sera synchronisée plus tard', 'warning')
-            reloadCurrentEvents() // Recharger pour appliquer visuellement
+            setTimeout(() => reloadCurrentEvents(true), 100) // Recharger pour appliquer visuellement
             return eventData
           }
         } else {
@@ -217,7 +221,7 @@ export const useCalendar = () => {
           console.log('📴 Hors ligne: sauvegarde modification en attente...')
           addPendingUpdate(eventData.id, eventData)
           showNotification('Mode hors ligne - modification sera synchronisée à la connexion', 'info')
-          reloadCurrentEvents() // Recharger pour appliquer visuellement
+          setTimeout(() => reloadCurrentEvents(true), 100) // Recharger pour appliquer visuellement
           return eventData
         }
       }
@@ -267,7 +271,7 @@ export const useCalendar = () => {
   }, [session])
 
   // Synchroniser les événements locaux avec Google
-  const syncWithGoogle = useCallback(async () => {
+  const syncWithGoogle = useCallback(async (showNotifications = true) => {
     if (!session?.accessToken) {
       console.log('❌ Pas de session Google pour la synchronisation')
       return
@@ -280,7 +284,9 @@ export const useCalendar = () => {
       
       if (unsyncedEvents.length === 0 && Object.keys(pendingUpdates).length === 0) {
         console.log('✅ Aucun événement à synchroniser')
-        showNotification('Aucun élément à synchroniser', 'info')
+        if (showNotifications) {
+          showNotification('Aucun élément à synchroniser', 'info')
+        }
         return
       }
 
@@ -348,7 +354,7 @@ export const useCalendar = () => {
       console.log('✅ Synchronisation terminée')
       
       const totalSynced = unsyncedEvents.length + Object.keys(pendingUpdates).length
-      if (totalSynced > 0) {
+      if (totalSynced > 0 && showNotifications) {
         showNotification(`${totalSynced} élément(s) synchronisé(s) avec Google Calendar`, 'success')
       }
       
@@ -368,7 +374,7 @@ export const useCalendar = () => {
       const timer = setTimeout(() => {
         console.log('🔄 Auto-synchronisation lors de la connexion Google...')
         showNotification('Connexion Google détectée - synchronisation en cours...', 'info')
-        syncWithGoogle()
+        syncWithGoogle(false) // Garder la sync auto mais sans les notifications de résultat
       }, 2000) // Attendre 2s après la connexion
       
       return () => clearTimeout(timer)

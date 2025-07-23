@@ -321,7 +321,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                 disabled={isLoading}
                 className="flex-1 bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
               >
-                {isLoading ? 'Modification...' : 'Modifier'}
+                {isLoading ? 'Enregistrement...' : 'Enregistrer'}
               </button>
             </div>
           </form>
