@@ -411,18 +411,18 @@ export default function Calendrier(){
                     )}
 
                     {viewMode === 'month' && (
-                        <div className="p-6">
+                        <div className="p-4 sm:p-6 lg:p-8">
                             {/* En-têtes des jours */}
-                            <div className="grid grid-cols-7 gap-1 mb-4">
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-3 mb-4 sm:mb-6">
                                 {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
-                                    <div key={index} className="p-3 text-center">
-                                        <span className="text-gray-400 font-medium text-sm">{day}</span>
+                                    <div key={index} className="p-3 sm:p-4 lg:p-5 text-center">
+                                        <span className="text-gray-400 font-semibold text-sm sm:text-base lg:text-lg">{day}</span>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Grille du calendrier */}
-                            <div className="grid grid-cols-7 gap-1 sm:gap-2">
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-3">
                                 {generateMonthCalendar().map((date, index) => {
                                     const dayEvents = getEventsForDay(date)
                                     const isCurrentDay = isToday(date)
@@ -432,7 +432,8 @@ export default function Calendrier(){
                                         <motion.div
                                             key={index}
                                             whileHover={{ scale: 1.02 }}
-                                            className={`min-h-[80px] sm:min-h-[120px] p-1 sm:p-2 border border-gray-600/20 rounded-lg transition-all duration-200 cursor-pointer ${
+                                            whileTap={{ scale: 0.98 }}
+                                            className={`min-h-[100px] sm:min-h-[140px] lg:min-h-[160px] p-2 sm:p-3 lg:p-4 border border-gray-600/20 rounded-lg transition-all duration-200 cursor-pointer ${
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg'
                                                     : isInCurrentMonth
@@ -449,12 +450,12 @@ export default function Calendrier(){
                                                 }
                                             }}
                                         >
-                                            <div className={`text-xs sm:text-sm font-medium mb-1 sm:mb-2 relative ${
+                                            <div className={`text-sm sm:text-base lg:text-lg font-medium mb-2 sm:mb-3 lg:mb-4 relative ${
                                                 isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
                                             }`}>
                                                 {isCurrentDay ? (
-                                                    <div className="w-5 h-5 sm:w-6 sm:h-6 bg-blue-500 rounded-full flex items-center justify-center">
-                                                        <span className="text-white font-bold text-xs sm:text-sm">
+                                                    <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <span className="text-white font-bold text-sm sm:text-base lg:text-lg">
                                                             {date.getDate()}
                                                         </span>
                                                     </div>
@@ -464,34 +465,50 @@ export default function Calendrier(){
                                             </div>
                                             
                                             {/* Événements du jour */}
-                                            <div className="space-y-0.5 sm:space-y-1">
+                                            <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 flex-1">
                                                 {dayEvents.slice(0, 2).map((event, eventIndex) => (
                                                     <div
                                                         key={eventIndex}
-                                                        className="text-xs p-0.5 sm:p-1 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all"
+                                                        className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
                                                         title={event.summary}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
-                                                        <span className="truncate block">{event.summary}</span>
+                                                        <span className="truncate block font-medium">{event.summary}</span>
                                                     </div>
                                                 ))}
                                                 {/* Afficher un événement supplémentaire sur desktop */}
                                                 {dayEvents.length > 2 && (
-                                                    <div className="hidden sm:block">
+                                                    <div className="hidden lg:block">
                                                         <div
-                                                            className="text-xs p-1 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all"
+                                                            className="text-sm p-2 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
                                                             title={dayEvents[2].summary}
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
-                                                            <span className="truncate block">{dayEvents[2].summary}</span>
+                                                            <span className="truncate block font-medium">{dayEvents[2].summary}</span>
                                                         </div>
                                                     </div>
                                                 )}
+                                                {/* Afficher jusqu'à 4 événements sur très grands écrans */}
+                                                {dayEvents.length > 3 && (
+                                                    <div className="hidden xl:block">
+                                                        <div
+                                                            className="text-sm p-2 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
+                                                            title={dayEvents[3].summary}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <span className="truncate block font-medium">{dayEvents[3].summary}</span>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                {/* Compteur d'événements adaptatif */}
                                                 {dayEvents.length > 2 && (
-                                                    <div className="text-xs text-gray-400 font-medium">
-                                                        <span className="sm:hidden">+{dayEvents.length - 2} autres</span>
-                                                        <span className="hidden sm:inline">
+                                                    <div className="text-xs sm:text-xs lg:text-sm text-gray-400 font-medium pt-1">
+                                                        <span className="lg:hidden">+{dayEvents.length - 2} autres</span>
+                                                        <span className="hidden lg:inline xl:hidden">
                                                             {dayEvents.length > 3 ? `+${dayEvents.length - 3} autres` : ''}
+                                                        </span>
+                                                        <span className="hidden xl:inline">
+                                                            {dayEvents.length > 4 ? `+${dayEvents.length - 4} autres` : ''}
                                                         </span>
                                                     </div>
                                                 )}
