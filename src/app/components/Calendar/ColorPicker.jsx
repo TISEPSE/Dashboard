@@ -1,34 +1,65 @@
 "use client"
 
+import { useState } from 'react'
 import { EVENT_COLORS } from '../../services/localCalendar'
 
 const ColorPicker = ({ selectedColorId = '1', onColorChange, className = '' }) => {
+  const [justChanged, setJustChanged] = useState(null)
   const colorOptions = Object.entries(EVENT_COLORS)
 
+  const handleColorChange = (colorId) => {
+    onColorChange(colorId)
+    setJustChanged(colorId)
+    
+    // Remettre l'état normal après animation
+    setTimeout(() => setJustChanged(null), 800)
+  }
+
   return (
-    <div className={`grid grid-cols-6 gap-2 ${className}`}>
-      {colorOptions.map(([colorId, colorData]) => (
-        <button
-          key={colorId}
-          type="button"
-          onClick={() => onColorChange(colorId)}
-          className={`w-8 h-8 rounded-full border-2 transition-all duration-200 hover:scale-110 ${
-            selectedColorId === colorId 
-              ? 'border-white shadow-lg scale-110' 
-              : 'border-gray-400/50 hover:border-gray-300'
+    <div className={`space-y-3 ${className}`}>
+      {/* Aperçu de la couleur sélectionnée */}
+      <div className="flex items-center gap-3 p-3 bg-gray-700/30 rounded-xl border border-gray-600/30">
+        <div 
+          className={`w-6 h-6 rounded-full border-2 transition-all duration-300 ${
+            justChanged === selectedColorId ? 'scale-125 border-white shadow-lg' : 'border-gray-400'
           }`}
-          style={{ backgroundColor: colorData.background }}
-          title={`Couleur ${colorId}`}
-        >
-          {selectedColorId === colorId && (
-            <div className="w-full h-full rounded-full flex items-center justify-center">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: colorData.text }}>
-                <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              </svg>
-            </div>
-          )}
-        </button>
-      ))}
+          style={{ backgroundColor: EVENT_COLORS[selectedColorId].background }}
+        />
+        <div className="flex-1">
+          <p className="text-white text-sm font-medium">Couleur sélectionnée</p>
+          <p className="text-gray-400 text-xs">
+            {justChanged === selectedColorId ? '✨ Couleur mise à jour !' : 'Cliquez sur une couleur pour changer'}
+          </p>
+        </div>
+      </div>
+
+      {/* Grille de couleurs */}
+      <div className="grid grid-cols-6 gap-2">
+        {colorOptions.map(([colorId, colorData]) => (
+          <button
+            key={colorId}
+            type="button"
+            onClick={() => handleColorChange(colorId)}
+            className={`w-8 h-8 rounded-full border-2 transition-all duration-300 hover:scale-110 ${
+              selectedColorId === colorId 
+                ? 'border-white shadow-lg scale-110' 
+                : 'border-gray-400/50 hover:border-gray-300'
+            } ${
+              justChanged === colorId ? 'ring-4 ring-white/50 animate-pulse' : ''
+            }`}
+            style={{ backgroundColor: colorData.background }}
+            title={`Couleur ${colorId}`}
+          >
+            {selectedColorId === colorId && (
+              <div className="w-full h-full rounded-full flex items-center justify-center">
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20" style={{ color: colorData.text }}>
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+              </div>
+            )}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

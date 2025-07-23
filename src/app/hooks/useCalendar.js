@@ -175,7 +175,7 @@ export const useCalendar = () => {
         console.log('📱 Modification événement local...')
         const updatedEvent = updateLocalEvent(eventData.id, eventData)
         console.log('✅ Événement local modifié')
-        showNotification('Événement local modifié avec succès', 'success')
+        showNotification('💾 Modification sauvegardée localement', 'success')
         // Recharger les événements pour mettre à jour l'affichage
         reloadCurrentEvents()
         return updatedEvent
