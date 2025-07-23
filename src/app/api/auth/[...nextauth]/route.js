@@ -40,7 +40,7 @@ const authOptions = {
     },
   },
   secret: process.env.NEXTAUTH_SECRET || "fallback-secret-key",
-  debug: process.env.NODE_ENV === "development",
+  debug: false, // Désactive les logs de debug
 }
 
 const handler = NextAuth(authOptions)

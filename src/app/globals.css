@@ -353,6 +353,11 @@ body {
   }
 }
 
+/* Masquer les erreurs CORS Google Play (optionnel) */
+.error-cors-google {
+  display: none !important;
+}
+
 /* Optimisations pour mobile */
 @media (max-width: 768px) {
   .page-transition-enter {

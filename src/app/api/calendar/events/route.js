@@ -30,6 +30,8 @@ export async function GET(request) {
     const maxResults = parseInt(url.searchParams.get('maxResults')) || 100
 
     // Récupérer les événements
+    console.log('🗓️ Récupération événements:', { timeMin, timeMax, maxResults })
+    
     const response = await calendar.events.list({
       calendarId: 'primary',
       timeMin,
@@ -37,11 +39,17 @@ export async function GET(request) {
       maxResults,
       singleEvents: true,
       orderBy: 'startTime',
+      showDeleted: false, // Exclure les événements supprimés
     })
 
+    const events = response.data.items || []
+    console.log(`📅 ${events.length} événements récupérés`)
+
     return NextResponse.json({
-      events: response.data.items || [],
-      nextPageToken: response.data.nextPageToken
+      events,
+      nextPageToken: response.data.nextPageToken,
+      timeRange: { timeMin, timeMax },
+      totalFound: events.length
     })
 
   } catch (error) {

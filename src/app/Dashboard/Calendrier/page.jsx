@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit } from "react-icons/fa"
+import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
 import AddEventModal from "../../components/Calendar/AddEventModal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
@@ -34,48 +34,76 @@ export default function Calendrier(){
         if (!session?.accessToken) return
         
         setLoadingEvents(true)
+        console.log('🔄 Rechargement des événements...', { viewMode, currentDate: currentDate.toDateString() })
+        
         try {
             // Calculer les dates de début et fin basées sur le mode d'affichage
             let timeMin, timeMax
             const now = new Date(currentDate)
             
             if (viewMode === 'month') {
-                // Premier jour du mois
+                // Premier jour du mois - étendre pour inclure la semaine précédente
                 timeMin = new Date(now.getFullYear(), now.getMonth(), 1)
-                // Dernier jour du mois
+                const firstDayOfWeek = timeMin.getDay()
+                timeMin.setDate(timeMin.getDate() - firstDayOfWeek)
+                
+                // Dernier jour du mois - étendre pour inclure la semaine suivante
                 timeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+                const lastDayOfWeek = timeMax.getDay()
+                timeMax.setDate(timeMax.getDate() + (6 - lastDayOfWeek))
+                
+                // Assurer qu'on va jusqu'à la fin de la journée
+                timeMax.setHours(23, 59, 59, 999)
             } else if (viewMode === 'week') {
                 // Début de la semaine (dimanche)
                 timeMin = new Date(now)
                 timeMin.setDate(now.getDate() - now.getDay())
+                timeMin.setHours(0, 0, 0, 0)
+                
                 // Fin de la semaine (samedi)
                 timeMax = new Date(timeMin)
                 timeMax.setDate(timeMin.getDate() + 6)
+                timeMax.setHours(23, 59, 59, 999)
             } else {
                 // Jour actuel
                 timeMin = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+                timeMin.setHours(0, 0, 0, 0)
                 timeMax = new Date(timeMin)
                 timeMax.setDate(timeMin.getDate() + 1)
+                timeMax.setHours(23, 59, 59, 999)
             }
+
+            console.log('📅 Plage de dates:', { 
+                timeMin: timeMin.toISOString(), 
+                timeMax: timeMax.toISOString() 
+            })
 
             const params = new URLSearchParams({
                 timeMin: timeMin.toISOString(),
                 timeMax: timeMax.toISOString(),
-                maxResults: '250'
+                maxResults: '500' // Augmenté pour plus d'événements
             })
 
             const response = await fetch(`/api/calendar/events?${params}`, {
                 headers: {
-                    'Authorization': `Bearer ${session.accessToken}`
+                    'Authorization': `Bearer ${session.accessToken}`,
+                    'Cache-Control': 'no-cache'
                 }
             })
             
             if (response.ok) {
                 const data = await response.json()
+                console.log('✅ Événements reçus:', data.totalFound)
                 setEvents(data.events || [])
+            } else {
+                const errorData = await response.json()
+                console.error('❌ Erreur API:', errorData)
+                if (errorData.needsReauth) {
+                    console.log('🔄 Token expiré, reconnexion nécessaire')
+                }
             }
         } catch (error) {
-            console.error('Erreur lors du chargement des événements:', error)
+            console.error('❌ Erreur lors du chargement des événements:', error)
         } finally {
             setLoadingEvents(false)
         }
@@ -94,7 +122,9 @@ export default function Calendrier(){
 
             if (response.ok) {
                 const data = await response.json()
-                setEvents(prev => [...prev, data.event])
+                console.log('✅ Événement créé:', data.event.summary)
+                // Recharger tous les événements pour synchroniser
+                await loadGoogleCalendarEvents()
                 return data.event
             } else {
                 const error = await response.json()
@@ -116,7 +146,9 @@ export default function Calendrier(){
             })
 
             if (response.ok) {
-                setEvents(prev => prev.filter(event => event.id !== eventId))
+                console.log('✅ Événement supprimé')
+                // Recharger tous les événements pour synchroniser
+                await loadGoogleCalendarEvents()
             } else {
                 const error = await response.json()
                 throw new Error(error.error || 'Erreur lors de la suppression')
@@ -265,9 +297,9 @@ export default function Calendrier(){
                             {/* Sélecteur de vue */}
                             <div className="flex bg-gray-700/30 rounded-xl p-1">
                                 {[
-                                    { key: 'month', icon: FaTh, label: 'Mois' },
-                                    { key: 'week', icon: FaList, label: 'Semaine' },
-                                    { key: 'day', icon: FaCalendarAlt, label: 'Jour' }
+                                    { key: 'month', icon: FaCalendarAlt, label: 'Mois' },
+                                    { key: 'week', icon: FaCalendarWeek, label: 'Semaine' },
+                                    { key: 'day', icon: FaCalendarDay, label: 'Jour' }
                                 ].map(({ key, icon: Icon, label }) => (
                                     <button
                                         key={key}
@@ -284,6 +316,16 @@ export default function Calendrier(){
                                     </button>
                                 ))}
                             </div>
+
+                            {/* Bouton refresh */}
+                            <button
+                                onClick={loadGoogleCalendarEvents}
+                                disabled={loadingEvents}
+                                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
+                            >
+                                <FaSync className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
+                                <span className="hidden sm:inline">Sync</span>
+                            </button>
 
                             {/* Bouton ajouter événement */}
                             <button
@@ -344,10 +386,17 @@ export default function Calendrier(){
                                 setShowAddEvent(true)
                                             }}
                                         >
-                                            <div className={`text-sm font-medium mb-2 ${
+                                            <div className={`text-sm font-medium mb-2 relative ${
                                                 isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
                                             }`}>
-                                                {date.getDate()}
+                                                <span className={isCurrentDay ? 'relative z-10' : ''}>
+                                                    {date.getDate()}
+                                                </span>
+                                                {isCurrentDay && (
+                                                    <div className="absolute inset-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center -top-1 -left-1">
+                                                        <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                    </div>
+                                                )}
                                             </div>
                                             
                                             {/* Événements du jour */}

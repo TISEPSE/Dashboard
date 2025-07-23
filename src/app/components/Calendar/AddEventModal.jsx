@@ -88,7 +88,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl max-w-lg w-full shadow-2xl border border-gray-600/20"
+          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl xl:max-w-2xl shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -108,14 +108,14 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6">
+          <form onSubmit={handleSubmit} className="p-4 sm:p-6">
             {error && (
               <div className="mb-6 p-4 bg-red-500/20 border border-red-500/30 rounded-xl text-red-300 text-sm">
                 {error}
               </div>
             )}
 
-            <div className="space-y-6">
+            <div className="space-y-4 sm:space-y-6">
               {/* Titre */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
@@ -162,7 +162,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
               </div>
 
               {/* Date et heure de début */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Date de début
@@ -191,7 +191,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
               </div>
 
               {/* Date et heure de fin */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
                     Date de fin
@@ -221,7 +221,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 mt-8">
+            <div className="flex flex-col sm:flex-row gap-3 mt-6 sm:mt-8">
               <button
                 type="button"
                 onClick={onClose}
