@@ -3,58 +3,46 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek } from "react-icons/fa"
+import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi, FaWifiSlash } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
 import AddEventModal from "../../components/Calendar/AddEventModal"
 import DayEventsModal from "../../components/Calendar/DayEventsModal"
 import EditEventModal from "../../components/Calendar/EditEventModal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
+import { useCalendar } from "../../hooks/useCalendar"
+import { EVENT_COLORS } from "../../services/localCalendar"
 
 export default function Calendrier(){
     const [isLoading, setIsLoading] = useState(true)
     const [currentDate, setCurrentDate] = useState(new Date())
     const [viewMode, setViewMode] = useState('month') // 'month', 'week', 'day'
-    const [events, setEvents] = useState([])
     const [showAddEvent, setShowAddEvent] = useState(false)
     const [showDayEvents, setShowDayEvents] = useState(false)
     const [showEditEvent, setShowEditEvent] = useState(false)
     const [selectedEventDate, setSelectedEventDate] = useState(null)
     const [selectedEvent, setSelectedEvent] = useState(null)
-    const [loadingEvents, setLoadingEvents] = useState(false)
     const { data: session } = useSession()
+    
+    // Utiliser le hook du calendrier
+    const { 
+        events, 
+        loadingEvents, 
+        syncStatus, 
+        loadEvents, 
+        addEvent, 
+        updateEvent, 
+        deleteEvent, 
+        syncWithGoogle 
+    } = useCalendar()
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1000)
         return () => clearTimeout(timer)
     }, [])
 
-    // Charger les événements Google Calendar
+    // Charger les événements (Google + locaux)
     useEffect(() => {
-        if (session?.accessToken) {
-            loadGoogleCalendarEvents()
-        } else {
-            setEvents([]) // Clear events if no session
-        }
-    }, [session, currentDate, viewMode])
-
-    const loadGoogleCalendarEvents = async () => {
-        if (!session?.accessToken) {
-            console.log('❌ Pas de session ou token manquant:', { 
-                hasSession: !!session, 
-                hasToken: !!session?.accessToken 
-            })
-            return
-        }
-        
-        setLoadingEvents(true)
-        console.log('🔄 Rechargement des événements...', { 
-            viewMode, 
-            currentDate: currentDate.toDateString(),
-            tokenPresent: !!session.accessToken
-        })
-        
-        try {
-            // Calculer les dates de début et fin basées sur le mode d'affichage
+        const loadCurrentPeriodEvents = () => {
             let timeMin, timeMax
             const now = new Date(currentDate)
             
@@ -62,7 +50,8 @@ export default function Calendrier(){
                 // Premier jour du mois - étendre pour inclure la semaine précédente
                 timeMin = new Date(now.getFullYear(), now.getMonth(), 1)
                 const firstDayOfWeek = timeMin.getDay()
-                timeMin.setDate(timeMin.getDate() - firstDayOfWeek)
+                const mondayAdjustment = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+                timeMin.setDate(timeMin.getDate() - mondayAdjustment)
                 
                 // Dernier jour du mois - étendre pour inclure la semaine suivante
                 timeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0)
@@ -92,124 +81,12 @@ export default function Calendrier(){
                 timeMax.setHours(23, 59, 59, 999)
             }
 
-            console.log('📅 Plage de dates:', { 
-                timeMin: timeMin.toISOString(), 
-                timeMax: timeMax.toISOString() 
-            })
-
-            const params = new URLSearchParams({
-                timeMin: timeMin.toISOString(),
-                timeMax: timeMax.toISOString(),
-                maxResults: '500' // Augmenté pour plus d'événements
-            })
-
-            const response = await fetch(`/api/calendar/events?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${session.accessToken}`,
-                    'Cache-Control': 'no-cache'
-                }
-            })
-            
-            if (response.ok) {
-                const data = await response.json()
-                console.log('✅ Événements reçus:', data.totalFound)
-                setEvents(data.events || [])
-            } else {
-                const errorData = await response.json()
-                console.error('❌ Erreur API:', errorData)
-                if (errorData.needsReauth) {
-                    console.log('🔄 Token expiré, reconnexion nécessaire')
-                }
-            }
-        } catch (error) {
-            console.error('❌ Erreur lors du chargement des événements:', error)
-        } finally {
-            setLoadingEvents(false)
+            loadEvents(timeMin.toISOString(), timeMax.toISOString())
         }
-    }
 
-    const handleAddEvent = async (eventData) => {
-        try {
-            const response = await fetch('/api/calendar/events', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.accessToken}`
-                },
-                body: JSON.stringify(eventData)
-            })
+        loadCurrentPeriodEvents()
+    }, [currentDate, viewMode, loadEvents])
 
-            if (response.ok) {
-                const data = await response.json()
-                console.log('✅ Événement créé:', data.event.summary)
-                // Recharger tous les événements pour synchroniser
-                await loadGoogleCalendarEvents()
-                return data.event
-            } else {
-                const error = await response.json()
-                throw new Error(error.error || 'Erreur lors de la création')
-            }
-        } catch (error) {
-            console.error('Erreur création événement:', error)
-            throw error
-        }
-    }
-
-    const handleDeleteEvent = async (eventId) => {
-        try {
-            console.log('🗑️ Suppression de l\'événement:', eventId)
-            
-            const response = await fetch(`/api/calendar/events/${eventId}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.accessToken}`
-                }
-            })
-
-            if (response.ok) {
-                console.log('✅ Événement supprimé avec succès')
-                // Recharger tous les événements pour synchroniser
-                await loadGoogleCalendarEvents()
-                return true
-            } else {
-                const error = await response.json()
-                console.error('❌ Erreur API suppression:', error)
-                throw new Error(error.error || 'Erreur lors de la suppression')
-            }
-        } catch (error) {
-            console.error('❌ Erreur suppression événement:', error)
-            alert(`Erreur lors de la suppression: ${error.message}`)
-            return false
-        }
-    }
-
-    const handleEditEvent = async (eventData) => {
-        try {
-            const response = await fetch('/api/calendar/events', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${session.accessToken}`
-                },
-                body: JSON.stringify(eventData)
-            })
-
-            if (response.ok) {
-                const data = await response.json()
-                console.log('✅ Événement modifié:', data.event.summary)
-                // Recharger tous les événements pour synchroniser
-                await loadGoogleCalendarEvents()
-                return data.event
-            } else {
-                const error = await response.json()
-                throw new Error(error.error || 'Erreur lors de la modification')
-            }
-        } catch (error) {
-            console.error('Erreur modification événement:', error)
-            throw error
-        }
-    }
 
 
     // Navigation du calendrier
@@ -286,28 +163,7 @@ export default function Calendrier(){
         return <LoaderPortal />
     }
 
-    if (!session) {
-        return (
-            <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-6">
-                <div className="max-w-7xl mx-auto">
-                    <div className="flex flex-col justify-center items-center min-h-screen">
-                        <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl p-8 shadow-2xl border border-gray-600/20 text-center">
-                            <FaCalendarAlt className="w-16 h-16 text-blue-400 mx-auto mb-4" />
-                            <h1 className="text-3xl text-white mb-4 font-bold">Calendrier Google</h1>
-                            <p className="text-gray-300 mb-6">Connectez-vous avec Google pour accéder à votre calendrier</p>
-                            <div className="flex justify-center">
-                                <GoogleSignInButton
-                                    size="large"
-                                    variant="dark"
-                                    className="transform hover:scale-105"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        )
-    }
+    // Le calendrier est maintenant accessible même sans session
 
     return(
         <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-2 sm:px-4 lg:px-6">
@@ -375,9 +231,9 @@ export default function Calendrier(){
                             </div>
 
 
-                            {/* Bouton refresh */}
+                            {/* Bouton synchronisation */}
                             <button
-                                onClick={loadGoogleCalendarEvents}
+                                onClick={syncWithGoogle}
                                 disabled={loadingEvents}
                                 className="flex items-center gap-2 bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
                             >
@@ -466,38 +322,63 @@ export default function Calendrier(){
                                             
                                             {/* Événements du jour */}
                                             <div className="space-y-0.5 sm:space-y-1 lg:space-y-1.5 flex-1">
-                                                {dayEvents.slice(0, 2).map((event, eventIndex) => (
-                                                    <div
-                                                        key={eventIndex}
-                                                        className="text-xs sm:text-xs lg:text-sm p-0.5 sm:p-1 lg:p-1.5 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
-                                                        title={event.summary}
-                                                        onClick={(e) => e.stopPropagation()}
-                                                    >
-                                                        <span className="truncate block font-medium">{event.summary}</span>
-                                                    </div>
-                                                ))}
+                                                {dayEvents.slice(0, 2).map((event, eventIndex) => {
+                                                    const eventColor = EVENT_COLORS[event.colorId] || EVENT_COLORS['1']
+                                                    return (
+                                                        <div
+                                                            key={eventIndex}
+                                                            className="text-xs sm:text-xs lg:text-sm p-0.5 sm:p-1 lg:p-1.5 rounded truncate cursor-pointer hover:brightness-110 transition-all touch-manipulation"
+                                                            style={{
+                                                                backgroundColor: eventColor.background,
+                                                                color: eventColor.text
+                                                            }}
+                                                            title={event.summary}
+                                                            onClick={(e) => e.stopPropagation()}
+                                                        >
+                                                            <span className="truncate block font-medium">{event.summary}</span>
+                                                        </div>
+                                                    )
+                                                })}
                                                 {/* Afficher un événement supplémentaire sur desktop */}
                                                 {dayEvents.length > 2 && (
                                                     <div className="hidden lg:block">
-                                                        <div
-                                                            className="text-sm p-1.5 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
-                                                            title={dayEvents[2].summary}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <span className="truncate block font-medium">{dayEvents[2].summary}</span>
-                                                        </div>
+                                                        {(() => {
+                                                            const eventColor = EVENT_COLORS[dayEvents[2].colorId] || EVENT_COLORS['1']
+                                                            return (
+                                                                <div
+                                                                    className="text-sm p-1.5 rounded truncate cursor-pointer hover:brightness-110 transition-all touch-manipulation"
+                                                                    style={{
+                                                                        backgroundColor: eventColor.background,
+                                                                        color: eventColor.text
+                                                                    }}
+                                                                    title={dayEvents[2].summary}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <span className="truncate block font-medium">{dayEvents[2].summary}</span>
+                                                                </div>
+                                                            )
+                                                        })()}
                                                     </div>
                                                 )}
                                                 {/* Afficher jusqu'à 4 événements sur très grands écrans */}
                                                 {dayEvents.length > 3 && (
                                                     <div className="hidden xl:block">
-                                                        <div
-                                                            className="text-sm p-1.5 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
-                                                            title={dayEvents[3].summary}
-                                                            onClick={(e) => e.stopPropagation()}
-                                                        >
-                                                            <span className="truncate block font-medium">{dayEvents[3].summary}</span>
-                                                        </div>
+                                                        {(() => {
+                                                            const eventColor = EVENT_COLORS[dayEvents[3].colorId] || EVENT_COLORS['1']
+                                                            return (
+                                                                <div
+                                                                    className="text-sm p-1.5 rounded truncate cursor-pointer hover:brightness-110 transition-all touch-manipulation"
+                                                                    style={{
+                                                                        backgroundColor: eventColor.background,
+                                                                        color: eventColor.text
+                                                                    }}
+                                                                    title={dayEvents[3].summary}
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <span className="truncate block font-medium">{dayEvents[3].summary}</span>
+                                                                </div>
+                                                            )
+                                                        })()}
                                                     </div>
                                                 )}
                                                 {/* Compteur d'événements adaptatif */}
@@ -581,9 +462,18 @@ export default function Calendrier(){
                         <div className="flex items-center justify-between">
                             <div>
                                 <p className="text-amber-400 text-sm font-medium">Synchronisation</p>
-                                <p className="text-sm font-medium text-white">{session ? 'Connecté' : 'Déconnecté'}</p>
+                                <p className="text-sm font-medium text-white">
+                                    {session ? 'Google connecté' : 'Mode local'}
+                                </p>
                             </div>
-                            <div className={`w-3 h-3 rounded-full ${session ? 'bg-green-400 animate-pulse' : 'bg-red-400'}`}></div>
+                            <div className="flex items-center gap-2">
+                                {session ? (
+                                    <FaWifi className="w-4 h-4 text-green-400" />
+                                ) : (
+                                    <FaWifiSlash className="w-4 h-4 text-amber-400" />
+                                )}
+                                <div className={`w-3 h-3 rounded-full ${session ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`}></div>
+                            </div>
                         </div>
                     </div>
                 </motion.div>
@@ -596,7 +486,7 @@ export default function Calendrier(){
                     setShowAddEvent(false)
                     setSelectedEventDate(null)
                 }}
-                onSave={handleAddEvent}
+                onSave={addEvent}
                 selectedDate={selectedEventDate}
             />
 
@@ -614,7 +504,7 @@ export default function Calendrier(){
                     setShowDayEvents(false)
                     setShowEditEvent(true)
                 }}
-                onDeleteEvent={handleDeleteEvent}
+                onDeleteEvent={deleteEvent}
             />
 
             {/* Modal Modifier Événement */}
@@ -624,7 +514,7 @@ export default function Calendrier(){
                     setShowEditEvent(false)
                     setSelectedEvent(null)
                 }}
-                onSave={handleEditEvent}
+                onSave={updateEvent}
                 event={selectedEvent}
             />
         </div>

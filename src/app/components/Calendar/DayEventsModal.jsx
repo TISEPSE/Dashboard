@@ -1,10 +1,24 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { FaTimes, FaEdit, FaTrash, FaClock, FaMapMarkerAlt, FaAlignLeft } from "react-icons/fa"
 
 const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, onDeleteEvent }) => {
+  // Empêcher le scroll de l'arrière-plan quand le modal est ouvert
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup: restaurer le scroll quand le composant est démonté
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
+
   if (!isOpen || !selectedDate) return null
 
   const formatDate = (date) => {

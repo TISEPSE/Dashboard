@@ -89,7 +89,7 @@ export async function POST(request) {
     }
 
     const body = await request.json()
-    const { summary, description, start, end, location } = body
+    const { summary, description, start, end, location, colorId } = body
 
     // Validation des données requises
     if (!summary || !start || !end) {
@@ -123,6 +123,11 @@ export async function POST(request) {
         dateTime: end,
         timeZone: 'Europe/Paris',
       },
+    }
+
+    // Ajouter la couleur si spécifiée
+    if (colorId && colorId >= '1' && colorId <= '11') {
+      event.colorId = colorId
     }
 
     const response = await calendar.events.insert({
@@ -161,7 +166,7 @@ export async function PUT(request) {
     }
 
     const body = await request.json()
-    const { id, summary, description, start, end, location } = body
+    const { id, summary, description, start, end, location, colorId } = body
 
     // Validation des données requises
     if (!id || !summary || !start || !end) {
@@ -195,6 +200,11 @@ export async function PUT(request) {
         dateTime: end,
         timeZone: 'Europe/Paris',
       },
+    }
+
+    // Ajouter la couleur si spécifiée
+    if (colorId && colorId >= '1' && colorId <= '11') {
+      event.colorId = colorId
     }
 
     const response = await calendar.events.update({

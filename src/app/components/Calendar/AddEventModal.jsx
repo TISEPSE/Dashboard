@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaTimes, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaAlignLeft, FaSave } from "react-icons/fa"
+import { FaTimes, FaCalendarAlt, FaClock, FaMapMarkerAlt, FaAlignLeft, FaSave, FaPalette } from "react-icons/fa"
+import ColorPicker from "./ColorPicker"
 
 const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
   const [formData, setFormData] = useState({
@@ -13,9 +14,24 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
     startTime: '09:00',
     endDate: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
     endTime: '10:00',
+    colorId: '1',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Empêcher le scroll de l'arrière-plan quand le modal est ouvert 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup: restaurer le scroll quand le composant est démonté
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   const handleInputChange = (field, value) => {
     setFormData(prev => ({
@@ -50,6 +66,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
         location: formData.location.trim(),
         start: startISO,
         end: endISO,
+        colorId: formData.colorId,
       }
 
       await onSave(eventData)
@@ -63,6 +80,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
         startTime: '09:00',
         endDate: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
         endTime: '10:00',
+        colorId: '1',
       })
       
       onClose()
@@ -158,6 +176,18 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                   onChange={(e) => handleInputChange('location', e.target.value)}
                   className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
                   placeholder="Lieu de l'événement (optionnel)"
+                />
+              </div>
+
+              {/* Couleur */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  <FaPalette className="inline w-4 h-4 mr-2" />
+                  Couleur de l'événement
+                </label>
+                <ColorPicker
+                  selectedColorId={formData.colorId}
+                  onColorChange={(colorId) => handleInputChange('colorId', colorId)}
                 />
               </div>
 

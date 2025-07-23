@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaAlignLeft, FaClock } from "react-icons/fa"
+import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaAlignLeft, FaClock, FaPalette } from "react-icons/fa"
+import ColorPicker from "./ColorPicker"
 
 const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
   const [formData, setFormData] = useState({
@@ -10,7 +11,8 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
     description: '',
     location: '',
     start: '',
-    end: ''
+    end: '',
+    colorId: '1'
   })
   const [isLoading, setIsLoading] = useState(false)
 
@@ -29,10 +31,25 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
         description: event.description || '',
         location: event.location || '',
         start: startDate,
-        end: endDate
+        end: endDate,
+        colorId: event.colorId || '1'
       })
     }
   }, [event, isOpen])
+
+  // Empêcher le scroll de l'arrière-plan quand le modal est ouvert
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup: restaurer le scroll quand le composant est démonté
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -85,7 +102,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-md shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto scrollbar-hide"
+          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-lg shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto scrollbar-hide"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -203,6 +220,18 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                   disabled={isLoading}
                 />
               </div>
+            </div>
+
+            {/* Couleur */}
+            <div>
+              <label className="block text-gray-300 text-sm font-medium mb-3">
+                <FaPalette className="inline w-4 h-4 mr-2" />
+                Couleur de l'événement
+              </label>
+              <ColorPicker
+                selectedColorId={formData.colorId}
+                onColorChange={(colorId) => setFormData(prev => ({ ...prev, colorId }))}
+              />
             </div>
 
             {/* Boutons */}

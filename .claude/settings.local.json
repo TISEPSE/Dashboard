@@ -27,7 +27,9 @@
       "Bash(awk:*)",
       "Bash(cp:*)",
       "Bash(chmod:*)",
-      "Bash(bash:*)"
+      "Bash(bash:*)",
+      "Bash(git push:*)",
+      "Bash(git restore:*)"
     ],
     "deny": []
   }
