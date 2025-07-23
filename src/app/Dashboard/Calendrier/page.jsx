@@ -6,6 +6,8 @@ import { motion, AnimatePresence } from "framer-motion"
 import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
 import AddEventModal from "../../components/Calendar/AddEventModal"
+import DayEventsModal from "../../components/Calendar/DayEventsModal"
+import EditEventModal from "../../components/Calendar/EditEventModal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
 
 export default function Calendrier(){
@@ -14,9 +16,11 @@ export default function Calendrier(){
     const [viewMode, setViewMode] = useState('month') // 'month', 'week', 'day'
     const [events, setEvents] = useState([])
     const [showAddEvent, setShowAddEvent] = useState(false)
+    const [showDayEvents, setShowDayEvents] = useState(false)
+    const [showEditEvent, setShowEditEvent] = useState(false)
     const [selectedEventDate, setSelectedEventDate] = useState(null)
+    const [selectedEvent, setSelectedEvent] = useState(null)
     const [loadingEvents, setLoadingEvents] = useState(false)
-    const [testResult, setTestResult] = useState(null)
     const { data: session } = useSession()
 
     useEffect(() => {
@@ -170,17 +174,33 @@ export default function Calendrier(){
         }
     }
 
-    const testCalendarAPI = async () => {
+    const handleEditEvent = async (eventData) => {
         try {
-            const response = await fetch('/api/calendar/test')
-            const data = await response.json()
-            setTestResult(data)
-            console.log('🧪 Résultat test API:', data)
+            const response = await fetch('/api/calendar/events', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${session.accessToken}`
+                },
+                body: JSON.stringify(eventData)
+            })
+
+            if (response.ok) {
+                const data = await response.json()
+                console.log('✅ Événement modifié:', data.event.summary)
+                // Recharger tous les événements pour synchroniser
+                await loadGoogleCalendarEvents()
+                return data.event
+            } else {
+                const error = await response.json()
+                throw new Error(error.error || 'Erreur lors de la modification')
+            }
         } catch (error) {
-            console.error('❌ Erreur test API:', error)
-            setTestResult({ error: error.message })
+            console.error('Erreur modification événement:', error)
+            throw error
         }
     }
+
 
     // Navigation du calendrier
     const navigateDate = (direction) => {
@@ -340,20 +360,12 @@ export default function Calendrier(){
                                 ))}
                             </div>
 
-                            {/* Bouton test API */}
-                            <button
-                                onClick={testCalendarAPI}
-                                className="flex items-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 text-white px-4 py-3 rounded-xl font-medium hover:from-purple-700 hover:to-purple-800 transition-all duration-200 transform hover:scale-105 shadow-lg"
-                            >
-                                <span className="text-xs">🧪</span>
-                                <span className="hidden sm:inline">Test</span>
-                            </button>
 
                             {/* Bouton refresh */}
                             <button
                                 onClick={loadGoogleCalendarEvents}
                                 disabled={loadingEvents}
-                                className="flex items-center gap-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white px-4 py-3 rounded-xl font-medium hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
+                                className="flex items-center gap-2 bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
                             >
                                 <FaSync className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
                                 <span className="hidden sm:inline">Sync</span>
@@ -362,7 +374,7 @@ export default function Calendrier(){
                             {/* Bouton ajouter événement */}
                             <button
                                 onClick={() => setShowAddEvent(true)}
-                                className="flex items-center gap-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 py-3 rounded-xl font-medium hover:from-green-700 hover:to-emerald-700 transition-all duration-200 transform hover:scale-105 shadow-lg"
+                                className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
                             >
                                 <FaPlus className="w-4 h-4" />
                                 <span className="hidden sm:inline">Nouveau</span>
@@ -414,8 +426,13 @@ export default function Calendrier(){
                                                     : 'bg-gray-800/10 text-gray-500'
                                             }`}
                                             onClick={() => {
+                                                const dayEvents = getEventsForDay(date)
                                                 setSelectedEventDate(date)
-                                setShowAddEvent(true)
+                                                if (dayEvents.length > 0) {
+                                                    setShowDayEvents(true)
+                                                } else {
+                                                    setShowAddEvent(true)
+                                                }
                                             }}
                                         >
                                             <div className={`text-sm font-medium mb-2 relative ${
@@ -437,7 +454,7 @@ export default function Calendrier(){
                                                 {dayEvents.slice(0, 3).map((event, eventIndex) => (
                                                     <div
                                                         key={eventIndex}
-                                                        className="text-xs p-1 rounded bg-gradient-to-r from-blue-500/80 to-indigo-500/80 text-white truncate cursor-pointer hover:from-blue-600/90 hover:to-indigo-600/90 transition-all group relative"
+                                                        className="text-xs p-1 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all group relative"
                                                         title={event.summary}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
@@ -489,19 +506,6 @@ export default function Calendrier(){
                     )}
                 </motion.div>
 
-                {/* Résultat du test API (temporaire pour debug) */}
-                {testResult && (
-                    <motion.div 
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="mt-6 p-4 bg-gradient-to-r from-purple-900/30 to-indigo-900/30 rounded-xl border border-purple-500/20"
-                    >
-                        <h4 className="text-white font-bold mb-2">🧪 Résultat du test API</h4>
-                        <pre className="text-xs text-gray-300 overflow-auto">
-                            {JSON.stringify(testResult, null, 2)}
-                        </pre>
-                    </motion.div>
-                )}
 
                 {/* Statistiques rapides */}
                 <motion.div 
@@ -561,6 +565,34 @@ export default function Calendrier(){
                 }}
                 onSave={handleAddEvent}
                 selectedDate={selectedEventDate}
+            />
+
+            {/* Modal Événements du Jour */}
+            <DayEventsModal
+                isOpen={showDayEvents}
+                onClose={() => {
+                    setShowDayEvents(false)
+                    setSelectedEventDate(null)
+                }}
+                selectedDate={selectedEventDate}
+                events={selectedEventDate ? getEventsForDay(selectedEventDate) : []}
+                onEditEvent={(event) => {
+                    setSelectedEvent(event)
+                    setShowDayEvents(false)
+                    setShowEditEvent(true)
+                }}
+                onDeleteEvent={handleDeleteEvent}
+            />
+
+            {/* Modal Modifier Événement */}
+            <EditEventModal
+                isOpen={showEditEvent}
+                onClose={() => {
+                    setShowEditEvent(false)
+                    setSelectedEvent(null)
+                }}
+                onSave={handleEditEvent}
+                event={selectedEvent}
             />
         </div>
     )

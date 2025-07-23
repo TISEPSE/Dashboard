@@ -151,3 +151,76 @@ export async function POST(request) {
     }, { status: 500 })
   }
 }
+
+export async function PUT(request) {
+  try {
+    const session = await getServerSession(authOptions)
+    
+    if (!session?.accessToken) {
+      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+    }
+
+    const body = await request.json()
+    const { id, summary, description, start, end, location } = body
+
+    // Validation des données requises
+    if (!id || !summary || !start || !end) {
+      return NextResponse.json({ 
+        error: "Données manquantes (id, summary, start, end requis)" 
+      }, { status: 400 })
+    }
+
+    // Configuration de l'API Google Calendar
+    const oauth2Client = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET
+    )
+
+    oauth2Client.setCredentials({
+      access_token: session.accessToken
+    })
+
+    const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
+
+    // Modifier l'événement
+    const event = {
+      summary,
+      description,
+      location,
+      start: {
+        dateTime: start,
+        timeZone: 'Europe/Paris',
+      },
+      end: {
+        dateTime: end,
+        timeZone: 'Europe/Paris',
+      },
+    }
+
+    const response = await calendar.events.update({
+      calendarId: 'primary',
+      eventId: id,
+      resource: event,
+    })
+
+    return NextResponse.json({
+      event: response.data,
+      message: "Événement modifié avec succès"
+    })
+
+  } catch (error) {
+    console.error('Erreur modification événement:', error)
+    
+    if (error.code === 401) {
+      return NextResponse.json({ 
+        error: "Token d'accès expiré",
+        needsReauth: true 
+      }, { status: 401 })
+    }
+
+    return NextResponse.json({ 
+      error: "Erreur lors de la modification de l'événement",
+      details: error.message 
+    }, { status: 500 })
+  }
+}

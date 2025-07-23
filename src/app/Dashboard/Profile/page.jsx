@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useSession, signOut } from 'next-auth/react'
+import { FaUser } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
 
@@ -52,11 +53,17 @@ export default function Profile(){
                     {session && (
                         <div className="flex flex-col items-center gap-6">
                             <div className="flex items-center gap-4 bg-[#2a2d3e] px-6 py-4 rounded-lg border border-gray-600/30">
-                                <img 
-                                    src={session.user.image} 
-                                    alt={session.user.name}
-                                    className="w-16 h-16 rounded-full"
-                                />
+                                <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 overflow-hidden">
+                                    {session.user.image ? (
+                                        <img 
+                                            src={session.user.image} 
+                                            alt={session.user.name}
+                                            className="w-full h-full object-cover"
+                                        />
+                                    ) : (
+                                        <FaUser className="w-7 h-7 text-white" />
+                                    )}
+                                </div>
                                 <div>
                                     <h2 className="text-xl font-semibold text-white">{session.user.name}</h2>
                                     <p className="text-gray-400">{session.user.email}</p>

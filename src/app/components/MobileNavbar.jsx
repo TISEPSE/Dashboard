@@ -136,16 +136,20 @@ export default function MobileNavbar() {
                       )}
                       
                       {item.isProfile && session ? (
-                        <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 ${
+                        <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600 ${
                           pathname === item.href 
                             ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
                             : 'group-hover:scale-110'
                         }`}>
-                          <img 
-                            src={session.user.image} 
-                            alt={session.user.name}
-                            className="w-full h-full object-cover"
-                          />
+                          {session.user.image ? (
+                            <img 
+                              src={session.user.image} 
+                              alt={session.user.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <FaUser className="w-4 h-4 text-white" />
+                          )}
                         </div>
                       ) : (
                         <div className={`text-xl transition-all duration-300 relative z-10 ${

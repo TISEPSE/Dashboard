@@ -106,12 +106,16 @@ export default function Navbar({isOpen, setIsOpen}) {
                   >
                     {session ? (
                       <>
-                        <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px]">
-                          <img 
-                            src={session.user.image} 
-                            alt={session.user.name}
-                            className="w-full h-full object-cover"
-                          />
+                        <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex items-center justify-center bg-gradient-to-br from-indigo-500 to-purple-600">
+                          {session.user.image ? (
+                            <img 
+                              src={session.user.image} 
+                              alt={session.user.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <FaUser className="w-3 h-3 text-white" />
+                          )}
                         </div>
                         <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1 truncate">
                           {session.user.name}
@@ -174,13 +178,17 @@ export default function Navbar({isOpen, setIsOpen}) {
                   {session ? (
                     <Link
                       href="/Dashboard/Profile"
-                      className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50"
+                      className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50 bg-gradient-to-br from-indigo-500 to-purple-600"
                     >
-                      <img 
-                        src={session.user.image} 
-                        alt={session.user.name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
+                      {session.user.image ? (
+                        <img 
+                          src={session.user.image} 
+                          alt={session.user.name}
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                      ) : (
+                        <FaUser className="w-5 h-5 text-white" />
+                      )}
                     </Link>
                   ) : (
                     <Link
