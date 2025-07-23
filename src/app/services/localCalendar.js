@@ -2,7 +2,7 @@
 
 // Couleurs prédéfinies pour les événements
 export const EVENT_COLORS = {
-  '1': { background: '#7986CB', text: '#ffffff' }, // Lavande
+  '1': { background: '#1976D2', text: '#ffffff' }, // Bleu vrai
   '2': { background: '#33B679', text: '#ffffff' }, // Sauge
   '3': { background: '#8E24AA', text: '#ffffff' }, // Raisin
   '4': { background: '#E67C73', text: '#ffffff' }, // Fleur
@@ -17,6 +17,7 @@ export const EVENT_COLORS = {
 
 const STORAGE_KEY = 'dashboard_local_events'
 const SYNC_STATUS_KEY = 'dashboard_sync_status'
+const PENDING_UPDATES_KEY = 'dashboard_pending_updates'
 
 // Générer un ID unique pour les événements locaux
 const generateId = () => {
@@ -170,5 +171,67 @@ export const getSyncStatus = () => {
     return stored ? JSON.parse(stored) : null
   } catch (error) {
     return null
+  }
+}
+
+// Système de modifications en attente pour événements Google
+// Sauvegarder une modification en attente pour un événement Google
+export const addPendingUpdate = (eventId, updates) => {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const stored = localStorage.getItem(PENDING_UPDATES_KEY)
+    const pendingUpdates = stored ? JSON.parse(stored) : {}
+    
+    // Fusionner les nouvelles modifications avec les existantes
+    if (pendingUpdates[eventId]) {
+      pendingUpdates[eventId] = { ...pendingUpdates[eventId], ...updates }
+    } else {
+      pendingUpdates[eventId] = { 
+        ...updates, 
+        timestamp: new Date().toISOString() 
+      }
+    }
+    
+    localStorage.setItem(PENDING_UPDATES_KEY, JSON.stringify(pendingUpdates))
+    console.log('💾 Modification en attente sauvegardée:', { eventId, updates })
+  } catch (error) {
+    console.error('Erreur sauvegarde modification en attente:', error)
+  }
+}
+
+// Obtenir toutes les modifications en attente
+export const getPendingUpdates = () => {
+  if (typeof window === 'undefined') return {}
+  
+  try {
+    const stored = localStorage.getItem(PENDING_UPDATES_KEY)
+    return stored ? JSON.parse(stored) : {}
+  } catch (error) {
+    console.error('Erreur lecture modifications en attente:', error)
+    return {}
+  }
+}
+
+// Marquer une modification comme synchronisée
+export const removePendingUpdate = (eventId) => {
+  if (typeof window === 'undefined') return
+  
+  try {
+    const stored = localStorage.getItem(PENDING_UPDATES_KEY)
+    const pendingUpdates = stored ? JSON.parse(stored) : {}
+    
+    delete pendingUpdates[eventId]
+    localStorage.setItem(PENDING_UPDATES_KEY, JSON.stringify(pendingUpdates))
+    console.log('✅ Modification synchronisée:', eventId)
+  } catch (error) {
+    console.error('Erreur suppression modification en attente:', error)
+  }
+}
+
+// Effacer toutes les modifications en attente
+export const clearPendingUpdates = () => {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(PENDING_UPDATES_KEY)
   }
 }

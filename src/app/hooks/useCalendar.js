@@ -8,7 +8,10 @@ import {
   getLocalEventsForPeriod,
   markEventAsSynced,
   getUnsyncedEvents,
-  setSyncStatus
+  setSyncStatus,
+  addPendingUpdate,
+  getPendingUpdates,
+  removePendingUpdate
 } from '../services/localCalendar'
 
 export const useCalendar = () => {
@@ -58,8 +61,18 @@ export const useCalendar = () => {
       const localEvents = getLocalEventsForPeriod(timeMin, timeMax)
       console.log(`📱 ${localEvents.length} événements locaux chargés`)
       
+      // Appliquer les modifications en attente aux événements Google
+      const pendingUpdates = getPendingUpdates()
+      const modifiedGoogleEvents = allEvents.map(event => {
+        if (pendingUpdates[event.id]) {
+          console.log(`🎨 Application modification en attente pour ${event.id}:`, pendingUpdates[event.id])
+          return { ...event, ...pendingUpdates[event.id] }
+        }
+        return event
+      })
+      
       // Combiner les événements (éviter les doublons si déjà synchronisés)
-      const combinedEvents = [...allEvents]
+      const combinedEvents = [...modifiedGoogleEvents]
       localEvents.forEach(localEvent => {
         // Ajouter seulement les événements locaux non synchronisés
         if (!localEvent.synced) {
@@ -131,28 +144,47 @@ export const useCalendar = () => {
         console.log('📱 Modification événement local...')
         const updatedEvent = updateLocalEvent(eventData.id, eventData)
         console.log('✅ Événement local modifié')
+        // Recharger les événements pour mettre à jour l'affichage
+        loadEvents()
         return updatedEvent
-      } else if (session?.accessToken) {
-        // Modifier événement Google
-        console.log('📅 Modification événement Google...')
-        const response = await fetch('/api/calendar/events', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.accessToken}`
-          },
-          body: JSON.stringify(eventData)
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          console.log('✅ Événement Google modifié')
-          return data.event
-        } else {
-          throw new Error('Erreur API Google')
-        }
       } else {
-        throw new Error('Non connecté et événement non local')
+        // Événement Google à modifier
+        if (session?.accessToken) {
+          try {
+            // Essayer de modifier directement sur Google Calendar
+            console.log('📅 Modification événement Google...')
+            const response = await fetch('/api/calendar/events', {
+              method: 'PUT',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.accessToken}`
+              },
+              body: JSON.stringify(eventData)
+            })
+
+            if (response.ok) {
+              const data = await response.json()
+              console.log('✅ Événement Google modifié')
+              // Recharger les événements pour mettre à jour l'affichage
+              loadEvents()
+              return data.event
+            } else {
+              throw new Error('Erreur API Google')
+            }
+          } catch (error) {
+            console.log('⚠️ Échec modification Google, sauvegarde en attente...', error)
+            // Fallback: sauvegarder la modification en attente
+            addPendingUpdate(eventData.id, eventData)
+            loadEvents() // Recharger pour appliquer visuellement
+            return eventData
+          }
+        } else {
+          // Pas connecté : sauvegarder modification en attente
+          console.log('📴 Hors ligne: sauvegarde modification en attente...')
+          addPendingUpdate(eventData.id, eventData)
+          loadEvents() // Recharger pour appliquer visuellement
+          return eventData
+        }
       }
     } catch (error) {
       console.error('❌ Erreur modification événement:', error)
@@ -209,13 +241,14 @@ export const useCalendar = () => {
     try {
       console.log('🔄 Début de la synchronisation...')
       const unsyncedEvents = getUnsyncedEvents()
+      const pendingUpdates = getPendingUpdates()
       
-      if (unsyncedEvents.length === 0) {
+      if (unsyncedEvents.length === 0 && Object.keys(pendingUpdates).length === 0) {
         console.log('✅ Aucun événement à synchroniser')
         return
       }
 
-      console.log(`📤 Synchronisation de ${unsyncedEvents.length} événements...`)
+      console.log(`📤 Synchronisation de ${unsyncedEvents.length} nouveaux événements et ${Object.keys(pendingUpdates).length} modifications...`)
       
       for (const localEvent of unsyncedEvents) {
         try {
@@ -247,9 +280,39 @@ export const useCalendar = () => {
         }
       }
       
+      // Synchroniser les modifications en attente
+      for (const [eventId, updates] of Object.entries(pendingUpdates)) {
+        try {
+          console.log(`🎨 Synchronisation modification couleur pour ${eventId}...`)
+          const response = await fetch('/api/calendar/events', {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.accessToken}`
+            },
+            body: JSON.stringify({
+              id: eventId,
+              ...updates
+            })
+          })
+
+          if (response.ok) {
+            removePendingUpdate(eventId)
+            console.log(`✅ Modification synchronisée: ${eventId}`)
+          } else {
+            console.error(`❌ Erreur sync modification: ${eventId}`)
+          }
+        } catch (error) {
+          console.error(`❌ Erreur sync modification ${eventId}:`, error)
+        }
+      }
+      
       setSyncStatus('success')
       setSyncStatusState('success')
       console.log('✅ Synchronisation terminée')
+      
+      // Recharger les événements après synchronisation
+      loadEvents()
       
     } catch (error) {
       console.error('❌ Erreur synchronisation:', error)

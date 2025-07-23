@@ -191,61 +191,66 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                 />
               </div>
 
-              {/* Date et heure de début */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Date de début
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.startDate}
-                    onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <FaClock className="inline w-4 h-4 mr-2" />
-                    Heure de début
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.startTime}
-                    onChange={(e) => handleInputChange('startTime', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
-                    required
-                  />
-                </div>
-              </div>
+              {/* Programmation */}
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-3">
+                  <FaClock className="inline w-4 h-4 mr-2" />
+                  Programmation
+                </label>
+                <div className="bg-gray-700/20 rounded-xl p-4 space-y-4 border border-gray-600/30">
+                  {/* Date et heure de début */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
+                      Début
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="date"
+                          value={formData.startDate}
+                          onChange={(e) => handleInputChange('startDate', e.target.value)}
+                          className="w-full bg-gray-800/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="time"
+                          value={formData.startTime}
+                          onChange={(e) => handleInputChange('startTime', e.target.value)}
+                          className="w-full bg-gray-800/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
 
-              {/* Date et heure de fin */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Date de fin
-                  </label>
-                  <input
-                    type="date"
-                    value={formData.endDate}
-                    onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    <FaClock className="inline w-4 h-4 mr-2" />
-                    Heure de fin
-                  </label>
-                  <input
-                    type="time"
-                    value={formData.endTime}
-                    onChange={(e) => handleInputChange('endTime', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
-                    required
-                  />
+                  {/* Date et heure de fin */}
+                  <div>
+                    <label className="block text-xs font-medium text-gray-400 mb-2 uppercase tracking-wide">
+                      Fin
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <input
+                          type="date"
+                          value={formData.endDate}
+                          onChange={(e) => handleInputChange('endDate', e.target.value)}
+                          className="w-full bg-gray-800/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <input
+                          type="time"
+                          value={formData.endTime}
+                          onChange={(e) => handleInputChange('endTime', e.target.value)}
+                          className="w-full bg-gray-800/50 border border-gray-600/50 rounded-lg px-3 py-2 text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                          required
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>

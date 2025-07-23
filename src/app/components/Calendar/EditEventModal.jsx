@@ -102,7 +102,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-lg shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto scrollbar-hide"
+          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-2xl shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto scrollbar-hide"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -149,39 +149,53 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
               </div>
             </div>
 
-            {/* Dates */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Début *
-                </label>
-                <div className="relative">
-                  <FaClock className="absolute left-3 top-3 w-4 h-4 text-[#3A6FF8]" />
-                  <input
-                    type="datetime-local"
-                    value={formData.start}
-                    onChange={(e) => setFormData(prev => ({ ...prev, start: e.target.value }))}
-                    className="w-full bg-[#3a3d4e] border border-gray-600/50 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[#3A6FF8] focus:border-transparent"
-                    disabled={isLoading}
-                    required
-                  />
-                </div>
-              </div>
+            {/* Horaires */}
+            <div>
+              <label className="block text-gray-300 text-sm font-medium mb-3">
+                <FaClock className="inline w-4 h-4 mr-2 text-[#3A6FF8]" />
+                Horaires de l'événement
+              </label>
+              <div className="bg-gradient-to-br from-[#3a3d4e]/40 to-[#2a2d3e]/40 rounded-2xl p-6 border border-gray-600/30 shadow-inner">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Début */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <label className="text-sm font-semibold text-green-400 uppercase tracking-wide">
+                        Début
+                      </label>
+                    </div>
+                    <div className="bg-[#4a4d5e]/50 rounded-xl p-4 border border-gray-600/40">
+                      <input
+                        type="datetime-local"
+                        value={formData.start}
+                        onChange={(e) => setFormData(prev => ({ ...prev, start: e.target.value }))}
+                        className="w-full bg-[#5a5d6e] border border-gray-500/50 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:ring-2 focus:ring-green-500/50 focus:border-green-500/50 transition-all"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div>
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Fin *
-                </label>
-                <div className="relative">
-                  <FaClock className="absolute left-3 top-3 w-4 h-4 text-[#3A6FF8]" />
-                  <input
-                    type="datetime-local"
-                    value={formData.end}
-                    onChange={(e) => setFormData(prev => ({ ...prev, end: e.target.value }))}
-                    className="w-full bg-[#3a3d4e] border border-gray-600/50 rounded-xl pl-10 pr-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[#3A6FF8] focus:border-transparent"
-                    disabled={isLoading}
-                    required
-                  />
+                  {/* Fin */}
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 mb-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <label className="text-sm font-semibold text-red-400 uppercase tracking-wide">
+                        Fin
+                      </label>
+                    </div>
+                    <div className="bg-[#4a4d5e]/50 rounded-xl p-4 border border-gray-600/40">
+                      <input
+                        type="datetime-local"
+                        value={formData.end}
+                        onChange={(e) => setFormData(prev => ({ ...prev, end: e.target.value }))}
+                        className="w-full bg-[#5a5d6e] border border-gray-500/50 rounded-lg px-4 py-3 text-white text-base focus:outline-none focus:ring-2 focus:ring-red-500/50 focus:border-red-500/50 transition-all"
+                        disabled={isLoading}
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
