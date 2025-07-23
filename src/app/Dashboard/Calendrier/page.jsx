@@ -413,10 +413,10 @@ export default function Calendrier(){
                     {viewMode === 'month' && (
                         <div className="p-4 sm:p-6 lg:p-8">
                             {/* En-têtes des jours */}
-                            <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-3 mb-4 sm:mb-6">
+                            <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-3 mb-3 sm:mb-4 lg:mb-6">
                                 {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
-                                    <div key={index} className="p-3 sm:p-4 lg:p-5 text-center">
-                                        <span className="text-gray-400 font-semibold text-sm sm:text-base lg:text-lg">{day}</span>
+                                    <div key={index} className="p-2 sm:p-3 lg:p-4 text-center">
+                                        <span className="text-gray-400 font-semibold text-xs sm:text-sm lg:text-base">{day}</span>
                                     </div>
                                 ))}
                             </div>
@@ -433,7 +433,7 @@ export default function Calendrier(){
                                             key={index}
                                             whileHover={{ scale: 1.02 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className={`min-h-[100px] sm:min-h-[140px] lg:min-h-[160px] p-2 sm:p-3 lg:p-4 border border-gray-600/20 rounded-lg transition-all duration-200 cursor-pointer ${
+                                            className={`min-h-[80px] sm:min-h-[120px] lg:min-h-[140px] p-1 sm:p-2 lg:p-3 border border-gray-600/20 rounded-lg sm:rounded-xl lg:rounded-2xl transition-all duration-200 cursor-pointer ${
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg'
                                                     : isInCurrentMonth
@@ -450,12 +450,12 @@ export default function Calendrier(){
                                                 }
                                             }}
                                         >
-                                            <div className={`text-sm sm:text-base lg:text-lg font-medium mb-2 sm:mb-3 lg:mb-4 relative ${
+                                            <div className={`text-xs sm:text-sm lg:text-base font-medium mb-1 sm:mb-2 lg:mb-3 relative ${
                                                 isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
                                             }`}>
                                                 {isCurrentDay ? (
-                                                    <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                                        <span className="text-white font-bold text-sm sm:text-base lg:text-lg">
+                                                    <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 bg-blue-500 rounded-full flex items-center justify-center">
+                                                        <span className="text-white font-bold text-xs sm:text-sm lg:text-base">
                                                             {date.getDate()}
                                                         </span>
                                                     </div>
@@ -465,11 +465,11 @@ export default function Calendrier(){
                                             </div>
                                             
                                             {/* Événements du jour */}
-                                            <div className="space-y-1 sm:space-y-1.5 lg:space-y-2 flex-1">
+                                            <div className="space-y-0.5 sm:space-y-1 lg:space-y-1.5 flex-1">
                                                 {dayEvents.slice(0, 2).map((event, eventIndex) => (
                                                     <div
                                                         key={eventIndex}
-                                                        className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
+                                                        className="text-xs sm:text-xs lg:text-sm p-0.5 sm:p-1 lg:p-1.5 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
                                                         title={event.summary}
                                                         onClick={(e) => e.stopPropagation()}
                                                     >
@@ -480,7 +480,7 @@ export default function Calendrier(){
                                                 {dayEvents.length > 2 && (
                                                     <div className="hidden lg:block">
                                                         <div
-                                                            className="text-sm p-2 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
+                                                            className="text-sm p-1.5 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
                                                             title={dayEvents[2].summary}
                                                             onClick={(e) => e.stopPropagation()}
                                                         >
@@ -492,7 +492,7 @@ export default function Calendrier(){
                                                 {dayEvents.length > 3 && (
                                                     <div className="hidden xl:block">
                                                         <div
-                                                            className="text-sm p-2 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
+                                                            className="text-sm p-1.5 rounded bg-[#3A6FF8]/80 text-white truncate cursor-pointer hover:bg-[#2952d3]/90 transition-all touch-manipulation"
                                                             title={dayEvents[3].summary}
                                                             onClick={(e) => e.stopPropagation()}
                                                         >

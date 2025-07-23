@@ -55,7 +55,7 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
           exit={{ scale: 0.9, opacity: 0 }}
-          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-sm sm:max-w-md md:max-w-lg shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto scrollbar-hide"
+          className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl shadow-2xl border border-gray-600/20 max-h-[90vh] overflow-y-auto scrollbar-hide"
           style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -83,7 +83,7 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
           </div>
 
           {/* Events List */}
-          <div className="p-4 sm:p-6">
+          <div className="p-4 sm:p-6 lg:p-8">
             {events.length === 0 ? (
               <div className="text-center py-12">
                 <div className="w-16 h-16 bg-gray-700/30 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -93,13 +93,13 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
                 <p className="text-gray-500 text-sm">Cette journée est libre</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-4 lg:space-y-5">
                 {events.map((event, index) => (
                   <div
                     key={event.id || index}
-                    className="bg-gradient-to-r from-[#3a3d4e] to-[#2f3240] rounded-xl p-4 border border-gray-600/30 hover:border-gray-500/50"
+                    className="bg-gradient-to-r from-[#3a3d4e] to-[#2f3240] rounded-xl p-4 sm:p-5 lg:p-6 border border-gray-600/30 hover:border-gray-500/50"
                   >
-                    <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-start justify-between mb-4 sm:mb-5">
                       <div className="flex-1 min-w-0">
                         <h3 className="font-semibold text-white text-base truncate mb-2">
                           {event.summary || 'Sans titre'}
@@ -138,19 +138,19 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
                     </div>
 
                     {/* Actions - Toujours visibles */}
-                    <div className="flex gap-2 pt-4 border-t border-gray-600/30">
+                    <div className="flex gap-3 lg:gap-4 pt-4 sm:pt-5 border-t border-gray-600/30">
                       <button
                         onClick={() => handleEdit(event)}
-                        className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
+                        className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 transform hover:scale-105"
                       >
-                        <FaEdit className="w-3 h-3" />
+                        <FaEdit className="w-3 h-3 sm:w-4 sm:h-4" />
                         Modifier
                       </button>
                       <button
                         onClick={() => handleDelete(event)}
-                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105"
+                        className="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 sm:px-5 lg:px-6 py-2 sm:py-2.5 lg:py-3 rounded-lg text-sm sm:text-base font-medium transition-all duration-200 transform hover:scale-105"
                       >
-                        <FaTrash className="w-3 h-3" />
+                        <FaTrash className="w-3 h-3 sm:w-4 sm:h-4" />
                         Supprimer
                       </button>
                     </div>
