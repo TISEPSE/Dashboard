@@ -99,52 +99,52 @@ export default function Parametres() {
                     </div>
                 </motion.div>
 
-                {/* Section Signaler un problème - Déplacée en bas et plus discrète */}
+                {/* Section Contact & Support */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.4 }}
-                    className="bg-gradient-to-br from-gray-800/30 to-gray-900/30 rounded-2xl p-4 sm:p-6 shadow-xl border border-gray-700/30"
+                    className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl p-6 sm:p-8 shadow-2xl border border-gray-600/20"
                 >
-                    <div className="flex items-center gap-2 mb-4">
-                        <div className="w-8 h-8 bg-gradient-to-r from-gray-600 to-gray-700 rounded-lg flex items-center justify-center">
-                            <FaExclamationTriangle className="w-4 h-4 text-gray-300" />
+                    <div className="flex items-center gap-3 mb-6">
+                        <div className="w-10 h-10 bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] rounded-xl flex items-center justify-center">
+                            <FaExclamationTriangle className="w-5 h-5 text-white" />
                         </div>
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-300">Signaler un problème</h3>
-                            <p className="text-gray-500 text-xs">Un bug ? Une difficulté ?</p>
+                            <h3 className="text-xl font-bold text-white">Contact & Support</h3>
+                            <p className="text-gray-400 text-sm">Un problème ? Une suggestion ? Contactez-nous</p>
                         </div>
                     </div>
 
                     {/* Formulaire */}
-                    <form onSubmit={handleSubmit} className="space-y-4">
+                    <form onSubmit={handleSubmit} className="space-y-6">
                         {/* Nom et Prénom */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Nom
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.nom}
                                     onChange={(e) => handleInputChange('nom', e.target.value)}
-                                    className="w-full bg-gray-800/40 border border-gray-700/40 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 transition-all text-sm"
-                                    placeholder="ex: Dupont"
+                                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3A6FF8]/50 focus:border-[#3A6FF8]/50 transition-all"
+                                    placeholder="Votre nom de famille"
                                     disabled={isSubmitting}
                                     required
                                 />
                             </div>
                             
                             <div>
-                                <label className="block text-xs font-medium text-gray-400 mb-1">
+                                <label className="block text-sm font-medium text-gray-300 mb-2">
                                     Prénom
                                 </label>
                                 <input
                                     type="text"
                                     value={formData.prenom}
                                     onChange={(e) => handleInputChange('prenom', e.target.value)}
-                                    className="w-full bg-gray-800/40 border border-gray-700/40 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 transition-all text-sm"
-                                    placeholder="ex: Jean"
+                                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3A6FF8]/50 focus:border-[#3A6FF8]/50 transition-all"
+                                    placeholder="Votre prénom"
                                     disabled={isSubmitting}
                                     required
                                 />
@@ -153,20 +153,20 @@ export default function Parametres() {
 
                         {/* Description du problème */}
                         <div>
-                            <label className="block text-xs font-medium text-gray-400 mb-1">
-                                Description du problème
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                                Description du problème ou suggestion
                             </label>
                             <textarea
                                 value={formData.description}
                                 onChange={(e) => handleInputChange('description', e.target.value)}
-                                className="w-full bg-gray-800/40 border border-gray-700/40 rounded-lg px-3 py-2 text-gray-200 placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-gray-500/50 focus:border-gray-500/50 resize-none transition-all text-sm"
-                                rows={4}
-                                placeholder="Essayez de décrire votre problème le plus précisément possible..."
+                                className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#3A6FF8]/50 focus:border-[#3A6FF8]/50 resize-none transition-all"
+                                rows={5}
+                                placeholder="Décrivez votre problème, votre bug rencontré, ou votre suggestion d'amélioration..."
                                 disabled={isSubmitting}
                                 required
                             />
-                            <p className="text-xs text-gray-600 mt-1">
-                                Plus votre description est détaillée, plus nous pourrons vous aider rapidement.
+                            <p className="text-xs text-gray-400 mt-2">
+                                💡 Plus votre description est détaillée, plus nous pourrons vous aider rapidement.
                             </p>
                         </div>
 
@@ -175,10 +175,13 @@ export default function Parametres() {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-center gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-sm"
+                                className="flex items-center gap-3 p-4 bg-green-600/20 border border-green-500/30 rounded-xl text-green-300"
                             >
-                                <FaCheckCircle className="w-4 h-4" />
-                                <span>Signalement envoyé avec succès !</span>
+                                <FaCheckCircle className="w-5 h-5 flex-shrink-0" />
+                                <div>
+                                    <p className="font-medium">Message envoyé avec succès !</p>
+                                    <p className="text-sm text-green-400/80">Nous vous répondrons dans les plus brefs délais.</p>
+                                </div>
                             </motion.div>
                         )}
 
@@ -186,29 +189,32 @@ export default function Parametres() {
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
-                                className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm"
+                                className="flex items-center gap-3 p-4 bg-red-600/20 border border-red-500/30 rounded-xl text-red-300"
                             >
-                                <FaExclamationTriangle className="w-4 h-4" />
-                                <span>Erreur lors de l'envoi. Réessayez.</span>
+                                <FaExclamationTriangle className="w-5 h-5 flex-shrink-0" />
+                                <div>
+                                    <p className="font-medium">Erreur lors de l'envoi</p>
+                                    <p className="text-sm text-red-400/80">Veuillez vérifier les champs et réessayer.</p>
+                                </div>
                             </motion.div>
                         )}
 
                         {/* Bouton d'envoi */}
-                        <div className="flex justify-end">
+                        <div className="flex justify-end pt-2">
                             <button
                                 type="submit"
                                 disabled={isSubmitting || !formData.nom.trim() || !formData.prenom.trim() || !formData.description.trim()}
-                                className="flex items-center gap-2 bg-gray-700 hover:bg-gray-600 text-gray-200 px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-sm"
+                                className="flex items-center gap-2 bg-gradient-to-r from-[#3A6FF8] to-[#2952d3] hover:from-[#2952d3] hover:to-[#1e3ba8] text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg"
                             >
                                 {isSubmitting ? (
                                     <>
-                                        <FaSpinner className="w-3 h-3 animate-spin" />
-                                        Envoi...
+                                        <FaSpinner className="w-4 h-4 animate-spin" />
+                                        Envoi en cours...
                                     </>
                                 ) : (
                                     <>
-                                        <FaPaperPlane className="w-3 h-3" />
-                                        Envoyer
+                                        <FaPaperPlane className="w-4 h-4" />
+                                        Envoyer le message
                                     </>
                                 )}
                             </button>

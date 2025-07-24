@@ -68,7 +68,7 @@ export default function Navbar({isOpen, setIsOpen}) {
             {isOpen && (
               <>
                 {/* Affichage direct des liens avec icônes et textes */}
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 flex-1">
                   {[
                     {href: "/", label: "Accueil", icon: <FaHome className="text-emerald-400" />},
                     {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
@@ -77,7 +77,6 @@ export default function Navbar({isOpen, setIsOpen}) {
                     {href: "/Dashboard/Sante", label: "Santé", icon: <FaHeartbeat className="text-red-400" />},
                     {href: "/Dashboard/Finances", label: "Finances", icon: <FaChartLine className="text-green-400" />},
                     {href: "/Dashboard/Calendrier", label: "Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
-                    {href: "/Dashboard/Parametres", label: "Paramètres", icon: <FaCog className="text-gray-400" />},
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -94,6 +93,23 @@ export default function Navbar({isOpen, setIsOpen}) {
                       </span>
                     </Link>
                   ))}
+                  
+                  {/* Lien Paramètres placé en bas */}
+                  <div className="mt-auto">
+                    <Link
+                      href="/Dashboard/Parametres"
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                        pathname === "/Dashboard/Parametres"
+                          ? "bg-blue-600/30 text-blue-300 shadow-lg border border-blue-400/50"
+                          : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
+                      }`}
+                    >
+                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg"><FaCog className="text-gray-400" /></div>
+                      <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
+                        Paramètres
+                      </span>
+                    </Link>
+                  </div>
                   
                   {/* Lien Profile avec photo/pseudo si connecté */}
                   <Link
@@ -148,7 +164,7 @@ export default function Navbar({isOpen, setIsOpen}) {
             {!isOpen && (
               /* Version fermée - icônes uniquement */
               <div className="flex flex-col gap-2 items-center py-4 h-full">
-                <div className="flex flex-col gap-2 items-center">
+                <div className="flex flex-col gap-2 items-center flex-1">
                   {[
                     {href: "/", icon: <FaHome className="text-emerald-400" />},
                     {href: "/Dashboard/Crypto", icon: <FaBitcoin className="text-orange-400" />},
@@ -157,7 +173,6 @@ export default function Navbar({isOpen, setIsOpen}) {
                     {href: "/Dashboard/Sante", icon: <FaHeartbeat className="text-red-400" />},
                     {href: "/Dashboard/Finances", icon: <FaChartLine className="text-green-400" />},
                     {href: "/Dashboard/Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
-                    {href: "/Dashboard/Parametres", icon: <FaCog className="text-gray-400" />},
                   ].map((item) => (
                     <Link
                       key={item.href}
@@ -171,10 +186,24 @@ export default function Navbar({isOpen, setIsOpen}) {
                       <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg">{item.icon}</div>
                     </Link>
                   ))}
+                  
+                  {/* Paramètres en bas */}
+                  <div className="mt-auto mb-2">
+                    <Link
+                      href="/Dashboard/Parametres"
+                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
+                        pathname === "/Dashboard/Parametres"
+                          ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
+                          : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
+                      }`}
+                    >
+                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaCog className="text-gray-400" /></div>
+                    </Link>
+                  </div>
                 </div>
                 
                 {/* Photo de profil en bas quand connecté */}
-                <div className="mt-auto mb-4">
+                <div className="mb-4">
                   {session ? (
                     <Link
                       href="/Dashboard/Profile"

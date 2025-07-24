@@ -174,6 +174,19 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
     }
   }, [coin?.id, currency, selectedTimeframe, isOpen])
 
+  // Empêcher le scroll de l'arrière-plan quand le modal est ouvert
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+
+    // Cleanup: restaurer le scroll quand le composant est démonté
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen])
 
   // Détection mobile
   const [isMobile, setIsMobile] = useState(false)

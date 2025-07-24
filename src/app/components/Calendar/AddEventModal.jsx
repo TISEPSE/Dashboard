@@ -10,14 +10,72 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
     summary: '',
     description: '',
     location: '',
-    startDate: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    startDate: selectedDate ? (() => {
+      const year = selectedDate.getFullYear()
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0')
+      const day = selectedDate.getDate().toString().padStart(2, '0')
+      return `${year}-${month}-${day}`
+    })() : (() => {
+      const today = new Date()
+      const year = today.getFullYear()
+      const month = (today.getMonth() + 1).toString().padStart(2, '0')
+      const day = today.getDate().toString().padStart(2, '0')
+      return `${year}-${month}-${day}`
+    })(),
     startTime: '09:00',
-    endDate: selectedDate ? selectedDate.toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+    endDate: selectedDate ? (() => {
+      const year = selectedDate.getFullYear()
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0')
+      const day = selectedDate.getDate().toString().padStart(2, '0')
+      return `${year}-${month}-${day}`
+    })() : (() => {
+      const today = new Date()
+      const year = today.getFullYear()
+      const month = (today.getMonth() + 1).toString().padStart(2, '0')
+      const day = today.getDate().toString().padStart(2, '0')
+      return `${year}-${month}-${day}`
+    })(),
     endTime: '10:00',
     colorId: '1',
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+
+  // Synchroniser les dates et heures avec le jour/heure sélectionné
+  useEffect(() => {
+    if (selectedDate && isOpen) {
+      // Utiliser une méthode qui évite les problèmes de fuseau horaire
+      const year = selectedDate.getFullYear()
+      const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0')
+      const day = selectedDate.getDate().toString().padStart(2, '0')
+      const selectedDateString = `${year}-${month}-${day}`
+      
+      // Si une heure spécifique est sélectionnée (pas seulement la date), utiliser cette heure
+      let startTime = '09:00'
+      let endTime = '10:00'
+      
+      if (selectedDate.getHours() !== 0 || selectedDate.getMinutes() !== 0) {
+        // Une heure spécifique a été sélectionnée
+        const selectedHour = selectedDate.getHours()
+        const selectedMinute = selectedDate.getMinutes()
+        
+        startTime = `${selectedHour.toString().padStart(2, '0')}:${selectedMinute.toString().padStart(2, '0')}`
+        
+        // Heure de fin = heure de début + 1 heure
+        const endDate = new Date(selectedDate)
+        endDate.setHours(selectedHour + 1, selectedMinute)
+        endTime = `${endDate.getHours().toString().padStart(2, '0')}:${endDate.getMinutes().toString().padStart(2, '0')}`
+      }
+      
+      setFormData(prev => ({
+        ...prev,
+        startDate: selectedDateString,
+        endDate: selectedDateString,
+        startTime: startTime,
+        endTime: endTime
+      }))
+    }
+  }, [selectedDate, isOpen])
 
   // Empêcher le scroll de l'arrière-plan quand le modal est ouvert 
   useEffect(() => {
@@ -204,7 +262,8 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                     type="date"
                     value={formData.startDate}
                     onChange={(e) => handleInputChange('startDate', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 cursor-pointer hover:bg-gray-600/30 transition-colors"
+                    style={{ colorScheme: 'dark' }}
                     required
                   />
                 </div>
@@ -217,7 +276,9 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                     type="time"
                     value={formData.startTime}
                     onChange={(e) => handleInputChange('startTime', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 cursor-pointer hover:bg-gray-600/30 transition-colors"
+                    style={{ colorScheme: 'dark' }}
+                    step="300"
                     required
                   />
                 </div>
@@ -233,7 +294,8 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                     type="date"
                     value={formData.endDate}
                     onChange={(e) => handleInputChange('endDate', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 cursor-pointer hover:bg-gray-600/30 transition-colors"
+                    style={{ colorScheme: 'dark' }}
                     required
                   />
                 </div>
@@ -246,7 +308,9 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
                     type="time"
                     value={formData.endTime}
                     onChange={(e) => handleInputChange('endTime', e.target.value)}
-                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50"
+                    className="w-full bg-gray-700/30 border border-gray-600/30 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 cursor-pointer hover:bg-gray-600/30 transition-colors"
+                    style={{ colorScheme: 'dark' }}
+                    step="300"
                     required
                   />
                 </div>

@@ -127,11 +127,20 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
                         currentPage >= maxPages ||
                         cryptos.length < itemsPerPage
 
-  // Reset de la page courante quand filterType, tri ou recherche change (sans scroll)
+  // Reset de la page courante uniquement quand filterType ou recherche change (sans scroll)
+  // Le tri ne doit PAS remettre à la page 1 pour garder la position de l'utilisateur
   useEffect(() => {
     setCurrentPage(1)
     // Ne pas scroller automatiquement pour éviter les remontées en haut
-  }, [filterType, sortBy, sortOrder, searchQuery])
+  }, [filterType, searchQuery])
+
+  // Validation de la page courante après changement de tri pour éviter les pages inexistantes
+  useEffect(() => {
+    if (filterType !== 'favorites' && currentPage > maxPages && maxPages > 0) {
+      console.log(`📄 Page ${currentPage} invalide après tri, ajustement à la page ${maxPages}`)
+      setCurrentPage(maxPages)
+    }
+  }, [currentPage, maxPages, filterType])
 
   // Détection d'interaction pour accélérer les animations
   useEffect(() => {

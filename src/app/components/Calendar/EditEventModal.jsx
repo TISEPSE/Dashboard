@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaAlignLeft, FaClock, FaPalette } from "react-icons/fa"
+import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaAlignLeft, FaClock, FaPalette, FaTrash } from "react-icons/fa"
 import ColorPicker from "./ColorPicker"
 
-const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
+const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
   const [formData, setFormData] = useState({
     summary: '',
     description: '',
@@ -17,6 +17,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
     colorId: '1'
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
     if (event && isOpen) {
@@ -103,7 +104,24 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
 
   const handleClose = () => {
     if (!isLoading) {
+      setShowDeleteConfirm(false)
       onClose()
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!onDelete || !event) return
+    
+    setIsLoading(true)
+    try {
+      await onDelete(event.id)
+      setShowDeleteConfirm(false)
+      onClose()
+    } catch (error) {
+      console.error('Erreur lors de la suppression:', error)
+      alert(`Erreur lors de la suppression: ${error.message}`)
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -137,13 +155,37 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                   <h2 className="text-xl font-bold text-white">Modifier l'événement</h2>
                 </div>
               </div>
-              <button
-                onClick={handleClose}
-                disabled={isLoading}
-                className="p-2 rounded-full hover:bg-gray-700/50 transition-colors text-gray-400 hover:text-white disabled:opacity-50"
-              >
-                <FaTimes className="w-4 h-4" />
-              </button>
+              <div className="flex items-center gap-2">
+                {/* Bouton de suppression dans le header */}
+                {!showDeleteConfirm ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowDeleteConfirm(true)}
+                    disabled={isLoading}
+                    className="p-2 rounded-full hover:bg-red-600/20 transition-colors text-red-400 hover:text-red-300 disabled:opacity-50"
+                    title="Supprimer l'événement"
+                  >
+                    <FaTrash className="w-4 h-4" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleDelete}
+                    disabled={isLoading}
+                    className="px-3 py-2 rounded-lg bg-red-600 hover:bg-red-700 text-white text-sm font-medium transition-all duration-200 disabled:opacity-50 flex items-center gap-2"
+                  >
+                    <FaTrash className="w-3 h-3" />
+                    Confirmer
+                  </button>
+                )}
+                <button
+                  onClick={handleClose}
+                  disabled={isLoading}
+                  className="p-2 rounded-full hover:bg-gray-700/50 transition-colors text-gray-400 hover:text-white disabled:opacity-50"
+                >
+                  <FaTimes className="w-4 h-4" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -184,7 +226,6 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                     </div>
                     <div>
                       <h4 className="text-gray-200 font-medium">Dates</h4>
-                      <p className="text-gray-400 text-xs">Du ... au</p>
                     </div>
                   </div>
                   
@@ -226,7 +267,6 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                     </div>
                     <div>
                       <h4 className="text-gray-200 font-medium">Heures</h4>
-                      <p className="text-gray-400 text-xs">De ... à</p>
                     </div>
                   </div>
                   

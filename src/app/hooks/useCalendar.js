@@ -30,7 +30,7 @@ export const useCalendar = () => {
   }, [])
 
   // Charger les événements (Google + locaux)
-  const loadEvents = useCallback(async (timeMin, timeMax) => {
+  const loadEvents = useCallback(async (timeMin, timeMax, forceRefresh = false) => {
     // Utiliser les dernières valeurs si pas de paramètres fournis
     const finalTimeMin = timeMin || lastTimeRange.timeMin
     const finalTimeMax = timeMax || lastTimeRange.timeMax
@@ -51,18 +51,25 @@ export const useCalendar = () => {
       // Charger les événements Google si connecté
       if (session?.accessToken) {
         try {
-          console.log('🔄 Chargement des événements Google...')
+          console.log(`🔄 Chargement des événements Google${forceRefresh ? ' (force refresh)' : ''}...`)
           const params = new URLSearchParams({
             timeMin: finalTimeMin,
             timeMax: finalTimeMax,
             maxResults: '500'
           })
+          
+          // Ajouter un timestamp pour éviter le cache lors du force refresh
+          if (forceRefresh) {
+            params.append('_t', Date.now().toString())
+          }
 
           const response = await fetch(`/api/calendar/events?${params}`, {
             headers: {
               'Content-Type': 'application/json',
               'Authorization': `Bearer ${session.accessToken}`,
-              'Cache-Control': 'no-cache'
+              'Cache-Control': forceRefresh ? 'no-cache, no-store, must-revalidate' : 'no-cache',
+              'Pragma': forceRefresh ? 'no-cache' : undefined,
+              'Expires': forceRefresh ? '0' : undefined
             }
           })
           
@@ -135,14 +142,14 @@ export const useCalendar = () => {
   }, [session, lastTimeRange.timeMin, lastTimeRange.timeMax])
 
   // Fonction pour recharger avec la dernière plage connue
-  const reloadCurrentEvents = useCallback((forceRefresh = false) => {
+  const reloadCurrentEvents = useCallback(async (forceRefresh = false) => {
     if (lastTimeRange.timeMin && lastTimeRange.timeMax) {
-      console.log('🔄 Rechargement avec plage existante:', lastTimeRange)
+      console.log(`🔄 Rechargement avec plage existante${forceRefresh ? ' (force refresh)' : ''}:`, lastTimeRange)
       if (forceRefresh) {
         // Vider les événements en cours pour forcer un rechargement complet
         setEvents([])
       }
-      loadEvents(lastTimeRange.timeMin, lastTimeRange.timeMax)
+      await loadEvents(lastTimeRange.timeMin, lastTimeRange.timeMax, forceRefresh)
     } else {
       console.log('⚠️ Aucune plage de temps disponible pour le rechargement')
     }
@@ -314,19 +321,35 @@ export const useCalendar = () => {
   const syncWithGoogle = useCallback(async (showNotifications = true) => {
     if (!session?.accessToken) {
       console.log('❌ Pas de session Google pour la synchronisation')
+      if (showNotifications) {
+        showNotification('Veuillez vous connecter à Google Calendar pour synchroniser', 'warning')
+      }
       return
     }
 
+    // Fast refresh immédiat - montrer le loading
+    setLoadingEvents(true)
+    
     try {
-      console.log('🔄 Début de la synchronisation...')
+      console.log('🔄 Début de la synchronisation avec fast refresh...')
+      
+      // 1. Forcer le rechargement immédiat des événements Google
+      console.log('⚡ Fast refresh des événements Google...')
+      if (showNotifications) {
+        showNotification('Synchronisation en cours...', 'info')
+      }
+      
+      // Recharger immédiatement les événements pour avoir la version la plus récente
+      await reloadCurrentEvents(true)
+      
+      // 2. Maintenant traiter les événements locaux non synchronisés
       const unsyncedEvents = getUnsyncedEvents()
       const pendingUpdates = getPendingUpdates()
       
       if (unsyncedEvents.length === 0 && Object.keys(pendingUpdates).length === 0) {
-        console.log('✅ Aucun événement à synchroniser')
-        if (showNotifications) {
-          showNotification('Aucun élément à synchroniser', 'info')
-        }
+        console.log('✅ Aucun événement local à synchroniser - fast refresh terminé')
+        setLoadingEvents(false)
+        // Plus de notification quand il n'y a rien à synchroniser - juste le fast refresh
         return
       }
 
@@ -404,14 +427,19 @@ export const useCalendar = () => {
         showNotification(`${totalSynced} élément(s) synchronisé(s) avec Google Calendar`, 'success')
       }
       
-      // Recharger les événements après synchronisation
-      reloadCurrentEvents()
-      
+      // Recharger les événements après synchronisation pour s'assurer d'avoir les dernières données
+      await reloadCurrentEvents(true)
       
     } catch (error) {
       console.error('❌ Erreur synchronisation:', error)
       setSyncStatus('error')
       setSyncStatusState('error')
+      if (showNotifications) {
+        showNotification('Erreur lors de la synchronisation', 'error')
+      }
+    } finally {
+      // S'assurer que le loading est désactivé même en cas d'erreur
+      setLoadingEvents(false)
     }
   }, [session, showNotification, reloadCurrentEvents])
 
