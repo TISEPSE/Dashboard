@@ -167,7 +167,7 @@ export const useCalendar = () => {
           const data = await response.json()
           console.log('✅ Événement Google créé:', data.event.summary)
           // Recharger les événements pour mettre à jour l'affichage
-          setTimeout(() => reloadCurrentEvents(true), 200)
+          setTimeout(() => reloadCurrentEvents(true), 50)
           return data.event
         } else {
           throw new Error('Erreur API Google')
@@ -178,7 +178,7 @@ export const useCalendar = () => {
         const localEvent = addLocalEvent(eventData)
         console.log('✅ Événement local créé:', localEvent.summary)
         // Recharger les événements pour mettre à jour l'affichage
-        setTimeout(() => reloadCurrentEvents(true), 200)
+        setTimeout(() => reloadCurrentEvents(true), 50)
         return localEvent
       }
     } catch (error) {
@@ -188,7 +188,7 @@ export const useCalendar = () => {
         console.log('🔄 Fallback: sauvegarde locale...')
         const localEvent = addLocalEvent(eventData)
         // Recharger les événements pour mettre à jour l'affichage
-        setTimeout(() => reloadCurrentEvents(true), 200)
+        setTimeout(() => reloadCurrentEvents(true), 50)
         return localEvent
       }
       throw error
@@ -207,7 +207,7 @@ export const useCalendar = () => {
         console.log('✅ Événement local modifié')
         showNotification('💾 Modification sauvegardée localement', 'success')
         // Recharger les événements pour mettre à jour l'affichage
-        setTimeout(() => reloadCurrentEvents(true), 200)
+        setTimeout(() => reloadCurrentEvents(true), 50)
         return updatedEvent
       } else {
         // Événement Google à modifier
@@ -235,7 +235,7 @@ export const useCalendar = () => {
               console.log('✅ Événement Google modifié')
               showNotification('Événement synchronisé avec Google Calendar', 'success')
               // Recharger les événements pour mettre à jour l'affichage
-              setTimeout(() => reloadCurrentEvents(true), 200)
+              setTimeout(() => reloadCurrentEvents(true), 50)
               return data.event
             } else {
               throw new Error('Erreur API Google')
@@ -249,7 +249,7 @@ export const useCalendar = () => {
             })
             addPendingUpdate(eventData.id, eventData)
             showNotification('Modification sauvegardée - sera synchronisée plus tard', 'warning')
-            setTimeout(() => reloadCurrentEvents(true), 200) // Recharger pour appliquer visuellement
+            setTimeout(() => reloadCurrentEvents(true), 50) // Recharger pour appliquer visuellement
             return eventData
           }
         } else {
@@ -257,7 +257,7 @@ export const useCalendar = () => {
           console.log('📴 Hors ligne: sauvegarde modification en attente...')
           addPendingUpdate(eventData.id, eventData)
           showNotification('Mode hors ligne - modification sera synchronisée à la connexion', 'info')
-          setTimeout(() => reloadCurrentEvents(true), 200) // Recharger pour appliquer visuellement
+          setTimeout(() => reloadCurrentEvents(true), 50) // Recharger pour appliquer visuellement
           return eventData
         }
       }
@@ -278,7 +278,7 @@ export const useCalendar = () => {
         deleteLocalEvent(eventId)
         console.log('✅ Événement local supprimé')
         // Recharger les événements pour mettre à jour l'affichage
-        setTimeout(() => reloadCurrentEvents(true), 200)
+        setTimeout(() => reloadCurrentEvents(true), 50)
         return true
       } else if (session?.accessToken) {
         // Supprimer événement Google
@@ -294,7 +294,7 @@ export const useCalendar = () => {
         if (response.ok) {
           console.log('✅ Événement Google supprimé')
           // Recharger les événements pour mettre à jour l'affichage
-          setTimeout(() => reloadCurrentEvents(true), 200)
+          setTimeout(() => reloadCurrentEvents(true), 50)
           return true
         } else {
           const error = await response.json()
@@ -401,19 +401,12 @@ export const useCalendar = () => {
       
       const totalSynced = unsyncedEvents.length + Object.keys(pendingUpdates).length
       if (totalSynced > 0 && showNotifications) {
-        showNotification(`${totalSynced} élément(s) synchronisé(s) - Page rechargée pour les couleurs...`, 'success')
+        showNotification(`${totalSynced} élément(s) synchronisé(s) avec Google Calendar`, 'success')
       }
       
       // Recharger les événements après synchronisation
       reloadCurrentEvents()
       
-      // Recharger la page pour garantir la synchronisation des couleurs
-      if (totalSynced > 0) {
-        setTimeout(() => {
-          console.log('🔄 Rechargement de page pour synchroniser les couleurs...')
-          window.location.reload()
-        }, 1500)
-      }
       
     } catch (error) {
       console.error('❌ Erreur synchronisation:', error)
@@ -428,7 +421,7 @@ export const useCalendar = () => {
       const timer = setTimeout(() => {
         console.log('🔄 Auto-synchronisation lors de la connexion Google...')
         syncWithGoogle(false) // Garder la sync auto mais sans les notifications de résultat
-      }, 1000) // Attendre 1s après la connexion
+      }, 500) // Attendre 0.5s après la connexion
       
       return () => clearTimeout(timer)
     }

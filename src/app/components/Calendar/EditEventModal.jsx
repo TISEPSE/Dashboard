@@ -93,9 +93,6 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
       // Attendre que les modifications soient visibles avant de fermer le modal
       await new Promise(resolve => setTimeout(resolve, 600))
       onClose()
-      
-      // Recharger la page pour s'assurer que tout est synchronisé
-      window.location.reload()
     } catch (error) {
       console.error('Erreur lors de la modification:', error)
       alert(`Erreur lors de la modification: ${error.message}`)
@@ -138,7 +135,6 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-white">Modifier l'événement</h2>
-                  <p className="text-gray-400 text-sm">Mettez à jour les informations</p>
                 </div>
               </div>
               <button
@@ -156,7 +152,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
             {/* Titre */}
             <div>
               <label className="block text-gray-300 text-sm font-medium mb-2">
-                Titre *
+                Titre
               </label>
               <div className="relative">
                 <FaCalendarAlt className="absolute left-3 top-3 w-4 h-4 text-[#3A6FF8]" />
@@ -195,7 +191,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Début *
+                        Début
                       </label>
                       <input
                         type="date"
@@ -208,7 +204,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                     </div>
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Fin *  
+                        Fin
                       </label>
                       <input
                         type="date"
@@ -237,7 +233,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                   <div className="space-y-3">
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Début *
+                        Début
                       </label>
                       <input
                         type="time"
@@ -250,7 +246,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, event }) => {
                     </div>
                     <div>
                       <label className="block text-gray-300 text-sm font-medium mb-2">
-                        Fin *
+                        Fin
                       </label>
                       <input
                         type="time"

@@ -50,6 +50,13 @@ export default function Calendrier(){
         }
     }
 
+    // Fonction pour ouvrir directement le modal d'édition d'un événement
+    const handleEventClick = (event, date) => {
+        setSelectedEvent(event)
+        setSelectedEventDate(date)
+        setShowEditEvent(true)
+    }
+
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 300)
         return () => clearTimeout(timer)
@@ -202,7 +209,17 @@ export default function Calendrier(){
                             <div className="text-center">
                                 <h1 className="text-2xl sm:text-3xl font-bold text-white capitalize">
                                     {viewMode === 'month' && formatMonthYear(currentDate)}
-                                    {viewMode === 'week' && `Semaine du ${formatDate(currentDate).split(' ')[3]}`}
+                                    {viewMode === 'week' && (() => {
+                                        const weekStart = new Date(currentDate)
+                                        const dayOfWeek = weekStart.getDay()
+                                        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+                                        weekStart.setDate(weekStart.getDate() + mondayOffset)
+                                        
+                                        const weekEnd = new Date(weekStart)
+                                        weekEnd.setDate(weekStart.getDate() + 6)
+                                        
+                                        return `Semaine du ${weekStart.getDate()} au ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
+                                    })()}
                                     {viewMode === 'day' && formatDate(currentDate)}
                                 </h1>
                                 {viewMode === 'month' && (
@@ -343,11 +360,11 @@ export default function Calendrier(){
                                             {/* Événements du jour */}
                                             <div className="space-y-0.5 sm:space-y-1 lg:space-y-1.5 flex-1">
                                                 {dayEvents.slice(0, 2).map((event, eventIndex) => {
-                                                    const eventColor = getColor(event.colorId)
+                                                    const eventColor = getColor(event.colorId || '1')
                                                     return (
                                                         <div
                                                             key={eventIndex}
-                                                            className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation min-h-[28px] sm:min-h-[32px] lg:min-h-[36px] flex items-center"
+                                                            className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation h-[28px] sm:h-[32px] lg:h-[36px] flex items-center w-full"
                                                             style={{
                                                                 backgroundColor: eventColor.background,
                                                                 color: eventColor.text
@@ -355,13 +372,11 @@ export default function Calendrier(){
                                                             title={event.summary}
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
-                                                                // Sur mobile, ouvrir directement le modal des événements du jour
-                                                                if (window.innerWidth < 768) {
-                                                                    handleDayClick(day)
-                                                                }
+                                                                // Ouvrir le modal d'édition de l'événement
+                                                                handleEventClick(event, date)
                                                             }}
                                                         >
-                                                            <span className="truncate block font-medium">{event.summary}</span>
+                                                            <span className="truncate flex-1 font-medium">{event.summary}</span>
                                                         </div>
                                                     )
                                                 })}
@@ -369,10 +384,10 @@ export default function Calendrier(){
                                                 {dayEvents.length > 2 && (
                                                     <div className="hidden lg:block">
                                                         {(() => {
-                                                            const eventColor = getColor(dayEvents[2].colorId)
+                                                            const eventColor = getColor(dayEvents[2].colorId || '1')
                                                             return (
                                                                 <div
-                                                                    className="text-sm p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation min-h-[36px] flex items-center"
+                                                                    className="text-sm p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation h-[36px] flex items-center w-full"
                                                                     style={{
                                                                         backgroundColor: eventColor.background,
                                                                         color: eventColor.text
@@ -380,12 +395,11 @@ export default function Calendrier(){
                                                                     title={dayEvents[2].summary}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation()
-                                                                        if (window.innerWidth < 768) {
-                                                                            handleDayClick(day)
-                                                                        }
+                                                                        // Ouvrir le modal d'édition de l'événement
+                                                                        handleEventClick(dayEvents[2], date)
                                                                     }}
                                                                 >
-                                                                    <span className="truncate block font-medium">{dayEvents[2].summary}</span>
+                                                                    <span className="truncate flex-1 font-medium">{dayEvents[2].summary}</span>
                                                                 </div>
                                                             )
                                                         })()}
@@ -395,10 +409,10 @@ export default function Calendrier(){
                                                 {dayEvents.length > 3 && (
                                                     <div className="hidden xl:block">
                                                         {(() => {
-                                                            const eventColor = getColor(dayEvents[3].colorId)
+                                                            const eventColor = getColor(dayEvents[3].colorId || '1')
                                                             return (
                                                                 <div
-                                                                    className="text-sm p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation min-h-[36px] flex items-center"
+                                                                    className="text-sm p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation h-[36px] flex items-center w-full"
                                                                     style={{
                                                                         backgroundColor: eventColor.background,
                                                                         color: eventColor.text
@@ -406,12 +420,11 @@ export default function Calendrier(){
                                                                     title={dayEvents[3].summary}
                                                                     onClick={(e) => {
                                                                         e.stopPropagation()
-                                                                        if (window.innerWidth < 768) {
-                                                                            handleDayClick(day)
-                                                                        }
+                                                                        // Ouvrir le modal d'édition de l'événement
+                                                                        handleEventClick(dayEvents[3], date)
                                                                     }}
                                                                 >
-                                                                    <span className="truncate block font-medium">{dayEvents[3].summary}</span>
+                                                                    <span className="truncate flex-1 font-medium">{dayEvents[3].summary}</span>
                                                                 </div>
                                                             )
                                                         })()}
@@ -438,10 +451,245 @@ export default function Calendrier(){
                     )}
 
                     {viewMode === 'week' && (
-                        <div className="p-6">
-                            <div className="text-center text-gray-300 py-12">
-                                <FaCalendarAlt className="w-12 h-12 mx-auto mb-4 text-gray-500" />
-                                <p>Vue semaine - En cours de développement</p>
+                        <div className="p-4 sm:p-6 lg:p-8">
+                            {/* Design moderne de la vue semaine */}
+                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl shadow-2xl border border-gray-600/20 overflow-hidden">
+                                {/* En-tête élégante avec les jours */}
+                                <div className="bg-gray-800/40 backdrop-blur-sm border-b border-gray-600/30">
+                                    <div className="grid grid-cols-8 gap-0">
+                                        {/* Colonne vide pour aligner avec les heures */}
+                                        <div className="p-4"></div>
+                                        
+                                        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => {
+                                            const weekStart = new Date(currentDate)
+                                            const dayOfWeek = weekStart.getDay()
+                                            const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+                                            weekStart.setDate(weekStart.getDate() + mondayOffset)
+                                            
+                                            const dayDate = new Date(weekStart)
+                                            dayDate.setDate(weekStart.getDate() + index)
+                                            
+                                            const today = new Date()
+                                            const isToday = dayDate.toDateString() === today.toDateString()
+                                            const isWeekend = index >= 5
+                                            
+                                            return (
+                                                <div key={index} className="p-4 text-center border-l border-gray-600/20">
+                                                    <div className="space-y-2">
+                                                        <div className={`text-sm font-medium ${isWeekend ? 'text-gray-400' : 'text-gray-300'}`}>
+                                                            {day}
+                                                        </div>
+                                                        <div className={`text-xl font-bold rounded-xl w-12 h-12 flex items-center justify-center mx-auto transition-all duration-300 ${
+                                                            isToday 
+                                                                ? 'bg-[#3A6FF8] text-white shadow-lg shadow-blue-500/25 scale-110' 
+                                                                : isWeekend
+                                                                ? 'text-gray-400 hover:bg-gray-700/50 hover:scale-105'
+                                                                : 'text-gray-300 hover:bg-gray-700/50 hover:scale-105'
+                                                        }`}>
+                                                            {dayDate.getDate()}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+                                </div>
+
+                                {/* Corps principal avec scroll amélioré */}
+                                <div className="relative">
+                                    <div className="max-h-[600px] overflow-y-auto custom-scrollbar">
+                                        {Array.from({ length: 15 }, (_, hourIndex) => {
+                                            const hour = hourIndex + 6 // Commencer à 6h
+                                            const isPeakHour = hour >= 9 && hour <= 17
+                                            
+                                            return (
+                                                <div key={hour} className={`grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 ${isPeakHour ? 'bg-gray-800/20' : ''}`}>
+                                                    {/* Colonne des heures stylisée */}
+                                                    <div className={`p-3 border-r border-gray-600/20 bg-gray-800/30 min-w-[80px] flex items-center justify-center`}>
+                                                        <div className="text-lg font-bold text-white">
+                                                            {hour.toString().padStart(2, '0')}h
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {/* Colonnes des jours améliorées */}
+                                                    {Array.from({ length: 7 }, (_, dayIndex) => {
+                                                        const weekStart = new Date(currentDate)
+                                                        const dayOfWeek = weekStart.getDay()
+                                                        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+                                                        weekStart.setDate(weekStart.getDate() + mondayOffset)
+                                                        
+                                                        const dayDate = new Date(weekStart)
+                                                        dayDate.setDate(weekStart.getDate() + dayIndex)
+                                                        
+                                                        const today = new Date()
+                                                        const isToday = dayDate.toDateString() === today.toDateString()
+                                                        const isWeekend = dayIndex >= 5
+                                                        
+                                                        // Récupérer TOUS les événements du jour
+                                                        const allDayEvents = getEventsForDay(dayDate)
+                                                        
+                                                        // Séparer les événements par heure et ceux qui durent toute la journée
+                                                        let hourEvents = []
+                                                        let dayLongEvents = []
+                                                        
+                                                        allDayEvents.forEach(event => {
+                                                            if (event.start.date && !event.start.dateTime) {
+                                                                // Événement toute la journée - afficher dans la première tranche visible
+                                                                if (hour === 6) {
+                                                                    dayLongEvents.push(event)
+                                                                }
+                                                            } else if (event.start.dateTime) {
+                                                                // Événement avec heure spécifique
+                                                                const eventStart = new Date(event.start.dateTime)
+                                                                const eventEnd = new Date(event.end.dateTime)
+                                                                const eventStartHour = eventStart.getHours()
+                                                                const eventStartMinute = eventStart.getMinutes()
+                                                                const eventEndHour = eventEnd.getHours()
+                                                                const eventEndMinute = eventEnd.getMinutes()
+                                                                
+                                                                // Logique améliorée : afficher l'événement dans sa tranche horaire de début
+                                                                // et aussi dans les tranches qu'il traverse s'il dure plus d'une heure
+                                                                const eventDurationHours = eventEndHour - eventStartHour
+                                                                
+                                                                if (eventStartHour === hour || 
+                                                                    (hour > eventStartHour && hour < eventEndHour) ||
+                                                                    (hour === eventEndHour && eventEndMinute > 0)) {
+                                                                    
+                                                                    // Marquer si c'est le début de l'événement
+                                                                    const isEventStart = eventStartHour === hour
+                                                                    hourEvents.push({
+                                                                        ...event,
+                                                                        isEventStart,
+                                                                        eventStartTime: eventStart,
+                                                                        eventEndTime: eventEnd,
+                                                                        durationHours: eventDurationHours
+                                                                    })
+                                                                }
+                                                            }
+                                                        })
+
+                                                        return (
+                                                            <div 
+                                                                key={dayIndex} 
+                                                                className={`relative min-h-[80px] border-l border-gray-600/10 transition-all duration-200 cursor-pointer group ${
+                                                                    isToday ? 'bg-blue-500/5 hover:bg-blue-500/10' : 
+                                                                    'hover:bg-gray-700/20'
+                                                                }`}
+                                                                onClick={() => {
+                                                                    const clickDate = new Date(dayDate)
+                                                                    clickDate.setHours(hour, 0, 0, 0)
+                                                                    handleDayClick(clickDate)
+                                                                }}
+                                                            >
+                                                                {/* Indicateur de clic */}
+                                                                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                                                    <div className="absolute top-2 right-2">
+                                                                        <div className="w-6 h-6 rounded-full bg-[#3A6FF8]/20 flex items-center justify-center">
+                                                                            <span className="text-xs text-[#3A6FF8]">+</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Événements de la journée entière */}
+                                                                <div className="p-2 space-y-1">
+                                                                    {dayLongEvents.map((event, eventIndex) => {
+                                                                        const eventColor = getColor(event.colorId || '1')
+                                                                        return (
+                                                                            <div
+                                                                                key={`day-${event.id || eventIndex}`}
+                                                                                className="text-xs p-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 border-l-4 w-full min-h-[32px] flex items-center"
+                                                                                style={{
+                                                                                    backgroundColor: `${eventColor.background}20`,
+                                                                                    color: eventColor.background,
+                                                                                    borderLeftColor: eventColor.background
+                                                                                }}
+                                                                                title={`${event.summary} - Toute la journée`}
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation()
+                                                                                    // Ouvrir le modal d'édition de l'événement
+                                                                                    handleEventClick(event, dayDate)
+                                                                                }}
+                                                                            >
+                                                                                <div className="font-medium truncate w-full">{event.summary}</div>
+                                                                            </div>
+                                                                        )
+                                                                    })}
+                                                                    
+                                                                    {/* Événements avec heure */}
+                                                                    {hourEvents.map((event, eventIndex) => {
+                                                                        const eventColor = getColor(event.colorId || '1')
+                                                                        const eventStart = event.eventStartTime
+                                                                        const eventEnd = event.eventEndTime
+                                                                        const isStart = event.isEventStart
+                                                                        
+                                                                        return (
+                                                                            <div
+                                                                                key={`hour-${event.id || eventIndex}`}
+                                                                                className={`text-xs p-2 rounded-lg shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 w-full min-h-[32px] flex flex-col justify-center ${
+                                                                                    isStart ? 'border-l-4' : 'border-l-2 opacity-75'
+                                                                                }`}
+                                                                                style={{
+                                                                                    backgroundColor: isStart ? eventColor.background : `${eventColor.background}80`,
+                                                                                    color: eventColor.text,
+                                                                                    borderLeftColor: eventColor.background
+                                                                                }}
+                                                                                title={`${event.summary} - ${eventStart.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} à ${eventEnd.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}`}
+                                                                                onClick={(e) => {
+                                                                                    e.stopPropagation()
+                                                                                    // Ouvrir le modal d'édition de l'événement
+                                                                                    handleEventClick(event, dayDate)
+                                                                                }}
+                                                                            >
+                                                                                <div className="font-medium truncate">
+                                                                                    {event.summary}
+                                                                                </div>
+                                                                                {isStart && (
+                                                                                    <div className="text-xs opacity-80 mt-1">
+                                                                                        {eventStart.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })} - {eventEnd.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+                                                                                        {event.durationHours > 1 && (
+                                                                                            <span className="ml-1 bg-black/20 px-1 rounded text-xs">
+                                                                                                {event.durationHours}h
+                                                                                            </span>
+                                                                                        )}
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    })}
+                                                </div>
+                                            )
+                                        })}
+                                    </div>
+
+                                </div>
+                            </div>
+
+                            {/* Style pour masquer la scrollbar */}
+                            <style jsx>{`
+                                .custom-scrollbar::-webkit-scrollbar {
+                                    display: none;
+                                }
+                                .custom-scrollbar {
+                                    -ms-overflow-style: none;
+                                    scrollbar-width: none;
+                                }
+                            `}</style>
+
+                            {/* Instructions améliorées */}
+                            <div className="mt-6 text-center space-y-2">
+                                <p className="text-sm text-gray-400">
+                                    ✨ Cliquez sur un créneau pour ajouter un événement
+                                </p>
+                                <div className="flex items-center justify-center gap-4 text-xs text-gray-500">
+                                    <div className="flex items-center gap-1">
+                                        <div className="w-3 h-3 bg-[#3A6FF8] rounded-full"></div>
+                                        <span>Aujourd'hui</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     )}

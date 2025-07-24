@@ -87,9 +87,6 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
       })
       
       onClose()
-      
-      // Recharger la page pour s'assurer que tout est synchronisé
-      window.location.reload()
     } catch (err) {
       setError(err.message)
     } finally {
@@ -143,7 +140,7 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
               {/* Titre */}
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Titre *
+                  Titre
                 </label>
                 <input
                   type="text"

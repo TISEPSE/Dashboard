@@ -19,23 +19,6 @@ const ColorPicker = ({ selectedColorId = '1', onColorChange, className = '' }) =
   return (
     <div className={`space-y-3 ${className}`}>
       
-      {/* Aperçu de la couleur sélectionnée */}
-      <div className="flex items-center gap-3 p-3 bg-gray-700/30 rounded-xl border border-gray-600/30">
-        <div 
-          className={`w-6 h-6 rounded-full border-2 transition-all duration-300 ${
-            justChanged === selectedColorId ? 'scale-125 border-white shadow-lg' : 'border-gray-400'
-          } ${loading ? 'animate-pulse' : ''}`}
-          style={{ backgroundColor: getColor(selectedColorId).background }}
-        />
-        <div className="flex-1">
-          {loading && <span className="text-xs text-gray-400">(Chargement...)</span>}
-          {justChanged === selectedColorId && (
-            <p className="text-green-400 text-xs">
-              ✨ Couleur mise à jour !
-            </p>
-          )}
-        </div>
-      </div>
 
       {/* Grille de couleurs */}
       <div className="grid grid-cols-6 gap-2">

@@ -51,8 +51,6 @@ const DayEventsModal = ({ isOpen, onClose, selectedDate, events, onEditEvent, on
         // Attendre que la suppression soit visible puis fermer le modal
         setTimeout(() => {
           onClose()
-          // Recharger la page pour s'assurer que tout est synchronisé
-          window.location.reload()
         }, 600)
       } catch (error) {
         console.error('Erreur lors de la suppression:', error)

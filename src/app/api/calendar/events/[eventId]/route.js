@@ -43,7 +43,12 @@ export async function PUT(request, { params }) {
 
     // Mettre à jour la couleur si fournie
     if (colorId) {
-      updatedEvent.colorId = colorId
+      console.log('🎨 Mise à jour couleur événement:', {
+        eventId,
+        colorId,
+        colorIdType: typeof colorId
+      })
+      updatedEvent.colorId = colorId.toString()
     }
 
     if (start) {

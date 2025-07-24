@@ -39,29 +39,26 @@ export const fetchGoogleColors = async (accessToken) => {
 
 // Convertir les couleurs Google en format utilisable (structure identique à la couleur verte)
 export const convertGoogleColors = (googleColors) => {
-  if (!googleColors) return EVENT_COLORS
+  if (!googleColors || !googleColors.event) return EVENT_COLORS
   
   const convertedColors = {}
   
-  Object.entries(googleColors).forEach(([colorId, colorData]) => {
-    // Structure identique à la couleur verte fonctionnelle
+  // Utiliser UNIQUEMENT les couleurs Google Calendar réelles
+  Object.entries(googleColors.event).forEach(([colorId, colorData]) => {
     convertedColors[colorId] = {
       background: colorData.background,
-      text: getContrastColor(colorData.background),
-      name: colorData.name || `Couleur ${colorId}`,
-      googleOriginal: true // Marqueur pour identifier les couleurs Google
+      text: colorData.foreground || '#ffffff',
+      name: `Couleur ${colorId}`,
+      googleOriginal: true
     }
     
-    console.log(`🎨 Couleur ${colorId} convertie:`, convertedColors[colorId])
+    console.log(`🎨 Couleur Google ${colorId}:`, {
+      background: colorData.background,
+      text: colorData.foreground
+    })
   })
   
-  // Ajouter les couleurs locales comme fallback si manquantes
-  Object.entries(EVENT_COLORS).forEach(([colorId, colorData]) => {
-    if (!convertedColors[colorId]) {
-      convertedColors[colorId] = { ...colorData, googleOriginal: false }
-    }
-  })
-  
+  console.log('✅ Couleurs Google pures utilisées:', Object.keys(convertedColors))
   return convertedColors
 }
 
