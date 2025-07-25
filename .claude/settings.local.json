@@ -29,7 +29,11 @@
       "Bash(chmod:*)",
       "Bash(bash:*)",
       "Bash(git push:*)",
-      "Bash(git restore:*)"
+      "Bash(git restore:*)",
+      "Bash(npm exec:*)",
+      "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\src\\app\\styles\\neomorphism.css\")",
+      "Bash(del:*)",
+      "Bash(powershell:*)"
     ],
     "deny": []
   }

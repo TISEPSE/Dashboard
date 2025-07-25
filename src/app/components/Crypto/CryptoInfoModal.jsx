@@ -322,7 +322,15 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                   <h2 className="text-lg sm:text-2xl font-bold text-white truncate">{coin.name}</h2>
                   <div className="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm">
                     <span className="text-blue-300 font-medium">{coin.symbol?.toUpperCase()}</span>
-                    <span className="px-2 py-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full text-xs text-white whitespace-nowrap">#{coin.market_cap_rank}</span>
+                    <span className={`px-2 py-1 rounded-full text-xs text-white whitespace-nowrap ${
+                      coin.market_cap_rank <= 3 
+                        ? 'bg-gradient-to-r from-yellow-500 to-amber-600'
+                        : coin.market_cap_rank <= 10
+                        ? 'bg-gradient-to-r from-emerald-500 to-green-600'
+                        : coin.market_cap_rank <= 50
+                        ? 'bg-gradient-to-r from-blue-500 to-indigo-600'
+                        : 'bg-gradient-to-r from-slate-500 to-gray-600'
+                    }`}>#{coin.market_cap_rank}</span>
                   </div>
                 </div>
               </div>
@@ -386,7 +394,7 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
                         onClick={() => setSelectedTimeframe(timeframe.value)}
                         className={`px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all ${
                           selectedTimeframe === timeframe.value
-                            ? 'bg-gradient-to-r from-blue-500 to-indigo-600 text-white shadow-lg'
+                            ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg'
                             : 'text-gray-300 hover:bg-gray-700/50 hover:text-white'
                         }`}
                       >

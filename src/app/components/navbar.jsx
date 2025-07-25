@@ -12,6 +12,20 @@ export default function Navbar({isOpen, setIsOpen}) {
   const pathname = usePathname()
   const { data: session } = useSession()
 
+  // Fonction pour obtenir les classes actives selon la route
+  const getActiveClasses = (href) => {
+    switch(href) {
+      case '/': return 'bg-emerald-400/10 text-emerald-400'
+      case '/Dashboard/Crypto': return 'bg-orange-400/10 text-orange-400'
+      case '/Dashboard/Message': return 'bg-blue-400/10 text-blue-400'
+      case '/Dashboard/Meteo': return 'bg-yellow-400/10 text-yellow-400'
+      case '/Dashboard/Sante': return 'bg-red-400/10 text-red-400'
+      case '/Dashboard/Finances': return 'bg-green-400/10 text-green-400'
+      case '/Dashboard/Calendrier': return 'bg-purple-400/10 text-purple-400'
+      default: return 'bg-blue-600/30 text-blue-300'
+    }
+  }
+
   useEffect(() => {
     setHasMounted(true)
   }, [])
@@ -83,7 +97,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                       href={item.href}
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
                         pathname === item.href
-                          ? "bg-blue-600/30 text-blue-300 shadow-lg border border-blue-400/50"
+                          ? `${getActiveClasses(item.href)} shadow-lg border border-white/20`
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
@@ -100,7 +114,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                       href="/Dashboard/Parametres"
                       className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
                         pathname === "/Dashboard/Parametres"
-                          ? "bg-blue-600/30 text-blue-300 shadow-lg border border-blue-400/50"
+                          ? "bg-gray-400/10 text-gray-400 shadow-lg border border-white/20"
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
@@ -116,7 +130,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                     href="/Dashboard/Profile"
                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
                       pathname === "/Dashboard/Profile"
-                        ? "bg-blue-600/30 text-blue-300 shadow-lg border border-blue-400/50"
+                        ? "bg-indigo-400/10 text-indigo-400 shadow-lg border border-white/20"
                         : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                     }`}
                   >
@@ -179,7 +193,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                       href={item.href}
                       className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
                         pathname === item.href
-                          ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
+                          ? `${getActiveClasses(item.href)} shadow-lg scale-105`
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >

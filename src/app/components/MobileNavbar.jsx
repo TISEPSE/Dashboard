@@ -17,13 +17,18 @@ export default function MobileNavbar() {
     setHasMounted(true)
   }, [])
 
-  // Gestion de la fermeture par drag
+  // Gestion contrôlée du drag
   const handleDragEnd = (event, info) => {
-    // Si on tire vers le bas de plus de 100px ou avec une vélocité suffisante, fermer
-    if (info.offset.y > 100 || info.velocity.y > 500) {
+    // Seuils plus élevés pour plus de contrôle
+    const threshold = 120
+    const velocity = info.velocity.y
+    
+    // Fermeture plus contrôlée
+    if (info.offset.y > threshold || velocity > 800) {
       setIsOpen(false)
     }
   }
+
 
   if (!hasMounted) return null
 
@@ -71,7 +76,7 @@ export default function MobileNavbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.15 }}
             className="md:hidden fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setIsOpen(false)}
           />
@@ -86,14 +91,18 @@ export default function MobileNavbar() {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ 
-              type: "spring", 
-              damping: 30, 
-              stiffness: 300,
-              duration: 0.4 
+              duration: 0.25,
+              ease: [0.32, 0.72, 0, 1]
             }}
             drag="y"
-            dragConstraints={{ top: 0, bottom: 300 }}
-            dragElastic={{ top: 0, bottom: 0.3 }}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0 }}
+            dragMomentum={true}
+            dragTransition={{ 
+              power: 0.3,
+              timeConstant: 750
+            }}
+            whileDrag={{ scale: 0.99, rotateX: 1 }}
             onDragEnd={handleDragEnd}
             className="md:hidden fixed bottom-0 left-0 right-0 z-[70] backdrop-blur-xl bg-white/10 text-white rounded-t-[2rem] shadow-2xl border border-white/20"
             style={{
@@ -102,9 +111,9 @@ export default function MobileNavbar() {
               boxShadow: '0 -20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
             }}
           >
-            {/* Zone de drag avec trait indicateur */}
+            {/* Zone de drag avec indicateur fluide */}
             <div className="flex justify-center pt-5 pb-3 cursor-grab active:cursor-grabbing">
-              <div className="w-12 h-1.5 bg-gray-400/50 rounded-full shadow-sm"></div>
+              <div className="w-12 h-1.5 bg-gray-400/50 rounded-full shadow-sm transition-all duration-300 ease-out hover:bg-blue-400/60 hover:scale-105 hover:shadow-md hover:shadow-blue-400/20"></div>
             </div>
 
             {/* Navigation compacte et équilibrée */}

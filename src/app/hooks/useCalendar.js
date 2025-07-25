@@ -139,7 +139,7 @@ export const useCalendar = () => {
     } finally {
       setLoadingEvents(false)
     }
-  }, [session, lastTimeRange.timeMin, lastTimeRange.timeMax])
+  }, [session?.accessToken, lastTimeRange.timeMin, lastTimeRange.timeMax])
 
   // Fonction pour recharger avec la dernière plage connue
   const reloadCurrentEvents = useCallback(async (forceRefresh = false) => {
@@ -200,7 +200,7 @@ export const useCalendar = () => {
       }
       throw error
     }
-  }, [session])
+  }, [session?.accessToken])
 
   // Modifier un événement
   const updateEvent = useCallback(async (eventData) => {
@@ -315,7 +315,7 @@ export const useCalendar = () => {
       console.error('❌ Erreur suppression événement:', error)
       throw error
     }
-  }, [session])
+  }, [session?.accessToken])
 
   // Synchroniser les événements locaux avec Google
   const syncWithGoogle = useCallback(async (showNotifications = true) => {
@@ -441,7 +441,7 @@ export const useCalendar = () => {
       // S'assurer que le loading est désactivé même en cas d'erreur
       setLoadingEvents(false)
     }
-  }, [session, showNotification, reloadCurrentEvents])
+  }, [session?.accessToken, showNotification, reloadCurrentEvents])
 
   // Auto-sync quand l'utilisateur se connecte
   useEffect(() => {
@@ -453,7 +453,7 @@ export const useCalendar = () => {
       
       return () => clearTimeout(timer)
     }
-  }, [session, syncStatus, syncWithGoogle, showNotification])
+  }, [session?.accessToken, syncStatus]) // Retiré syncWithGoogle et showNotification pour éviter les re-renders
 
   return {
     events,

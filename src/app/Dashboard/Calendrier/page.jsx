@@ -266,26 +266,49 @@ export default function Calendrier(){
 
                         {/* Contrôles */}
                         <div className="flex items-center gap-3">
-                            {/* Sélecteur de vue */}
-                            <div className="flex bg-[#3a3d4e]/50 rounded-xl p-1 border border-gray-600/20">
+                            {/* Sélecteur de vue avec background adaptatif */}
+                            <div className="flex p-1 relative bg-[#3a3d4e]/50 rounded-xl border border-gray-600/20">
                                 {[
                                     { key: 'month', icon: FaCalendarAlt, label: 'Mois' },
                                     { key: 'week', icon: FaCalendarWeek, label: 'Semaine' },
                                     { key: 'day', icon: FaCalendarDay, label: 'Jour' }
                                 ].map(({ key, icon: Icon, label }) => (
-                                    <button
+                                    <motion.button
                                         key={key}
                                         onClick={() => setViewMode(key)}
-                                        className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium relative flex-1 justify-center transition-colors duration-150 ${
                                             viewMode === key 
-                                                ? 'bg-[#3A6FF8] text-white shadow-lg transform scale-105'
-                                                : 'text-gray-300 hover:text-white hover:bg-[#4a4d5e]/50'
+                                                ? 'text-white'
+                                                : 'text-gray-300 hover:text-white'
                                         }`}
                                         title={label}
+                                        whileHover={{ 
+                                            scale: viewMode === key ? 1 : 1.02,
+                                            transition: { duration: 0.1 }
+                                        }}
+                                        whileTap={{ 
+                                            scale: 0.98,
+                                            transition: { duration: 0.05 }
+                                        }}
                                     >
-                                        <Icon className="w-4 h-4" />
-                                        <span className="hidden sm:inline">{label}</span>
-                                    </button>
+                                        {/* Background animé qui s'adapte à chaque bouton */}
+                                        {viewMode === key && (
+                                            <motion.div
+                                                className="absolute inset-0 bg-[#3A6FF8] rounded-lg shadow-lg"
+                                                layoutId="activeTab"
+                                                transition={{ 
+                                                    type: "spring", 
+                                                    stiffness: 400, 
+                                                    damping: 25 
+                                                }}
+                                            />
+                                        )}
+                                        
+                                        <div className="relative z-10 flex items-center gap-2">
+                                            <Icon className="w-4 h-4" />
+                                            <span className="hidden sm:inline">{label}</span>
+                                        </div>
+                                    </motion.button>
                                 ))}
                             </div>
 
@@ -324,7 +347,7 @@ export default function Calendrier(){
                 </motion.div>
 
                 {/* Calendrier principal */}
-                <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl shadow-2xl border border-gray-600/20 overflow-hidden relative">
+                <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl p-6 sm:p-8 shadow-2xl border border-gray-600/20 overflow-hidden relative">
                     {loadingEvents ? (
                         /* Skeleton Screen */
                         <div className="animate-pulse">
@@ -454,20 +477,25 @@ export default function Calendrier(){
                                             key={index}
                                             whileHover={{ scale: window.innerWidth >= 768 ? 1.02 : 1 }}
                                             whileTap={{ scale: 0.98 }}
-                                            className={`min-h-[100px] sm:min-h-[120px] lg:min-h-[140px] p-2 sm:p-2 lg:p-3 border border-gray-600/20 rounded-xl sm:rounded-xl lg:rounded-2xl transition-all duration-200 cursor-pointer touch-manipulation active:scale-95 ${
+                                            transition={{ duration: 0.1 }}
+                                            className={`min-h-[100px] sm:min-h-[120px] lg:min-h-[140px] p-2 sm:p-2 lg:p-3 transition-all duration-75 cursor-pointer touch-manipulation active:scale-95 rounded-xl sm:rounded-xl lg:rounded-2xl border ${
                                                 isCurrentDay 
-                                                    ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg'
+                                                    ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg hover:from-blue-600/40 hover:to-indigo-600/40 hover:border-blue-400/60 hover:shadow-xl'
                                                     : isInCurrentMonth
-                                                    ? 'bg-gradient-to-br from-gray-700/20 to-gray-800/20 md:hover:from-gray-600/30 md:hover:to-gray-700/30'
-                                                    : 'bg-gray-800/10 text-gray-500'
-                                            } ${dayEvents.length > 0 ? 'ring-1 ring-blue-500/20' : ''}`}
+                                                    ? 'bg-gradient-to-br from-gray-700/20 to-gray-800/20 hover:from-gray-600/30 hover:to-gray-700/30 border-gray-600/20 hover:border-gray-500/40 hover:shadow-lg'
+                                                    : 'bg-gray-800/10 text-gray-500 border-gray-600/20 hover:bg-gray-700/20 hover:border-gray-500/30'
+                                            } ${dayEvents.length > 0 ? 'ring-1 ring-blue-500/20 hover:ring-2 hover:ring-blue-400/30' : ''}`}
                                             onClick={() => handleDayClick(date)}
                                         >
                                             <div className={`text-xs sm:text-sm lg:text-base font-medium mb-1 sm:mb-2 lg:mb-3 relative ${
-                                                isCurrentDay ? 'text-white' : isInCurrentMonth ? 'text-gray-200' : 'text-gray-500'
+                                                isCurrentDay 
+                                                    ? 'text-white' 
+                                                    : isInCurrentMonth 
+                                                    ? 'text-gray-200' 
+                                                    : 'text-gray-500'
                                             }`}>
                                                 {isCurrentDay ? (
-                                                    <div className="w-5 h-5 sm:w-6 sm:h-6 lg:w-7 lg:h-7 bg-blue-500 rounded-full flex items-center justify-center">
+                                                    <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-blue-500 rounded-lg flex items-center justify-center transition-all duration-75 hover:bg-blue-400 hover:scale-105 hover:shadow-lg cursor-pointer">
                                                         <span className="text-white font-bold text-xs sm:text-sm lg:text-base">
                                                             {date.getDate()}
                                                         </span>
@@ -491,7 +519,7 @@ export default function Calendrier(){
                                                                 delay: eventIndex * 0.05,
                                                                 ease: "easeOut"
                                                             }}
-                                                            className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 rounded-lg shadow-sm cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation h-[28px] sm:h-[32px] lg:h-[36px] flex items-center w-full"
+                                                            className="text-xs sm:text-xs lg:text-sm p-1 sm:p-1.5 lg:p-2 cursor-pointer md:hover:brightness-110 md:hover:shadow-md transition-all touch-manipulation h-[28px] sm:h-[32px] lg:h-[36px] flex items-center w-full rounded-lg shadow-sm"
                                                                 style={{
                                                                     backgroundColor: eventColor.background,
                                                                     color: eventColor.text
@@ -635,7 +663,7 @@ export default function Calendrier(){
                                     if (multiDayEvents.length > 0) {
                                         return (
                                             <div className="bg-gray-800/40 backdrop-blur-sm border-b border-gray-600/30 p-4">
-                                                <h3 className="text-sm font-medium text-gray-300 mb-3">
+                                                <h3 className="text-sm font-medium mb-3 text-gray-300">
                                                     📅 Événements sur plusieurs jours
                                                 </h3>
                                                 <div className="space-y-2">
@@ -714,7 +742,7 @@ export default function Calendrier(){
                                     <div className="grid grid-cols-8 gap-0">
                                         {/* Colonne vide pour aligner avec les heures */}
                                         <div className="p-4 bg-gray-800/50">
-                                            <div className="text-center text-xs text-gray-500 font-medium">
+                                            <div className="text-center text-xs font-medium text-gray-500">
                                                 Heure
                                             </div>
                                         </div>
@@ -738,8 +766,8 @@ export default function Calendrier(){
                                             })
                                             
                                             return (
-                                                <div key={index} className={`p-4 text-center border-l border-gray-600/20 transition-all duration-200 ${
-                                                    isToday ? 'bg-blue-500/10' : ''
+                                                <div key={index} className={`p-4 text-center transition-all duration-200 ${
+                                                    `border-l border-gray-600/20 ${isToday ? 'bg-blue-500/10' : ''}`
                                                 }`}>
                                                     <div className="space-y-2">
                                                         <div className={`text-sm font-medium ${
@@ -773,22 +801,22 @@ export default function Calendrier(){
                                     </div>
                                 </div>
 
-                                {/* Grille horaire simplifiée */}
-                                <div className="h-[500px] overflow-hidden">
-                                    {Array.from({ length: 12 }, (_, hourIndex) => {
-                                        const hour = hourIndex + 8 // 8h à 19h
+                                {/* Grille horaire complète sans scroll - toutes les heures visibles */}
+                                <div className="w-full">
+                                    {Array.from({ length: 18 }, (_, hourIndex) => {
+                                        const hour = hourIndex + 6 // 6h à 23h (comme la vue journée)
                                         const isPeakHour = hour >= 9 && hour <= 17
                                         const isCurrentHour = isToday(currentDate) && hour === new Date().getHours()
                                         
                                         return (
-                                            <div key={hour} className={`grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 transition-all duration-200 min-h-[42px] ${
+                                            <div key={hour} className={`grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 transition-all duration-200 min-h-[70px] ${
                                                 isPeakHour ? 'bg-gray-800/20' : ''
                                             } ${isCurrentHour ? 'bg-blue-500/5' : ''}`}>
-                                                {/* Colonne des heures */}
-                                                <div className={`px-3 py-2 border-r border-gray-600/20 bg-gray-800/30 flex items-center justify-center ${
+                                                {/* Colonne des heures avec même taille que la section journée */}
+                                                <div className={`w-20 p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center ${
                                                     isCurrentHour ? 'bg-blue-500/10' : ''
                                                 }`}>
-                                                    <div className={`text-sm font-bold ${
+                                                    <div className={`text-lg font-bold transition-colors duration-200 ${
                                                         isCurrentHour ? 'text-blue-400' : 'text-white'
                                                     }`}>
                                                         {hour.toString().padStart(2, '0')}h
@@ -845,8 +873,8 @@ export default function Calendrier(){
                                                                 </div>
                                                             </div>
 
-                                                            {/* Événements */}
-                                                            <div className="relative z-10 p-1 h-full">
+                                                            {/* Événements avec plus d'espace */}
+                                                            <div className="relative z-10 p-2 h-full">
                                                                 {hourEvents.map((event, eventIndex) => {
                                                                     const eventColor = getColor(event.colorId || '1')
                                                                     const eventStart = new Date(event.start.dateTime)
@@ -855,7 +883,7 @@ export default function Calendrier(){
                                                                     return (
                                                                         <div
                                                                             key={`${event.id}-${eventIndex}`}
-                                                                            className={`text-xs p-1.5 rounded-md shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 border-l-2 mb-1 last:mb-0 ${
+                                                                            className={`text-xs p-2 rounded-md shadow-sm cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-105 border-l-2 mb-1.5 last:mb-0 ${
                                                                                 isEventStart ? 'font-medium' : 'opacity-75'
                                                                             }`}
                                                                             style={{

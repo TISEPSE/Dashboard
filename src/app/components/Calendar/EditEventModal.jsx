@@ -304,7 +304,7 @@ const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
 
             {/* Lieu */}
             <div>
-              <label className="block text-gray-300 text-sm font-medium mb-2">
+              <label className="block text-gray-300 text-sm font-medium mb-2"> 
                 Lieu
               </label>
               <div className="relative">
