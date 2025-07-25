@@ -92,10 +92,34 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
   }, [isOpen])
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+    setFormData(prev => {
+      const newData = {
+        ...prev,
+        [field]: value
+      }
+      
+      // Si on change l'heure de début, ajuster automatiquement l'heure de fin (+1h)
+      if (field === 'startTime') {
+        const [hours, minutes] = value.split(':').map(Number)
+        const endHours = (hours + 1) % 24 // Gestion du passage à minuit
+        const endTime = `${endHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+        newData.endTime = endTime
+        
+        // Si on dépasse minuit, ajuster la date de fin
+        if (hours + 1 >= 24) {
+          const startDate = new Date(prev.startDate)
+          const endDate = new Date(startDate)
+          endDate.setDate(endDate.getDate() + 1)
+          const endDateString = endDate.toISOString().split('T')[0]
+          newData.endDate = endDateString
+        } else {
+          // Sinon, garder la même date que le début
+          newData.endDate = prev.startDate
+        }
+      }
+      
+      return newData
+    })
   }
 
   const handleSubmit = async (e) => {

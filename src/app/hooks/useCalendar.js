@@ -239,44 +239,53 @@ export const useCalendar = () => {
     }
   }, [session, reloadCurrentEvents, showNotification])
 
-  // Supprimer un événement
+  // Supprimer un événement (optimiste)
   const deleteEvent = useCallback(async (eventId) => {
     try {
       const isLocalEvent = eventId.startsWith('local_')
       
+      // Suppression optimiste : mettre à jour l'interface immédiatement
+      setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId))
+      showNotification('Événement supprimé', 'success')
+      
       if (isLocalEvent) {
         // Supprimer événement local
         deleteLocalEvent(eventId)
-        // Recharger les événements pour mettre à jour l'affichage
-        setTimeout(() => reloadCurrentEvents(true), 50)
         return true
       } else if (session?.accessToken) {
-        // Supprimer événement Google
-        const response = await fetch(`/api/calendar/events/${eventId}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.accessToken}`
-          }
-        })
+        // Supprimer événement Google en arrière-plan
+        try {
+          const response = await fetch(`/api/calendar/events/${eventId}`, {
+            method: 'DELETE',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${session.accessToken}`
+            }
+          })
 
-        if (response.ok) {
-          // Recharger les événements pour mettre à jour l'affichage
-          setTimeout(() => reloadCurrentEvents(true), 50)
+          if (!response.ok) {
+            // En cas d'erreur, recharger pour restaurer l'état correct
+            const error = await response.json()
+            showNotification('Erreur lors de la suppression, événement restauré', 'error')
+            setTimeout(() => reloadCurrentEvents(true), 100)
+            throw new Error(error.error || 'Erreur lors de la suppression')
+          }
           return true
-        } else {
-          const error = await response.json()
-          console.error('❌ Erreur API suppression:', error)
-          throw new Error(error.error || 'Erreur lors de la suppression')
+        } catch (error) {
+          // En cas d'erreur réseau, recharger pour restaurer l'état
+          showNotification('Erreur réseau, événement restauré', 'error')
+          setTimeout(() => reloadCurrentEvents(true), 100)
+          throw error
         }
       } else {
+        // Pas de session, restaurer l'événement
+        setTimeout(() => reloadCurrentEvents(true), 100)
         throw new Error('Non connecté et événement non local')
       }
     } catch (error) {
-      console.error('❌ Erreur suppression événement:', error)
       throw error
     }
-  }, [session?.accessToken])
+  }, [session?.accessToken, showNotification, reloadCurrentEvents])
 
   // Synchroniser les événements locaux avec Google
   const syncWithGoogle = useCallback(async (showNotifications = true) => {

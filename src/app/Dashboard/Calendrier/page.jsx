@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi } from "react-icons/fa"
+import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi, FaBars } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
 import AddEventModal from "../../components/Calendar/AddEventModal"
 import EditEventModal from "../../components/Calendar/EditEventModal"
@@ -215,26 +215,66 @@ export default function Calendrier(){
     // Le calendrier est maintenant accessible même sans session
 
     return(
-        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-2 sm:px-4 lg:px-6">
-            <div className="max-w-full xl:max-w-[1400px] mx-auto py-6">
-                {/* Header avec contrôles */}
+        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-0 sm:px-4 lg:px-6 pb-40 sm:pb-0">
+            <div className="max-w-full xl:max-w-[1400px] mx-auto py-0 sm:py-6">
+                {/* Titre avec navigation pour mobile */}
+                <div className="sm:hidden p-4">
+                    <div className="flex items-center justify-between">
+                        <button
+                            onClick={() => navigateDate(-1)}
+                            className="p-3 rounded-xl bg-white/10 backdrop-blur-lg text-white transition-all duration-200 shadow-lg border border-white/20"
+                        >
+                            <FaChevronLeft className="w-5 h-5" />
+                        </button>
+                        
+                        <div className="bg-white/10 backdrop-blur-lg px-6 py-3 rounded-2xl shadow-lg border border-white/20">
+                            <h1 className="text-xl font-bold text-white capitalize drop-shadow-sm">
+                                {viewMode === 'month' && formatMonthYear(currentDate).replace(/\s\d{4}/, '')}
+                                {viewMode === 'week' && (() => {
+                                    const weekStart = new Date(currentDate)
+                                    const dayOfWeek = weekStart.getDay()
+                                    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+                                    weekStart.setDate(weekStart.getDate() + mondayOffset)
+                                    
+                                    const weekEnd = new Date(weekStart)
+                                    weekEnd.setDate(weekStart.getDate() + 6)
+                                    
+                                    return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'short' })}`
+                                })()}
+                                {viewMode === 'day' && (() => {
+                                    const dayDate = formatDate(currentDate)
+                                    return dayDate.replace(/\s\d{4}/, '')
+                                })()}
+                            </h1>
+                        </div>
+                        
+                        <button
+                            onClick={() => navigateDate(1)}
+                            className="p-3 rounded-xl bg-white/10 backdrop-blur-lg text-white transition-all duration-200 shadow-lg border border-white/20"
+                        >
+                            <FaChevronRight className="w-5 h-5" />
+                        </button>
+                    </div>
+                </div>
+
+                {/* Header avec contrôles - Desktop uniquement, barre en bas pour mobile */}
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-4 shadow-2xl border border-gray-600/20 mb-6"
+                    className="hidden sm:block bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-4 shadow-2xl border border-gray-600/20 mb-6"
                 >
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                         {/* Navigation de date */}
-                        <div className="flex items-center gap-4">
+                        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
                             <button
                                 onClick={() => navigateDate(-1)}
-                                className="p-3 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
+                                className="p-4 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
                             >
-                                <FaChevronLeft className="w-4 h-4" />
+                                <FaChevronLeft className="w-5 h-5" />
                             </button>
                             
-                            <div className="text-center">
-                                <h1 className="text-xl sm:text-2xl font-bold text-white capitalize">
+                            <div className="text-center flex-shrink-0">
+                                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white capitalize">
                                     {viewMode === 'month' && formatMonthYear(currentDate)}
                                     {viewMode === 'week' && (() => {
                                         const weekStart = new Date(currentDate)
@@ -258,14 +298,14 @@ export default function Calendrier(){
                             
                             <button
                                 onClick={() => navigateDate(1)}
-                                className="p-3 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
+                                className="p-4 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
                             >
-                                <FaChevronRight className="w-4 h-4" />
+                                <FaChevronRight className="w-5 h-5" />
                             </button>
                         </div>
 
                         {/* Contrôles */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
                             {/* Sélecteur de vue avec background adaptatif */}
                             <div className="flex p-1 relative bg-[#3a3d4e]/50 rounded-xl border border-gray-600/20">
                                 {[
@@ -276,7 +316,7 @@ export default function Calendrier(){
                                     <motion.button
                                         key={key}
                                         onClick={() => setViewMode(key)}
-                                        className={`flex items-center gap-2 px-4 py-3 rounded-lg text-sm font-medium relative flex-1 justify-center transition-colors duration-150 ${
+                                        className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-3 sm:py-3 rounded-lg text-sm sm:text-sm font-medium relative flex-1 justify-center transition-colors duration-150 ${
                                             viewMode === key 
                                                 ? 'text-white'
                                                 : 'text-gray-300 hover:text-white'
@@ -304,9 +344,9 @@ export default function Calendrier(){
                                             />
                                         )}
                                         
-                                        <div className="relative z-10 flex items-center gap-2">
-                                            <Icon className="w-4 h-4" />
-                                            <span className="hidden sm:inline">{label}</span>
+                                        <div className="relative z-10 flex items-center gap-1 sm:gap-2">
+                                            <Icon className="w-4 h-4 sm:w-4 sm:h-4" />
+                                            <span className="hidden md:inline">{label}</span>
                                         </div>
                                     </motion.button>
                                 ))}
@@ -328,26 +368,26 @@ export default function Calendrier(){
                                     repeat: loadingEvents ? Infinity : 0,
                                     ease: "easeInOut"
                                 }}
-                                className="flex items-center gap-2 bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
+                                className="flex items-center gap-1 sm:gap-2 bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white px-3 sm:px-4 py-3 sm:py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
                             >
-                                <FaSync className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
-                                <span className="hidden sm:inline">Sync</span>
+                                <FaSync className={`w-4 h-4 sm:w-4 sm:h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
+                                <span className="hidden md:inline">Sync</span>
                             </motion.button>
 
                             {/* Bouton ajouter événement */}
                             <button
                                 onClick={() => setShowAddEvent(true)}
-                                className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+                                className="flex items-center gap-1 sm:gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-3 sm:px-4 py-3 sm:py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-sm"
                             >
-                                <FaPlus className="w-4 h-4" />
-                                <span className="hidden sm:inline">Nouveau</span>
+                                <FaPlus className="w-4 h-4 sm:w-4 sm:h-4" />
+                                <span className="hidden md:inline">Nouveau</span>
                             </button>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Calendrier principal */}
-                <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl p-6 sm:p-8 shadow-2xl border border-gray-600/20 overflow-hidden relative">
+                <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-none sm:rounded-3xl p-0 sm:p-8 shadow-none sm:shadow-2xl border-0 sm:border border-gray-600/20 overflow-hidden relative">
                     {loadingEvents ? (
                         /* Skeleton Screen */
                         <div className="animate-pulse">
@@ -457,16 +497,16 @@ export default function Calendrier(){
                         {viewMode === 'month' && (
                         <div className="p-0 sm:p-6 lg:p-8">
                             {/* En-têtes des jours */}
-                            <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-3 mb-2 sm:mb-4 lg:mb-6">
+                            <div className="grid grid-cols-7 gap-0 sm:gap-2 lg:gap-3 mb-1 sm:mb-4 lg:mb-6">
                                 {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
-                                    <div key={index} className="p-1 sm:p-3 lg:p-4 text-center">
+                                    <div key={index} className="p-1 sm:p-3 lg:p-4 text-center border-r border-gray-600/20 last:border-r-0">
                                         <span className="text-gray-400 font-semibold text-xs sm:text-sm lg:text-base">{day}</span>
                                     </div>
                                 ))}
                             </div>
 
                             {/* Grille du calendrier */}
-                            <div className="grid grid-cols-7 gap-2 sm:gap-2 lg:gap-3">
+                            <div className="grid grid-cols-7 gap-0 sm:gap-2 lg:gap-3">
                                 {generateMonthCalendar().map((date, index) => {
                                     const dayEvents = getEventsForDay(date)
                                     const isCurrentDay = isToday(date)
@@ -487,7 +527,7 @@ export default function Calendrier(){
                                                 damping: 25,
                                                 mass: 0.5
                                             }}
-                                            className={`min-h-[100px] sm:min-h-[120px] lg:min-h-[140px] p-2 sm:p-2 lg:p-3 cursor-pointer touch-manipulation active:scale-95 rounded-xl sm:rounded-xl lg:rounded-2xl border hover:md:shadow-lg ${
+                                            className={`min-h-[110px] sm:min-h-[120px] lg:min-h-[140px] p-1 sm:p-2 lg:p-3 cursor-pointer touch-manipulation active:scale-95 rounded-none sm:rounded-xl lg:rounded-2xl border hover:md:shadow-lg ${
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg hover:from-blue-600/40 hover:to-indigo-600/40 hover:border-blue-400/60 hover:shadow-xl'
                                                     : isInCurrentMonth
@@ -619,9 +659,9 @@ export default function Calendrier(){
                     )}
 
                     {viewMode === 'week' && (
-                        <div className="p-4 sm:p-6 lg:p-8">
-                            {/* Header de la semaine */}
-                            <div className="mb-4">
+                        <div className="p-0 sm:p-6 lg:p-8">
+                            {/* Header de la semaine - Desktop seulement */}
+                            <div className="hidden sm:block mb-4">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-xl font-bold text-white mb-2">
@@ -656,7 +696,7 @@ export default function Calendrier(){
                             </div>
 
                             {/* Vue semaine moderne */}
-                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl shadow-2xl border border-gray-600/20 overflow-hidden">
+                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-gray-600/20 overflow-hidden">
                                 {/* Événements multi-jours en haut */}
                                 {(() => {
                                     const weekStart = new Date(currentDate)
@@ -750,13 +790,15 @@ export default function Calendrier(){
                                 <div className="bg-gray-800/40 backdrop-blur-sm border-b border-gray-600/30">
                                     <div className="grid grid-cols-8 gap-0">
                                         {/* Colonne vide pour aligner avec les heures */}
-                                        <div className="p-4 bg-gray-800/50">
+                                        <div className="p-2 sm:p-4 bg-gray-800/50">
                                             <div className="text-center text-xs font-medium text-gray-500">
-                                                Heure
+                                                <span className="hidden sm:inline">Heure</span>
+                                                <span className="sm:hidden">H</span>
                                             </div>
                                         </div>
                                         
-                                        {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => {
+                                        {['L', 'M', 'M', 'J', 'V', 'S', 'D'].map((dayShort, index) => {
+                                            const dayFull = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'][index]
                                             const weekStart = new Date(currentDate)
                                             const dayOfWeek = weekStart.getDay()
                                             const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
@@ -775,16 +817,17 @@ export default function Calendrier(){
                                             })
                                             
                                             return (
-                                                <div key={index} className={`p-4 text-center transition-all duration-200 ${
+                                                <div key={index} className={`p-2 sm:p-4 text-center transition-all duration-200 ${
                                                     `border-l border-gray-600/20 ${isToday ? 'bg-blue-500/10' : ''}`
                                                 }`}>
-                                                    <div className="space-y-2">
-                                                        <div className={`text-sm font-medium ${
+                                                    <div className="space-y-1 sm:space-y-2">
+                                                        <div className={`text-xs sm:text-sm font-medium ${
                                                             isWeekend ? 'text-gray-400' : 'text-gray-300'
                                                         }`}>
-                                                            {day}
+                                                            <span className="sm:hidden">{dayShort}</span>
+                                                            <span className="hidden sm:inline">{dayFull}</span>
                                                         </div>
-                                                        <div className={`text-2xl font-bold rounded-2xl w-14 h-14 flex items-center justify-center mx-auto transition-all duration-300 cursor-pointer ${
+                                                        <div className={`text-lg sm:text-2xl font-bold rounded-xl sm:rounded-2xl w-8 h-8 sm:w-14 sm:h-14 flex items-center justify-center mx-auto transition-all duration-300 cursor-pointer ${
                                                             isToday 
                                                                 ? 'bg-[#3A6FF8] text-white shadow-lg shadow-blue-500/25 scale-110' 
                                                                 : isWeekend
@@ -818,17 +861,18 @@ export default function Calendrier(){
                                         const isCurrentHour = isToday(currentDate) && hour === new Date().getHours()
                                         
                                         return (
-                                            <div key={hour} className={`grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 transition-all duration-200 min-h-[70px] ${
+                                            <div key={hour} className={`grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 transition-all duration-200 min-h-[50px] sm:min-h-[70px] ${
                                                 isPeakHour ? 'bg-gray-800/20' : ''
                                             } ${isCurrentHour ? 'bg-blue-500/5' : ''}`}>
                                                 {/* Colonne des heures avec même taille que la section journée */}
-                                                <div className={`w-20 p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center ${
+                                                <div className={`w-12 sm:w-20 p-2 sm:p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center ${
                                                     isCurrentHour ? 'bg-blue-500/10' : ''
                                                 }`}>
-                                                    <div className={`text-lg font-bold transition-colors duration-200 ${
+                                                    <div className={`text-sm sm:text-lg font-bold transition-colors duration-200 ${
                                                         isCurrentHour ? 'text-blue-400' : 'text-white'
                                                     }`}>
-                                                        {hour.toString().padStart(2, '0')}h
+                                                        <span className="sm:hidden">{hour}h</span>
+                                                        <span className="hidden sm:inline">{hour.toString().padStart(2, '0')}h</span>
                                                     </div>
                                                 </div>
                                                 
@@ -929,9 +973,9 @@ export default function Calendrier(){
                     )}
 
                     {viewMode === 'day' && (
-                        <div className="p-4 sm:p-6 lg:p-8">
-                            {/* Header de la journée */}
-                            <div className="mb-4">
+                        <div className="p-0 sm:p-6 lg:p-8">
+                            {/* Header de la journée - Desktop seulement */}
+                            <div className="hidden sm:block mb-4">
                                 <div className="flex items-center justify-between">
                                     <div>
                                         <h2 className="text-xl font-bold text-white mb-2">
@@ -956,7 +1000,7 @@ export default function Calendrier(){
                             </div>
 
                             {/* Vue détaillée de la journée */}
-                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl shadow-2xl border border-gray-600/20 overflow-hidden relative">
+                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-gray-600/20 overflow-hidden relative">
 
                                 {/* Grille horaire sans scroll */}
                                 <div className="relative">
@@ -1011,10 +1055,10 @@ export default function Calendrier(){
                                                     } ${isCurrentHour ? 'bg-blue-500/5' : ''}`}
                                                 >
                                                     {/* Colonne des heures */}
-                                                    <div className={`w-20 p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center min-h-[70px] ${
+                                                    <div className={`w-14 sm:w-20 p-2 sm:p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[70px] ${
                                                         isCurrentHour ? 'bg-blue-500/10' : ''
                                                     }`}>
-                                                        <div className={`text-lg font-bold transition-colors duration-200 ${
+                                                        <div className={`text-base sm:text-lg font-bold transition-colors duration-200 ${
                                                             isCurrentHour ? 'text-blue-400' : 'text-white'
                                                         }`}>
                                                             {hour.toString().padStart(2, '0')}h
@@ -1023,7 +1067,7 @@ export default function Calendrier(){
                                                     
                                                     {/* Zone des événements */}
                                                     <div 
-                                                        className="flex-1 p-3 min-h-[70px] cursor-pointer group hover:bg-gray-700/10 transition-all duration-200 relative"
+                                                        className="flex-1 p-3 min-h-[90px] sm:min-h-[70px] cursor-pointer group hover:bg-gray-700/10 transition-all duration-200 relative"
                                                         onClick={() => {
                                                             const clickDate = new Date(currentDate)
                                                             clickDate.setHours(hour, 0, 0, 0)
@@ -1143,59 +1187,68 @@ export default function Calendrier(){
                 </div>
 
 
-                {/* Statistiques rapides */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
-                    <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-6 shadow-lg border border-blue-500/20">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-blue-400 text-sm font-medium">Événements ce mois</p>
-                                <p className="text-2xl font-bold text-white">{events.length}</p>
-                            </div>
-                            <FaCalendarAlt className="w-8 h-8 text-blue-400" />
-                        </div>
+            </div>
+
+            {/* Nouvelle barre de contrôles mobile - Simple et efficace */}
+            <div className="sm:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
+                <div className="flex items-center gap-3">
+                    {/* Sélecteur de vue compact */}
+                    <div className="flex bg-white/10 backdrop-blur-lg rounded-full p-1 border border-white/20 shadow-2xl">
+                        {[
+                            { key: 'month', icon: FaCalendarAlt },
+                            { key: 'week', icon: FaCalendarWeek },
+                            { key: 'day', icon: FaCalendarDay }
+                        ].map(({ key, icon: Icon }) => (
+                            <motion.button
+                                key={key}
+                                onClick={() => setViewMode(key)}
+                                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                    viewMode === key 
+                                        ? 'bg-[#3A6FF8] text-white shadow-lg' 
+                                        : 'text-gray-300 hover:text-white hover:bg-white/10'
+                                }`}
+                                whileTap={{ scale: 0.9 }}
+                                whileHover={{ scale: 1.05 }}
+                            >
+                                <Icon className="w-5 h-5" />
+                            </motion.button>
+                        ))}
                     </div>
-                    
-                    <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-6 shadow-lg border border-green-500/20">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-green-400 text-sm font-medium">Aujourd'hui</p>
-                                <p className="text-2xl font-bold text-white">{getEventsForDay(new Date()).length}</p>
-                            </div>
-                            <FaCalendarAlt className="w-8 h-8 text-green-400" />
-                        </div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-6 shadow-lg border border-purple-500/20">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-purple-400 text-sm font-medium">Cette semaine</p>
-                                <p className="text-2xl font-bold text-white">-</p>
-                            </div>
-                            <FaList className="w-8 h-8 text-purple-400" />
-                        </div>
-                    </div>
-                    
-                    <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-6 shadow-lg border border-amber-500/20">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-amber-400 text-sm font-medium">Synchronisation</p>
-                                <p className="text-sm font-medium text-white">
-                                    {session ? 'Google connecté' : 'Mode local'}
-                                </p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                {session ? (
-                                    <FaWifi className="w-4 h-4 text-green-400" />
-                                ) : (
-                                    <div className="w-4 h-4 text-amber-400 relative">
-                                        <FaWifi className="w-4 h-4" />
-                                        <div className="absolute inset-0 bg-amber-400 transform rotate-45 w-0.5 h-5 top-0 left-2"></div>
-                                    </div>
-                                )}
-                                <div className={`w-3 h-3 rounded-full ${session ? 'bg-green-400 animate-pulse' : 'bg-amber-400'}`}></div>
-                            </div>
-                        </div>
-                    </div>
+
+                    {/* Bouton Sync */}
+                    <motion.button
+                        onClick={syncWithGoogle}
+                        disabled={loadingEvents}
+                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl flex items-center justify-center text-white transition-all duration-200 hover:bg-white/20 disabled:opacity-50"
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        <FaSync className={`w-5 h-5 ${loadingEvents ? 'animate-spin' : ''}`} />
+                    </motion.button>
+
+                    {/* Bouton Menu Navbar */}
+                    <motion.button
+                        onClick={() => {
+                            // Fonction pour dispatcher l'événement
+                            const dispatchEvent = () => {
+                                const event = new CustomEvent('openMobileNavbar')
+                                window.dispatchEvent(event)
+                            }
+                            
+                            // Vérifier si le listener est prêt
+                            if (window._mobileNavbarReady) {
+                                dispatchEvent()
+                            } else {
+                                // Attendre un court délai et réessayer
+                                setTimeout(dispatchEvent, 100)
+                            }
+                        }}
+                        className="w-14 h-14 rounded-full bg-[#3A6FF8] shadow-2xl flex items-center justify-center text-white transition-all duration-200 hover:bg-[#2952d3]"
+                        whileTap={{ scale: 0.9 }}
+                        whileHover={{ scale: 1.05 }}
+                    >
+                        <FaBars className="w-5 h-5" />
+                    </motion.button>
                 </div>
             </div>
 
