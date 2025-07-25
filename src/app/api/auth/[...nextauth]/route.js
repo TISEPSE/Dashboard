@@ -25,7 +25,6 @@ async function refreshAccessToken(token) {
       throw refreshedTokens
     }
 
-    console.log('✅ Token rafraîchi avec succès')
     return {
       ...token,
       accessToken: refreshedTokens.access_token,
@@ -60,11 +59,6 @@ const authOptions = {
       try {
         // Connexion initiale
         if (account) {
-          console.log('🔑 Token reçu:', { 
-            access_token: account.access_token ? 'Présent' : 'Absent',
-            refresh_token: account.refresh_token ? 'Présent' : 'Absent',
-            scope: account.scope 
-          })
           token.accessToken = account.access_token
           token.refreshToken = account.refresh_token
           token.accessTokenExpires = account.expires_at * 1000 // Convertir en millisecondes
@@ -80,7 +74,6 @@ const authOptions = {
 
         // Token expiré, essayer de le rafraîchir
         if (token.refreshToken) {
-          console.log('🔄 Tentative de rafraîchissement du token...')
           return await refreshAccessToken(token)
         }
 
@@ -98,12 +91,6 @@ const authOptions = {
         session.user.id = token.sub || token.id
         session.error = token.error
         
-        console.log('📋 Session créée:', {
-          accessToken: session.accessToken ? 'Présent' : 'Absent',
-          userId: session.user.id,
-          expires: session.accessTokenExpires,
-          hasError: !!session.error
-        })
         
         return session
       } catch (error) {

@@ -80,12 +80,6 @@ export async function POST(request) {
       }]
     }
 
-    console.log('📤 Envoi vers Discord:', {
-      nom,
-      prenom,
-      descriptionLength: description.length,
-      timestamp: dateString
-    })
 
     // Envoi vers Discord
     const discordResponse = await fetch(DISCORD_WEBHOOK_URL, {
@@ -102,7 +96,6 @@ export async function POST(request) {
       throw new Error(`Discord API error: ${discordResponse.status}`)
     }
 
-    console.log('✅ Message envoyé vers Discord avec succès')
 
     return NextResponse.json({
       success: true,

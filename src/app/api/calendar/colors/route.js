@@ -7,19 +7,11 @@ export async function GET(request) {
   try {
     const session = await getServerSession(authOptions)
     
-    console.log('🎨 Vérification session couleurs:', {
-      hasSession: !!session,
-      hasAccessToken: !!session?.accessToken,
-      accessTokenLength: session?.accessToken?.length,
-      hasError: !!session?.error
-    })
     
     if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
-      console.log('❌ Pas de token d\'accès pour les couleurs ou erreur de rafraîchissement')
       return NextResponse.json({ error: "Session expirée - reconnectez-vous", needsReauth: true }, { status: 401 })
     }
 
-    console.log('🎨 Récupération des couleurs Google Calendar...')
     
     const response = await fetch('https://www.googleapis.com/calendar/v3/colors', {
       headers: {
@@ -34,7 +26,6 @@ export async function GET(request) {
       
       // Gestion spécifique des erreurs d'authentification
       if (response.status === 401) {
-        console.log('🔄 Token Google Colors expiré')
         return NextResponse.json({ 
           error: "Session expirée - reconnectez-vous", 
           needsReauth: true 
@@ -45,15 +36,9 @@ export async function GET(request) {
     }
 
     const colors = await response.json()
-    console.log('✅ Couleurs Google récupérées:', {
-      totalColors: Object.keys(colors.event || {}).length,
-      colorIds: Object.keys(colors.event || {}),
-      sampleColor: colors.event?.['1']
-    })
     
     // Récupérer aussi les couleurs personnalisées depuis les événements existants
     try {
-      console.log('🔍 Recherche de couleurs personnalisées dans les événements...')
       
       const oauth2Client = new google.auth.OAuth2(
         process.env.GOOGLE_CLIENT_ID,
@@ -89,7 +74,6 @@ export async function GET(request) {
         }
       })
       
-      console.log('🎨 Couleurs personnalisées trouvées:', Array.from(customColors))
       
       // Ajouter les couleurs personnalisées avec une couleur par défaut
       customColors.forEach(colorId => {

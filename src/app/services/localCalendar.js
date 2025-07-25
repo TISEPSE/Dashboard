@@ -52,13 +52,8 @@ export const convertGoogleColors = (googleColors) => {
       googleOriginal: true
     }
     
-    console.log(`🎨 Couleur Google ${colorId}:`, {
-      background: colorData.background,
-      text: colorData.foreground
-    })
   })
   
-  console.log('✅ Couleurs Google pures utilisées:', Object.keys(convertedColors))
   return convertedColors
 }
 
@@ -256,7 +251,6 @@ export const addPendingUpdate = (eventId, updates) => {
     }
     
     localStorage.setItem(PENDING_UPDATES_KEY, JSON.stringify(pendingUpdates))
-    console.log('💾 Modification en attente sauvegardée:', { eventId, updates })
   } catch (error) {
     console.error('Erreur sauvegarde modification en attente:', error)
   }
@@ -285,7 +279,6 @@ export const removePendingUpdate = (eventId) => {
     
     delete pendingUpdates[eventId]
     localStorage.setItem(PENDING_UPDATES_KEY, JSON.stringify(pendingUpdates))
-    console.log('✅ Modification synchronisée:', eventId)
   } catch (error) {
     console.error('Erreur suppression modification en attente:', error)
   }

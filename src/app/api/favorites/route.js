@@ -17,7 +17,6 @@ export async function GET(request) {
     
     // Si la table n'existe pas (PostgreSQL)
     if (error.code === 'P2021' || error.code === '42P01') {
-      console.log('Table does not exist, it should be created via Prisma migrations')
       return NextResponse.json({ error: 'Database table does not exist. Run: npx prisma db push' }, { status: 503 })
     }
     

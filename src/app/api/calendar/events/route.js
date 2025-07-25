@@ -7,18 +7,8 @@ export async function GET(request) {
   try {
     const session = await getServerSession(authOptions)
     
-    console.log('🔍 Vérification session:', {
-      hasSession: !!session,
-      hasAccessToken: !!session?.accessToken,
-      hasRefreshToken: !!session?.refreshToken,
-      userId: session?.user?.id,
-      tokenLength: session?.accessToken?.length,
-      hasError: !!session?.error,
-      errorType: session?.error
-    })
     
     if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
-      console.log('❌ Pas de token d\'accès ou erreur de rafraîchissement')
       return NextResponse.json({ 
         error: "Session expirée - reconnectez-vous", 
         needsReauth: true 
@@ -42,11 +32,6 @@ export async function GET(request) {
     
     oauth2Client.setCredentials(credentials)
     
-    console.log('🔑 Credentials configurés:', {
-      hasAccessToken: !!credentials.access_token,
-      hasRefreshToken: !!credentials.refresh_token,
-      accessTokenLength: credentials.access_token?.length
-    })
 
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
 
@@ -57,7 +42,6 @@ export async function GET(request) {
     const maxResults = parseInt(url.searchParams.get('maxResults')) || 100
 
     // Récupérer les événements
-    console.log('🗓️ Récupération événements:', { timeMin, timeMax, maxResults })
     
     const response = await calendar.events.list({
       calendarId: 'primary',
@@ -70,7 +54,6 @@ export async function GET(request) {
     })
 
     const events = response.data.items || []
-    console.log(`📅 ${events.length} événements récupérés`)
 
     return NextResponse.json({
       events,
@@ -89,7 +72,6 @@ export async function GET(request) {
     
     // Gestion spécifique des erreurs d'authentification
     if (error.code === 401 || error.status === 401 || error.message?.includes('authentication')) {
-      console.log('🔄 Token expiré, demande de reconnexion')
       return NextResponse.json({ 
         error: "Session Google expirée - reconnectez-vous",
         needsReauth: true,
@@ -161,7 +143,6 @@ export async function POST(request) {
     // Ajouter la couleur si spécifiée
     if (colorId) {
       event.colorId = colorId.toString()
-      console.log('🎨 Couleur appliquée:', colorId)
     }
 
     const response = await calendar.events.insert({
@@ -244,7 +225,6 @@ export async function PUT(request) {
     // Ajouter la couleur si spécifiée
     if (colorId) {
       event.colorId = colorId.toString()
-      console.log('🎨 Couleur appliquée:', colorId)
     }
 
     const response = await calendar.events.update({

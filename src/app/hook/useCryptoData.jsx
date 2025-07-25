@@ -313,13 +313,11 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
       return
     }
     
-    console.log("⭐ Filtrage des favoris")
     const favoriteSymbols = favoritesList.map(fav => fav.symbol.toUpperCase())
     const filteredFavorites = allCryptos.filter(crypto => 
       favoriteSymbols.includes(crypto.symbol.toUpperCase())
     )
     
-    console.log("✅ Favoris trouvés:", filteredFavorites.length)
     setFavoriteCryptos(filteredFavorites)
   }, [favoritesList, allCryptos])
 
@@ -343,7 +341,6 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
       // Pour le refresh, ignorer le cache ; sinon vérifier le cache (5 minutes)
       if (!isRefresh && cacheRef.current[cacheKey] && 
           (now - cacheRef.current[cacheKey].timestamp) < 300000) {
-        console.log("📦 Utilisation du cache pour", cacheKey)
         setAllCryptos(cacheRef.current[cacheKey].data)
         setLastFetch(new Date(cacheRef.current[cacheKey].timestamp))
         setRetryCount(0)
@@ -353,7 +350,6 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
       }
 
       const logPrefix = isRefresh ? "🔄 Refresh" : "🌐 Fetch"
-      console.log(`${logPrefix} 250 cryptos pour ${currency}`)
       
       const response = await fetch(`/api/crypto?vs_currency=${currency}`, {
         method: 'GET',
@@ -387,10 +383,8 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
             })
           
           if (hasChanges) {
-            console.log(`✅ Refresh: données mises à jour`)
             return cryptoData
           } else {
-            console.log(`📊 Refresh: aucun changement`)
             return prevCryptos
           }
         })
@@ -403,7 +397,6 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
       setIsRetrying(false)
       
       if (!isRefresh) {
-        console.log(`✅ ${cryptoData.length} cryptos chargées`)
       }
       
     } catch (err) {
@@ -479,7 +472,6 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
     const endIndex = startIndex + ITEMS_PER_PAGE
     const paginatedCryptos = processedCryptos.slice(startIndex, endIndex)
     
-    console.log(`📊 Page ${currentPage}: ${paginatedCryptos.length} cryptos (${startIndex + 1}-${Math.min(endIndex, processedCryptos.length)} sur ${processedCryptos.length})`)
     setDisplayedCryptos(paginatedCryptos)
   }, [allCryptos, currentPage, sortBy, sortOrder, searchQuery])
 
@@ -487,7 +479,6 @@ export const useCryptoData = (currency, currentPage, sortBy, sortOrder, favorite
   useEffect(() => {
     const interval = setInterval(() => {
       if (!isRetrying && !loading && !isRefreshing) {
-        console.log("🔄 Auto-refresh silencieux des 250 cryptos")
         fetchAllCryptos(false, true) // isRefresh = true
       }
     }, 120000) // 2 minutes

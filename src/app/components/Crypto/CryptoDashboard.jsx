@@ -89,16 +89,13 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
   // Logique de filtrage simplifiée
   const filteredCryptos = React.useMemo(() => {
-    console.log("🔍 Filtrage - Type:", filterType)
     
     if (filterType === 'favorites') {
       // Utiliser les favoris pré-filtrés et les trier
       const sortedFavorites = sortCryptos(favoriteCryptos)
-      console.log("⭐ Favoris affichés:", sortedFavorites.length)
       return sortedFavorites
     } else {
       // Utiliser les cryptos de la page (déjà triés et paginés côté hook)
-      console.log("📊 Cryptos page affichés:", cryptos.length)
       return cryptos
     }
   }, [cryptos, favoriteCryptos, filterType, sortBy, sortOrder])
@@ -137,7 +134,6 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   // Validation de la page courante après changement de tri pour éviter les pages inexistantes
   useEffect(() => {
     if (filterType !== 'favorites' && currentPage > maxPages && maxPages > 0) {
-      console.log(`📄 Page ${currentPage} invalide après tri, ajustement à la page ${maxPages}`)
       setCurrentPage(maxPages)
     }
   }, [currentPage, maxPages, filterType])
@@ -179,12 +175,10 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
   // Gestion des clics sur les cartes
   const handleAddCrypto = coin => {
-    console.log("Ajouter crypto:", coin)
     // Logique d'ajout ici
   }
 
   const handleInfoCrypto = coin => {
-    console.log("Info crypto:", coin)
     setSelectedCrypto(coin)
     setIsModalOpen(true)
   }

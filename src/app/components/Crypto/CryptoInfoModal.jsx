@@ -29,7 +29,6 @@ const CryptoInfoModal = ({ isOpen, onClose, coin, currency }) => {
       if (!coin?.id || requestInProgress || !isOpen) return
       
       // Force le rechargement à chaque ouverture du modal - pas de cache
-      console.log('🔄 Rechargement des données pour', coin.id)
       
       setRequestInProgress(true)
       setLoading(true)

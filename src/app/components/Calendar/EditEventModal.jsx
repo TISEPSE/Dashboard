@@ -88,7 +88,6 @@ const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
         start: startISO,
         end: endISO
       }
-      console.log('🎨 Données d\'événement à sauvegarder:', eventDataToSave)
       await onSave(eventDataToSave)
       
       // Attendre que les modifications soient visibles avant de fermer le modal

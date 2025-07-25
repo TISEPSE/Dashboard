@@ -19,12 +19,10 @@ export async function GET(request, { params }) {
     if (detailCache.has(cacheKey)) {
       const cached = detailCache.get(cacheKey)
       if ((now - cached.timestamp) < CACHE_DURATION) {
-        console.log('🗄️ Utilisation du cache détail pour', coinId)
         return NextResponse.json(cached.data)
       }
     }
     
-    console.log('🌐 Fetch détails CoinGecko pour', coinId, type)
     
     let url
     if (type === 'chart') {
@@ -50,7 +48,6 @@ export async function GET(request, { params }) {
     if (!response.ok) {
       // Si 429, utiliser les données en cache même si expirées
       if (response.status === 429 && detailCache.has(cacheKey)) {
-        console.log('⚠️ Rate limit détail - utilisation du cache expiré')
         const cached = detailCache.get(cacheKey)
         return NextResponse.json(cached.data)
       }
@@ -72,7 +69,6 @@ export async function GET(request, { params }) {
       detailCache.delete(oldestKey)
     }
     
-    console.log(`✅ Données ${type} récupérées pour`, coinId)
     
     return NextResponse.json(data)
     
@@ -84,7 +80,6 @@ export async function GET(request, { params }) {
     const { searchParams: errorSearchParams } = new URL(request.url)
     const cacheKey = `${errorCoinId}_${errorSearchParams.get('vs_currency') || 'eur'}_${errorSearchParams.get('days') || '7'}_${errorSearchParams.get('type') || 'details'}`
     if (detailCache.has(cacheKey)) {
-      console.log('🔄 Utilisation du cache détail en cas d\'erreur')
       const cached = detailCache.get(cacheKey)
       return NextResponse.json(cached.data)
     }

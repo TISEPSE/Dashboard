@@ -16,12 +16,10 @@ export async function GET(request) {
     if (cache.has(cacheKey)) {
       const cached = cache.get(cacheKey)
       if ((now - cached.timestamp) < CACHE_DURATION) {
-        console.log('🗄️ Utilisation du cache API pour', cacheKey)
         return NextResponse.json(cached.data)
       }
     }
     
-    console.log('🌐 Fetch API CoinGecko pour', cacheKey)
     
     // Toujours récupérer les 250 premières par market cap pour avoir une base cohérente
     const controller = new AbortController()
@@ -43,7 +41,6 @@ export async function GET(request) {
     if (!response.ok) {
       // Si 429, utiliser les données en cache même si expirées
       if (response.status === 429 && cache.has(cacheKey)) {
-        console.log('⚠️ Rate limit - utilisation du cache expiré')
         const cached = cache.get(cacheKey)
         return NextResponse.json(cached.data)
       }
@@ -65,7 +62,6 @@ export async function GET(request) {
       cache.delete(oldestKey)
     }
     
-    console.log(`✅ ${data.length} cryptos récupérées et mises en cache`)
     
     return NextResponse.json(data)
     
@@ -75,7 +71,6 @@ export async function GET(request) {
     // En cas d'erreur, utiliser n'importe quel cache disponible pour cette devise
     const fallbackKey = Array.from(cache.keys()).find(key => key.startsWith(currency))
     if (fallbackKey) {
-      console.log('🔄 Utilisation du cache de fallback')
       const cached = cache.get(fallbackKey)
       return NextResponse.json(cached.data)
     }

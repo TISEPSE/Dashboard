@@ -48,25 +48,17 @@ export default function MobileNavbar() {
       {/* Bouton flottant moderne avec glassmorphism */}
       <button
         onClick={() => setIsOpen(true)}
-        className="md:hidden fixed bottom-8 right-6 w-16 h-16 text-white rounded-2xl shadow-2xl transition-all duration-500 ease-out transform active:scale-90 z-[50] flex items-center justify-center group overflow-hidden"
+        className="md:hidden fixed bottom-8 right-6 w-18 h-18 text-white rounded-2xl shadow-2xl transition-all duration-300 ease-out active:scale-95 z-[50] flex items-center justify-center touch-manipulation cursor-pointer"
         style={{
-          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.9) 100%)',
+          background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 100%)',
           backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(59, 130, 246, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.1)',
-          marginBottom: 'max(env(safe-area-inset-bottom), 0px)'
+          boxShadow: '0 8px 32px rgba(59, 130, 246, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.15)',
+          marginBottom: 'max(env(safe-area-inset-bottom), 0px)',
+          WebkitTapHighlightColor: 'transparent'
         }}
         aria-label="Ouvrir le menu de navigation"
       >
-        {/* Effet de brillance */}
-        <div className="absolute inset-0 bg-gradient-to-br from-white/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        
-        {/* Icône avec animation */}
-        <div className="relative z-10 transition-transform duration-300 group-hover:scale-110">
-          <FaBars size={22} className="drop-shadow-sm" />
-        </div>
-
-        {/* Pulse ring effect */}
-        <div className="absolute inset-0 rounded-2xl bg-blue-400/30 animate-pulse scale-110 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        <FaBars size={22} className="drop-shadow-sm" />
       </button>
 
       {/* Overlay background avec Framer Motion */}
@@ -76,9 +68,10 @@ export default function MobileNavbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.15 }}
+            transition={{ duration: 0.1 }}
             className="md:hidden fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setIsOpen(false)}
+            style={{ touchAction: 'manipulation' }}
           />
         )}
       </AnimatePresence>
@@ -91,7 +84,7 @@ export default function MobileNavbar() {
             animate={{ y: 0 }}
             exit={{ y: "100%" }}
             transition={{ 
-              duration: 0.25,
+              duration: 0.18,
               ease: [0.32, 0.72, 0, 1]
             }}
             drag="y"

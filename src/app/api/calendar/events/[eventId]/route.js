@@ -43,11 +43,6 @@ export async function PUT(request, { params }) {
 
     // Mettre à jour la couleur si fournie
     if (colorId) {
-      console.log('🎨 Mise à jour couleur événement:', {
-        eventId,
-        colorId,
-        colorIdType: typeof colorId
-      })
       updatedEvent.colorId = colorId.toString()
     }
 
@@ -144,7 +139,6 @@ export async function DELETE(request, { params }) {
 
     if (error.code === 404 || error.message === 'Resource has been deleted') {
       // L'événement a déjà été supprimé - considérer comme un succès
-      console.log('Événement déjà supprimé, succès silencieux')
       return NextResponse.json({
         message: "Événement supprimé avec succès"
       })

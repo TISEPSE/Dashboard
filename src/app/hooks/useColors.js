@@ -19,7 +19,6 @@ export const useColors = () => {
 
     setLoading(true)
     try {
-      console.log('🎨 Chargement des couleurs Google Calendar...')
       const googleColorData = await fetchGoogleColors(session.accessToken)
       
       if (googleColorData && googleColorData.event) {
@@ -30,18 +29,15 @@ export const useColors = () => {
         if (Object.keys(convertedColors).length > 0) {
           setColors(convertedColors)
           setIsGoogleConnected(true)
-          console.log('✅ Couleurs Google réelles chargées:', Object.keys(convertedColors).length + ' couleurs')
         } else {
           // Fallback uniquement si aucune couleur Google n'est disponible
           setColors(EVENT_COLORS)
           setIsGoogleConnected(false)
-          console.log('⚠️ Aucune couleur Google trouvée, utilisation couleurs locales')
         }
       } else {
         // Fallback sur les couleurs locales
         setColors(EVENT_COLORS)
         setIsGoogleConnected(false)
-        console.log('⚠️ Pas de données Google, utilisation couleurs locales')
       }
     } catch (error) {
       console.warn('⚠️ Erreur chargement couleurs Google (utilisation couleurs locales):', error.message)
