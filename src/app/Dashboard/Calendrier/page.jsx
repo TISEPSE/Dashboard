@@ -13,7 +13,7 @@ import { useColors } from "../../hooks/useColors"
 import Notification from "../../components/Notification"
 
 export default function Calendrier(){
-    const [isLoading, setIsLoading] = useState(true)
+    const [isLoading, setIsLoading] = useState(false)
     const [currentDate, setCurrentDate] = useState(new Date())
     const [viewMode, setViewMode] = useState('month') // 'month', 'week', 'day'
     const [showAddEvent, setShowAddEvent] = useState(false)
@@ -53,10 +53,11 @@ export default function Calendrier(){
         setShowEditEvent(true)
     }
 
-    useEffect(() => {
-        const timer = setTimeout(() => setIsLoading(false), 300)
-        return () => clearTimeout(timer)
-    }, [])
+    // Supprimer le chargement automatique - seulement pour les vrais problèmes réseau
+    // useEffect(() => {
+    //     const timer = setTimeout(() => setIsLoading(false), 300)
+    //     return () => clearTimeout(timer)
+    // }, [])
 
     // Charger les événements (Google + locaux)
     useEffect(() => {
@@ -209,72 +210,79 @@ export default function Calendrier(){
     }
 
     if (isLoading) {
-        return <LoaderPortal />
+        return <LoaderPortal show={loadingEvents} />
     }
 
     // Le calendrier est maintenant accessible même sans session
 
     return(
-        <div className="min-h-screen bg-gradient-to-br from-[#1a1d29] to-[#212332] px-0 sm:px-4 lg:px-6 pb-40 sm:pb-0">
-            <div className="max-w-full xl:max-w-[1400px] mx-auto py-0 sm:py-6">
-                {/* Titre avec navigation pour mobile */}
-                <div className="sm:hidden p-4">
-                    <div className="flex items-center justify-between">
-                        <button
-                            onClick={() => navigateDate(-1)}
-                            className="p-3 rounded-xl bg-white/10 backdrop-blur-lg text-white transition-all duration-200 shadow-lg border border-white/20"
-                        >
-                            <FaChevronLeft className="w-5 h-5" />
-                        </button>
-                        
-                        <div className="bg-white/10 backdrop-blur-lg px-6 py-3 rounded-2xl shadow-lg border border-white/20">
-                            <h1 className="text-xl font-bold text-white capitalize drop-shadow-sm">
-                                {viewMode === 'month' && formatMonthYear(currentDate).replace(/\s\d{4}/, '')}
-                                {viewMode === 'week' && (() => {
-                                    const weekStart = new Date(currentDate)
-                                    const dayOfWeek = weekStart.getDay()
-                                    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-                                    weekStart.setDate(weekStart.getDate() + mondayOffset)
-                                    
-                                    const weekEnd = new Date(weekStart)
-                                    weekEnd.setDate(weekStart.getDate() + 6)
-                                    
-                                    return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'short' })}`
-                                })()}
-                                {viewMode === 'day' && (() => {
-                                    const dayDate = formatDate(currentDate)
-                                    return dayDate.replace(/\s\d{4}/, '')
-                                })()}
-                            </h1>
+        <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] px-0 sm:px-4 lg:px-6 pb-20 sm:pb-0">
+            <div className="max-w-full xl:max-w-[1200px] mx-auto py-4 sm:py-6">
+                {/* Header mobile moderne sombre */}
+                <div className="sm:hidden">
+                    {/* Card header avec navigation */}
+                    <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-3xl mx-4 mb-4 shadow-2xl border border-slate-700/50 backdrop-blur-xl">
+                        <div className="p-4">
+                            <div className="flex items-center justify-between">
+                                <button
+                                    onClick={() => navigateDate(-1)}
+                                    className="w-12 h-12 rounded-full bg-slate-800/50 hover:bg-slate-700/60 flex items-center justify-center transition-all duration-200 shadow-lg border border-slate-600/30"
+                                >
+                                    <FaChevronLeft className="w-5 h-5 text-slate-300" />
+                                </button>
+                                
+                                <div className="text-center">
+                                    <h1 className="text-2xl font-bold text-white capitalize">
+                                        {viewMode === 'month' && formatMonthYear(currentDate)}
+                                        {viewMode === 'week' && (() => {
+                                            const weekStart = new Date(currentDate)
+                                            const dayOfWeek = weekStart.getDay()
+                                            const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+                                            weekStart.setDate(weekStart.getDate() + mondayOffset)
+                                            
+                                            const weekEnd = new Date(weekStart)
+                                            weekEnd.setDate(weekStart.getDate() + 6)
+                                            
+                                            return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
+                                        })()}
+                                        {viewMode === 'day' && currentDate.toLocaleDateString('fr-FR', {
+                                            weekday: 'long',
+                                            day: 'numeric',
+                                            month: 'long'
+                                        })}
+                                    </h1>
+                                </div>
+                                
+                                <button
+                                    onClick={() => navigateDate(1)}
+                                    className="w-12 h-12 rounded-full bg-slate-800/50 hover:bg-slate-700/60 flex items-center justify-center transition-all duration-200 shadow-lg border border-slate-600/30"
+                                >
+                                    <FaChevronRight className="w-5 h-5 text-slate-300" />
+                                </button>
+                            </div>
+                            
                         </div>
-                        
-                        <button
-                            onClick={() => navigateDate(1)}
-                            className="p-3 rounded-xl bg-white/10 backdrop-blur-lg text-white transition-all duration-200 shadow-lg border border-white/20"
-                        >
-                            <FaChevronRight className="w-5 h-5" />
-                        </button>
                     </div>
                 </div>
 
-                {/* Header avec contrôles - Desktop uniquement, barre en bas pour mobile */}
+                {/* Header avec contrôles - Desktop uniquement */}
                 <motion.div 
                     initial={{ opacity: 0, y: -20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="hidden sm:block bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-2xl p-4 shadow-2xl border border-gray-600/20 mb-6"
+                    className="hidden sm:block bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-3xl p-6 shadow-2xl border border-slate-700/50 mb-6 backdrop-blur-xl"
                 >
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
                         {/* Navigation de date */}
-                        <div className="flex items-center gap-2 sm:gap-4 flex-shrink-0">
+                        <div className="flex items-center gap-4 flex-shrink-0">
                             <button
                                 onClick={() => navigateDate(-1)}
-                                className="p-4 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
+                                className="w-12 h-12 rounded-full bg-slate-800/50 hover:bg-slate-700/60 flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-lg border border-slate-600/30"
                             >
-                                <FaChevronLeft className="w-5 h-5" />
+                                <FaChevronLeft className="w-5 h-5 text-slate-300" />
                             </button>
                             
                             <div className="text-center flex-shrink-0">
-                                <h1 className="text-lg sm:text-xl lg:text-2xl font-bold text-white capitalize">
+                                <h1 className="text-2xl lg:text-3xl font-bold text-white capitalize">
                                     {viewMode === 'month' && formatMonthYear(currentDate)}
                                     {viewMode === 'week' && (() => {
                                         const weekStart = new Date(currentDate)
@@ -285,29 +293,24 @@ export default function Calendrier(){
                                         const weekEnd = new Date(weekStart)
                                         weekEnd.setDate(weekStart.getDate() + 6)
                                         
-                                        return `Semaine du ${weekStart.getDate()} au ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
+                                        return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
                                     })()}
                                     {viewMode === 'day' && formatDate(currentDate)}
                                 </h1>
-                                {viewMode === 'month' && (
-                                    <p className="text-gray-400 text-sm mt-1">
-                                        {new Date().getFullYear() === currentDate.getFullYear() ? 'Cette année' : currentDate.getFullYear()}
-                                    </p>
-                                )}
                             </div>
                             
                             <button
                                 onClick={() => navigateDate(1)}
-                                className="p-4 rounded-xl bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white transition-all duration-200 transform hover:scale-105 shadow-lg"
+                                className="w-12 h-12 rounded-full bg-slate-800/50 hover:bg-slate-700/60 flex items-center justify-center transition-all duration-200 transform hover:scale-105 shadow-lg border border-slate-600/30"
                             >
-                                <FaChevronRight className="w-5 h-5" />
+                                <FaChevronRight className="w-5 h-5 text-slate-300" />
                             </button>
                         </div>
 
-                        {/* Contrôles */}
-                        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-                            {/* Sélecteur de vue avec background adaptatif */}
-                            <div className="flex p-1 relative bg-[#3a3d4e]/50 rounded-xl border border-gray-600/20">
+                        {/* Contrôles modernes sombres */}
+                        <div className="flex items-center gap-3 flex-wrap">
+                            {/* Sélecteur de vue avec style moderne sombre */}
+                            <div className="flex p-1 relative bg-slate-800/50 rounded-2xl border border-slate-600/30">
                                 {[
                                     { key: 'month', icon: FaCalendarAlt, label: 'Mois' },
                                     { key: 'week', icon: FaCalendarWeek, label: 'Semaine' },
@@ -316,12 +319,11 @@ export default function Calendrier(){
                                     <motion.button
                                         key={key}
                                         onClick={() => setViewMode(key)}
-                                        className={`flex items-center gap-1 sm:gap-2 px-3 sm:px-4 py-3 sm:py-3 rounded-lg text-sm sm:text-sm font-medium relative flex-1 justify-center transition-colors duration-150 ${
+                                        className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold relative transition-colors duration-200 ${
                                             viewMode === key 
-                                                ? 'text-white'
-                                                : 'text-gray-300 hover:text-white'
+                                                ? 'text-white shadow-lg'
+                                                : 'text-slate-400 hover:text-slate-200'
                                         }`}
-                                        title={label}
                                         whileHover={{ 
                                             scale: viewMode === key ? 1 : 1.02,
                                             transition: { duration: 0.1 }
@@ -331,10 +333,10 @@ export default function Calendrier(){
                                             transition: { duration: 0.05 }
                                         }}
                                     >
-                                        {/* Background animé qui s'adapte à chaque bouton */}
+                                        {/* Background animé moderne sombre */}
                                         {viewMode === key && (
                                             <motion.div
-                                                className="absolute inset-0 bg-[#3A6FF8] rounded-lg shadow-lg"
+                                                className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl shadow-lg"
                                                 layoutId="activeTab"
                                                 transition={{ 
                                                     type: "spring", 
@@ -344,50 +346,30 @@ export default function Calendrier(){
                                             />
                                         )}
                                         
-                                        <div className="relative z-10 flex items-center gap-1 sm:gap-2">
-                                            <Icon className="w-4 h-4 sm:w-4 sm:h-4" />
+                                        <div className="relative z-10 flex items-center gap-2">
+                                            <Icon className="w-4 h-4" />
                                             <span className="hidden md:inline">{label}</span>
                                         </div>
                                     </motion.button>
                                 ))}
                             </div>
 
-
-                            {/* Bouton synchronisation */}
+                            {/* Bouton synchronisation moderne sombre */}
                             <motion.button
                                 onClick={syncWithGoogle}
                                 disabled={loadingEvents}
-                                animate={{
-                                    scale: loadingEvents ? [1, 1.05, 1] : 1,
-                                    boxShadow: loadingEvents ? 
-                                        ["0 4px 20px rgba(58, 111, 248, 0.3)", "0 8px 25px rgba(58, 111, 248, 0.4)", "0 4px 20px rgba(58, 111, 248, 0.3)"] :
-                                        "0 4px 20px rgba(0, 0, 0, 0.3)"
-                                }}
-                                transition={{
-                                    duration: 0.8,
-                                    repeat: loadingEvents ? Infinity : 0,
-                                    ease: "easeInOut"
-                                }}
-                                className="flex items-center gap-1 sm:gap-2 bg-[#3a3d4e] hover:bg-[#4a4d5e] text-white px-3 sm:px-4 py-3 sm:py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg disabled:opacity-50"
+                                className="flex items-center gap-2 bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 px-4 py-2.5 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg border border-slate-600/30 disabled:opacity-50"
                             >
-                                <FaSync className={`w-4 h-4 sm:w-4 sm:h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
+                                <FaSync className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
                                 <span className="hidden md:inline">Sync</span>
                             </motion.button>
 
-                            {/* Bouton ajouter événement */}
-                            <button
-                                onClick={() => setShowAddEvent(true)}
-                                className="flex items-center gap-1 sm:gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-3 sm:px-4 py-3 sm:py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-sm"
-                            >
-                                <FaPlus className="w-4 h-4 sm:w-4 sm:h-4" />
-                                <span className="hidden md:inline">Nouveau</span>
-                            </button>
                         </div>
                     </div>
                 </motion.div>
 
                 {/* Calendrier principal */}
-                <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-none sm:rounded-3xl p-0 sm:p-8 shadow-none sm:shadow-2xl border-0 sm:border border-gray-600/20 overflow-hidden relative">
+                <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-none sm:rounded-3xl p-0 sm:p-6 shadow-none sm:shadow-2xl border-0 sm:border border-slate-700/50 overflow-hidden relative backdrop-blur-xl">
                     {loadingEvents ? (
                         /* Skeleton Screen */
                         <div className="animate-pulse">
@@ -418,37 +400,36 @@ export default function Calendrier(){
                             )}
                             
                             {viewMode === 'week' && (
-                                <div className="p-4 sm:p-6 lg:p-8">
-                                    {/* Skeleton header semaine */}
-                                    <div className="mb-4">
-                                        <div className="h-6 bg-gray-600/30 rounded w-64 mb-2"></div>
-                                        <div className="h-4 bg-gray-600/20 rounded w-32"></div>
-                                    </div>
-                                    
+                                <div className="p-0 sm:p-6">
                                     {/* Skeleton grille semaine */}
-                                    <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-3xl shadow-2xl border border-gray-600/20 overflow-hidden">
-                                        <div className="grid grid-cols-8 gap-0 border-b border-gray-600/30">
-                                            <div className="p-4 bg-gray-800/50">
-                                                <div className="h-4 bg-gray-600/30 rounded w-12 mx-auto"></div>
-                                            </div>
-                                            {Array.from({ length: 7 }, (_, i) => (
-                                                <div key={i} className="p-4 text-center border-l border-gray-600/20">
-                                                    <div className="h-4 bg-gray-600/30 rounded w-8 mx-auto mb-2"></div>
-                                                    <div className="w-14 h-14 bg-gray-600/20 rounded-2xl mx-auto"></div>
+                                    <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-slate-700/50 overflow-hidden">
+                                        <div className="bg-gray-800/40 backdrop-blur-sm border-b border-gray-600/30">
+                                            <div className="grid grid-cols-8 gap-0">
+                                                <div className="p-2 sm:p-4 bg-gray-800/50">
+                                                    <div className="h-3 sm:h-4 bg-gray-600/30 rounded w-8 sm:w-12 mx-auto"></div>
                                                 </div>
-                                            ))}
+                                                {Array.from({ length: 7 }, (_, i) => (
+                                                    <div key={i} className="p-2 sm:p-4 text-center border-l border-gray-600/20">
+                                                        <div className="h-3 sm:h-4 bg-gray-600/30 rounded w-6 sm:w-8 mx-auto mb-1 sm:mb-2"></div>
+                                                        <div className="w-8 h-8 sm:w-14 sm:h-14 bg-gray-600/20 rounded-xl sm:rounded-2xl mx-auto"></div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                         
-                                        <div className="h-[500px]">
-                                            {Array.from({ length: 12 }, (_, i) => (
-                                                <div key={i} className="grid grid-cols-8 border-b border-gray-600/10 min-h-[42px]">
-                                                    <div className="px-3 py-2 border-r border-gray-600/20 bg-gray-800/30">
-                                                        <div className="h-4 bg-gray-600/30 rounded w-8 mx-auto"></div>
+                                        <div className="w-full">
+                                            {Array.from({ length: 18 }, (_, i) => (
+                                                <div key={i} className="grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 min-h-[50px] sm:min-h-[70px]">
+                                                    <div className="w-12 sm:w-20 p-2 sm:p-4 border-r border-gray-600/20 bg-gray-800/30 flex items-center justify-center">
+                                                        <div className="h-4 sm:h-5 bg-gray-600/30 rounded w-8 sm:w-12"></div>
                                                     </div>
                                                     {Array.from({ length: 7 }, (_, j) => (
-                                                        <div key={j} className="border-l border-gray-600/10 p-1">
+                                                        <div key={j} className="border-l border-gray-600/10 p-2">
                                                             {Math.random() > 0.7 && (
-                                                                <div className="h-6 bg-gray-600/20 rounded mb-1"></div>
+                                                                <div className="h-4 sm:h-6 bg-gray-600/20 rounded mb-1"></div>
+                                                            )}
+                                                            {Math.random() > 0.8 && (
+                                                                <div className="h-3 sm:h-4 bg-gray-600/15 rounded w-3/4"></div>
                                                             )}
                                                         </div>
                                                     ))}
@@ -495,18 +476,18 @@ export default function Calendrier(){
                     ) : (
                         <>
                         {viewMode === 'month' && (
-                        <div className="p-0 sm:p-6 lg:p-8">
-                            {/* En-têtes des jours */}
-                            <div className="grid grid-cols-7 gap-0 sm:gap-2 lg:gap-3 mb-1 sm:mb-4 lg:mb-6">
+                        <div className="p-4 sm:p-6">
+                            {/* En-têtes des jours modernes sombres */}
+                            <div className="grid grid-cols-7 gap-2 mb-6">
                                 {['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'].map((day, index) => (
-                                    <div key={index} className="p-1 sm:p-3 lg:p-4 text-center border-r border-gray-600/20 last:border-r-0">
-                                        <span className="text-gray-400 font-semibold text-xs sm:text-sm lg:text-base">{day}</span>
+                                    <div key={index} className="p-3 text-center">
+                                        <span className="text-slate-400 font-bold text-sm uppercase tracking-wider">{day}</span>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Grille du calendrier */}
-                            <div className="grid grid-cols-7 gap-0 sm:gap-2 lg:gap-3">
+                            {/* Grille du calendrier moderne sombre */}
+                            <div className="grid grid-cols-7 gap-2 sm:gap-3">
                                 {generateMonthCalendar().map((date, index) => {
                                     const dayEvents = getEventsForDay(date)
                                     const isCurrentDay = isToday(date)
@@ -516,42 +497,37 @@ export default function Calendrier(){
                                         <motion.div
                                             key={index}
                                             whileHover={{ 
-                                                scale: window.innerWidth >= 768 ? 1.03 : 1,
-                                                y: window.innerWidth >= 768 ? -2 : 0,
-                                                boxShadow: window.innerWidth >= 768 ? "0 8px 25px rgba(0, 0, 0, 0.15)" : "none"
+                                                scale: 1.02
                                             }}
                                             whileTap={{ scale: 0.98 }}
                                             transition={{ 
-                                                type: "spring",
-                                                stiffness: 400,
-                                                damping: 25,
-                                                mass: 0.5
+                                                type: "tween",
+                                                duration: 0.15,
+                                                ease: "easeOut"
                                             }}
-                                            className={`min-h-[110px] sm:min-h-[120px] lg:min-h-[140px] p-1 sm:p-2 lg:p-3 cursor-pointer touch-manipulation active:scale-95 rounded-none sm:rounded-xl lg:rounded-2xl border hover:md:shadow-lg ${
+                                            className={`min-h-[100px] sm:min-h-[110px] lg:min-h-[120px] p-2 sm:p-3 cursor-pointer touch-manipulation rounded-xl border transition-all duration-100 backdrop-blur-sm ${
                                                 isCurrentDay 
-                                                    ? 'bg-gradient-to-br from-blue-600/30 to-indigo-600/30 border-blue-500/50 shadow-lg hover:from-blue-600/40 hover:to-indigo-600/40 hover:border-blue-400/60 hover:shadow-xl'
+                                                    ? 'bg-gradient-to-br from-blue-400/25 to-blue-500/25 border-blue-300/50 shadow-xl shadow-blue-400/20 hover:shadow-2xl hover:shadow-blue-400/30'
                                                     : isInCurrentMonth
-                                                    ? 'bg-gradient-to-br from-gray-700/20 to-gray-800/20 hover:from-gray-600/30 hover:to-gray-700/30 border-gray-600/20 hover:border-gray-500/40 hover:shadow-lg'
-                                                    : 'bg-gray-800/10 text-gray-500 border-gray-600/20 hover:bg-gray-700/20 hover:border-gray-500/30'
-                                            } ${dayEvents.length > 0 ? 'ring-1 ring-blue-500/20 hover:ring-2 hover:ring-blue-400/30' : ''}`}
+                                                    ? 'bg-gradient-to-br from-slate-700/40 to-slate-800/40 hover:from-slate-600/50 hover:to-slate-700/50 border-slate-600/30 hover:border-slate-500/50 hover:shadow-lg hover:shadow-slate-500/20'
+                                                    : 'bg-slate-800/20 text-slate-600 border-slate-700/30 hover:bg-slate-700/30'
+                                            } ${dayEvents.length > 0 ? 'ring-1 ring-slate-500/40' : ''}`}
                                             onClick={() => handleDayClick(date)}
                                         >
-                                            <div className={`text-xs sm:text-sm lg:text-base font-medium mb-1 sm:mb-2 lg:mb-3 relative ${
+                                            <div className={`text-base sm:text-lg font-bold mb-2 relative ${
                                                 isCurrentDay 
-                                                    ? 'text-white' 
+                                                    ? 'text-blue-300' 
                                                     : isInCurrentMonth 
-                                                    ? 'text-gray-200' 
-                                                    : 'text-gray-500'
+                                                    ? 'text-slate-100' 
+                                                    : 'text-slate-500'
                                             }`}>
-                                                {isCurrentDay ? (
-                                                    <div className="w-6 h-6 sm:w-7 sm:h-7 lg:w-8 lg:h-8 bg-blue-500 rounded-lg flex items-center justify-center transition-all duration-75 hover:bg-blue-400 hover:scale-105 hover:shadow-lg cursor-pointer">
-                                                        <span className="text-white font-bold text-xs sm:text-sm lg:text-base">
-                                                            {date.getDate()}
-                                                        </span>
-                                                    </div>
-                                                ) : (
-                                                    <span>{date.getDate()}</span>
-                                                )}
+                                                <span className={`inline-block w-8 h-8 flex items-center justify-center rounded-lg font-bold ${
+                                                    isCurrentDay 
+                                                        ? 'text-blue-300' 
+                                                        : ''
+                                                }`}>
+                                                    {date.getDate()}
+                                                </span>
                                             </div>
                                             
                                             {/* Événements du jour */}
@@ -660,138 +636,16 @@ export default function Calendrier(){
 
                     {viewMode === 'week' && (
                         <div className="p-0 sm:p-6 lg:p-8">
-                            {/* Header de la semaine - Desktop seulement */}
-                            <div className="hidden sm:block mb-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white mb-2">
-                                            {(() => {
-                                                const weekStart = new Date(currentDate)
-                                                const dayOfWeek = weekStart.getDay()
-                                                const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-                                                weekStart.setDate(weekStart.getDate() + mondayOffset)
-                                                
-                                                const weekEnd = new Date(weekStart)
-                                                weekEnd.setDate(weekStart.getDate() + 6)
-                                                
-                                                return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
-                                            })()}
-                                        </h2>
-                                        <div className="flex items-center gap-4 text-sm text-gray-400">
-                                            <span>Vue hebdomadaire</span>
-                                            <div className="flex items-center gap-1">
-                                                <div className={`w-2 h-2 rounded-full ${new Date().getDay() !== 0 && new Date().getDay() !== 6 ? 'bg-blue-400' : 'bg-gray-500'}`}></div>
-                                                <span>Semaine de travail</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowAddEvent(true)}
-                                        className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
-                                    >
-                                        <FaPlus className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Nouvel événement</span>
-                                    </button>
-                                </div>
-                            </div>
 
                             {/* Vue semaine moderne */}
-                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-gray-600/20 overflow-hidden">
-                                {/* Événements multi-jours en haut */}
-                                {(() => {
-                                    const weekStart = new Date(currentDate)
-                                    const dayOfWeek = weekStart.getDay()
-                                    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-                                    weekStart.setDate(weekStart.getDate() + mondayOffset)
-                                    
-                                    const weekEnd = new Date(weekStart)
-                                    weekEnd.setDate(weekStart.getDate() + 6)
-                                    
-                                    const multiDayEvents = getMultiDayEvents(weekStart, weekEnd)
-                                    
-                                    if (multiDayEvents.length > 0) {
-                                        return (
-                                            <div className="bg-gray-800/40 backdrop-blur-sm border-b border-gray-600/30 p-4">
-                                                <h3 className="text-sm font-medium mb-3 text-gray-300">
-                                                    📅 Événements sur plusieurs jours
-                                                </h3>
-                                                <div className="space-y-2">
-                                                    {multiDayEvents.map((event, index) => {
-                                                        const eventColor = getColor(event.colorId || '1')
-                                                        const duration = getEventDuration(event)
-                                                        const eventStart = new Date(event.start?.dateTime || event.start?.date)
-                                                        const eventEnd = new Date(event.end?.dateTime || event.end?.date)
-                                                        
-                                                        return (
-                                                            <motion.div
-                                                                key={event.id || index}
-                                                                initial={{ opacity: 0, y: 10 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                transition={{ 
-                                                                    duration: 0.3, 
-                                                                    delay: index * 0.05,
-                                                                    ease: "easeOut"
-                                                                }}
-                                                                className="flex items-center p-3 rounded-xl shadow-sm cursor-pointer transition-all duration-200 hover:shadow-lg hover:scale-[1.02] border-l-4"
-                                                                style={{
-                                                                    backgroundColor: `${eventColor.background}20`,
-                                                                    borderLeftColor: eventColor.background
-                                                                }}
-                                                                onClick={() => handleEventClick(event, eventStart)}
-                                                            >
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <div 
-                                                                            className="w-4 h-4 rounded-full flex-shrink-0"
-                                                                            style={{ backgroundColor: eventColor.background }}
-                                                                        ></div>
-                                                                        <div>
-                                                                            <h4 className="font-semibold text-sm text-white">{event.summary}</h4>
-                                                                            <div className="flex items-center gap-4 text-xs text-gray-400 mt-1">
-                                                                                <span>
-                                                                                    📅 {eventStart.toLocaleDateString('fr-FR', { 
-                                                                                        day: '2-digit', 
-                                                                                        month: 'short' 
-                                                                                    })} → {eventEnd.toLocaleDateString('fr-FR', { 
-                                                                                        day: '2-digit', 
-                                                                                        month: 'short' 
-                                                                                    })}
-                                                                                </span>
-                                                                                <span className="bg-gray-700/50 px-2 py-1 rounded-full">
-                                                                                    {duration} jour{duration > 1 ? 's' : ''}
-                                                                                </span>
-                                                                                {event.location && (
-                                                                                    <span>📍 {event.location}</span>
-                                                                                )}
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <button
-                                                                    onClick={(e) => {
-                                                                        e.stopPropagation()
-                                                                        handleEventClick(event, eventStart)
-                                                                    }}
-                                                                    className="w-8 h-8 rounded-full bg-gray-700/50 hover:bg-gray-600/50 flex items-center justify-center transition-colors duration-200"
-                                                                >
-                                                                    <FaEdit className="w-3 h-3 text-gray-300" />
-                                                                </button>
-                                                            </motion.div>
-                                                        )
-                                                    })}
-                                                </div>
-                                            </div>
-                                        )
-                                    }
-                                    return null
-                                })()}
+                            <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-slate-700/50 overflow-hidden">
 
                                 {/* En-tête des jours */}
                                 <div className="bg-gray-800/40 backdrop-blur-sm border-b border-gray-600/30">
                                     <div className="grid grid-cols-8 gap-0">
                                         {/* Colonne vide pour aligner avec les heures */}
-                                        <div className="p-2 sm:p-4 bg-gray-800/50">
-                                            <div className="text-center text-xs font-medium text-gray-500">
+                                        <div className="flex-1 max-w-[80px] p-2 sm:p-4 bg-slate-800/70 border-r border-slate-600/40">
+                                            <div className="text-center text-xs font-semibold text-slate-200">
                                                 <span className="hidden sm:inline">Heure</span>
                                                 <span className="sm:hidden">H</span>
                                             </div>
@@ -818,7 +672,7 @@ export default function Calendrier(){
                                             
                                             return (
                                                 <div key={index} className={`p-2 sm:p-4 text-center transition-all duration-200 ${
-                                                    `border-l border-gray-600/20 ${isToday ? 'bg-blue-500/10' : ''}`
+                                                    `border-l border-gray-600/20 ${isToday ? 'bg-blue-400/10' : ''}`
                                                 }`}>
                                                     <div className="space-y-1 sm:space-y-2">
                                                         <div className={`text-xs sm:text-sm font-medium ${
@@ -829,7 +683,7 @@ export default function Calendrier(){
                                                         </div>
                                                         <div className={`text-lg sm:text-2xl font-bold rounded-xl sm:rounded-2xl w-8 h-8 sm:w-14 sm:h-14 flex items-center justify-center mx-auto transition-all duration-300 cursor-pointer ${
                                                             isToday 
-                                                                ? 'bg-[#3A6FF8] text-white shadow-lg shadow-blue-500/25 scale-110' 
+                                                                ? 'bg-blue-500 text-white shadow-lg shadow-blue-400/25 scale-110' 
                                                                 : isWeekend
                                                                 ? 'text-gray-400 hover:bg-gray-700/50 hover:scale-105'
                                                                 : 'text-gray-300 hover:bg-gray-700/50 hover:scale-105'
@@ -843,7 +697,7 @@ export default function Calendrier(){
                                                         </div>
                                                         {dayEvents.length > 0 && (
                                                             <div className="flex items-center justify-center">
-                                                                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                                                                <div className="w-2 h-2 bg-blue-300 rounded-full animate-pulse"></div>
                                                             </div>
                                                         )}
                                                     </div>
@@ -863,13 +717,13 @@ export default function Calendrier(){
                                         return (
                                             <div key={hour} className={`grid grid-cols-8 border-b border-gray-600/10 last:border-b-0 transition-all duration-200 min-h-[50px] sm:min-h-[70px] ${
                                                 isPeakHour ? 'bg-gray-800/20' : ''
-                                            } ${isCurrentHour ? 'bg-blue-500/5' : ''}`}>
-                                                {/* Colonne des heures avec même taille que la section journée */}
-                                                <div className={`w-12 sm:w-20 p-2 sm:p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center ${
-                                                    isCurrentHour ? 'bg-blue-500/10' : ''
+                                            } ${isCurrentHour ? 'bg-blue-400/5' : ''}`}>
+                                                {/* Colonne des heures */}
+                                                <div className={`flex-1 max-w-[80px] p-2 sm:p-4 border-r border-slate-600/40 bg-slate-800/70 flex flex-col items-center justify-center ${
+                                                    isCurrentHour ? 'bg-blue-400/15 border-r-blue-400/40' : ''
                                                 }`}>
-                                                    <div className={`text-sm sm:text-lg font-bold transition-colors duration-200 ${
-                                                        isCurrentHour ? 'text-blue-400' : 'text-white'
+                                                    <div className={`text-sm sm:text-base font-bold transition-colors duration-200 ${
+                                                        isCurrentHour ? 'text-blue-300' : 'text-slate-100'
                                                     }`}>
                                                         <span className="sm:hidden">{hour}h</span>
                                                         <span className="hidden sm:inline">{hour.toString().padStart(2, '0')}h</span>
@@ -911,7 +765,7 @@ export default function Calendrier(){
                                                         <div 
                                                             key={dayIndex} 
                                                             className={`relative border-l border-gray-600/10 transition-all duration-200 cursor-pointer group hover:bg-gray-700/10 ${
-                                                                isToday ? 'bg-blue-500/5' : ''
+                                                                isToday ? 'bg-blue-400/5' : ''
                                                             }`}
                                                             onClick={() => {
                                                                 const clickDate = new Date(dayDate)
@@ -921,7 +775,7 @@ export default function Calendrier(){
                                                         >
                                                             {/* Indicateur hover */}
                                                             <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
-                                                                <div className="w-6 h-6 rounded-full bg-[#3A6FF8]/20 flex items-center justify-center">
+                                                                <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
                                                                     <FaPlus className="text-xs text-[#3A6FF8]" />
                                                                 </div>
                                                             </div>
@@ -974,33 +828,9 @@ export default function Calendrier(){
 
                     {viewMode === 'day' && (
                         <div className="p-0 sm:p-6 lg:p-8">
-                            {/* Header de la journée - Desktop seulement */}
-                            <div className="hidden sm:block mb-4">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h2 className="text-xl font-bold text-white mb-2">
-                                            {formatDate(currentDate)}
-                                        </h2>
-                                        <div className="flex items-center gap-4 text-sm text-gray-400">
-                                            <span>{getEventsForDay(currentDate).length} événement(s)</span>
-                                            <div className="flex items-center gap-1">
-                                                <div className={`w-2 h-2 rounded-full ${isToday(currentDate) ? 'bg-blue-400' : 'bg-gray-500'}`}></div>
-                                                <span>{isToday(currentDate) ? "Aujourd'hui" : 'Jour sélectionné'}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => setShowAddEvent(true)}
-                                        className="flex items-center gap-2 bg-[#3A6FF8] hover:bg-[#2952d3] text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
-                                    >
-                                        <FaPlus className="w-4 h-4" />
-                                        <span className="hidden sm:inline">Nouvel événement</span>
-                                    </button>
-                                </div>
-                            </div>
 
                             {/* Vue détaillée de la journée */}
-                            <div className="bg-gradient-to-br from-[#2a2d3e] to-[#212332] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-gray-600/20 overflow-hidden relative">
+                            <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-none sm:rounded-3xl shadow-none sm:shadow-2xl border-0 sm:border border-slate-700/50 overflow-hidden relative">
 
                                 {/* Grille horaire sans scroll */}
                                 <div className="relative">
@@ -1052,14 +882,14 @@ export default function Calendrier(){
                                                     key={hour} 
                                                     className={`flex border-b border-gray-600/10 last:border-b-0 transition-all duration-200 ${
                                                         isPeakHour ? 'bg-gray-800/20' : ''
-                                                    } ${isCurrentHour ? 'bg-blue-500/5' : ''}`}
+                                                    } ${isCurrentHour ? 'bg-blue-400/5' : ''}`}
                                                 >
                                                     {/* Colonne des heures */}
                                                     <div className={`w-14 sm:w-20 p-2 sm:p-4 border-r border-gray-600/20 bg-gray-800/30 flex flex-col items-center justify-center min-h-[90px] sm:min-h-[70px] ${
-                                                        isCurrentHour ? 'bg-blue-500/10' : ''
+                                                        isCurrentHour ? 'bg-blue-400/10' : ''
                                                     }`}>
                                                         <div className={`text-base sm:text-lg font-bold transition-colors duration-200 ${
-                                                            isCurrentHour ? 'text-blue-400' : 'text-white'
+                                                            isCurrentHour ? 'text-blue-300' : 'text-white'
                                                         }`}>
                                                             {hour.toString().padStart(2, '0')}h
                                                         </div>
@@ -1077,7 +907,7 @@ export default function Calendrier(){
                                                     >
                                                         {/* Indicateur de clic */}
                                                         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                                                            <div className="w-6 h-6 rounded-full bg-[#3A6FF8]/20 flex items-center justify-center">
+                                                            <div className="w-6 h-6 rounded-full bg-blue-500/20 flex items-center justify-center">
                                                                 <FaPlus className="text-xs text-[#3A6FF8]" />
                                                             </div>
                                                         </div>
@@ -1190,10 +1020,10 @@ export default function Calendrier(){
             </div>
 
             {/* Nouvelle barre de contrôles mobile - Simple et efficace */}
-            <div className="sm:hidden fixed bottom-6 left-1/2 transform -translate-x-1/2 z-40">
-                <div className="flex items-center gap-3">
+            <div className="sm:hidden fixed bottom-2 left-1/2 transform -translate-x-1/2 z-40">
+                <div className="flex items-center gap-2">
                     {/* Sélecteur de vue compact */}
-                    <div className="flex bg-white/10 backdrop-blur-lg rounded-full p-1 border border-white/20 shadow-2xl">
+                    <div className="flex bg-white/10 backdrop-blur-lg rounded-full p-0.5 border border-white/20 shadow-2xl">
                         {[
                             { key: 'month', icon: FaCalendarAlt },
                             { key: 'week', icon: FaCalendarWeek },
@@ -1202,15 +1032,15 @@ export default function Calendrier(){
                             <motion.button
                                 key={key}
                                 onClick={() => setViewMode(key)}
-                                className={`w-14 h-14 rounded-full flex items-center justify-center transition-all duration-200 ${
+                                className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200 ${
                                     viewMode === key 
-                                        ? 'bg-[#3A6FF8] text-white shadow-lg' 
+                                        ? 'bg-blue-500 text-white shadow-lg' 
                                         : 'text-gray-300 hover:text-white hover:bg-white/10'
                                 }`}
                                 whileTap={{ scale: 0.9 }}
                                 whileHover={{ scale: 1.05 }}
                             >
-                                <Icon className="w-5 h-5" />
+                                <Icon className="w-4 h-4" />
                             </motion.button>
                         ))}
                     </div>
@@ -1219,11 +1049,11 @@ export default function Calendrier(){
                     <motion.button
                         onClick={syncWithGoogle}
                         disabled={loadingEvents}
-                        className="w-14 h-14 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl flex items-center justify-center text-white transition-all duration-200 hover:bg-white/20 disabled:opacity-50"
+                        className="w-12 h-12 rounded-full bg-white/10 backdrop-blur-lg border border-white/20 shadow-2xl flex items-center justify-center text-white transition-all duration-200 hover:bg-white/20 disabled:opacity-50"
                         whileTap={{ scale: 0.9 }}
                         whileHover={{ scale: 1.05 }}
                     >
-                        <FaSync className={`w-5 h-5 ${loadingEvents ? 'animate-spin' : ''}`} />
+                        <FaSync className={`w-4 h-4 ${loadingEvents ? 'animate-spin' : ''}`} />
                     </motion.button>
 
                     {/* Bouton Menu Navbar */}
@@ -1243,11 +1073,11 @@ export default function Calendrier(){
                                 setTimeout(dispatchEvent, 100)
                             }
                         }}
-                        className="w-14 h-14 rounded-full bg-[#3A6FF8] shadow-2xl flex items-center justify-center text-white transition-all duration-200 hover:bg-[#2952d3]"
+                        className="w-12 h-12 rounded-full bg-blue-500 shadow-2xl flex items-center justify-center text-white transition-all duration-200 hover:bg-blue-400"
                         whileTap={{ scale: 0.9 }}
                         whileHover={{ scale: 1.05 }}
                     >
-                        <FaBars className="w-5 h-5" />
+                        <FaBars className="w-4 h-4" />
                     </motion.button>
                 </div>
             </div>

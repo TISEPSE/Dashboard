@@ -33,7 +33,8 @@
       "Bash(npm exec:*)",
       "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\src\\app\\styles\\neomorphism.css\")",
       "Bash(del:*)",
-      "Bash(powershell:*)"
+      "Bash(powershell:*)",
+      "WebFetch(domain:st2.depositphotos.com)"
     ],
     "deny": []
   }

@@ -10,6 +10,9 @@ import { useSession } from 'next-auth/react'
 export default function MobileNavbar() {
   const [isOpen, setIsOpen] = useState(false)
   const [hasMounted, setHasMounted] = useState(false)
+  const [touchStart, setTouchStart] = useState(null)
+  const [lastTap, setLastTap] = useState(0)
+  const [showHints, setShowHints] = useState(true)
   const pathname = usePathname()
   const { data: session } = useSession()
   
@@ -19,22 +22,128 @@ export default function MobileNavbar() {
   useEffect(() => {
     setHasMounted(true)
     
+    // Autoriser le pull-to-refresh natif mais empêcher seulement lors du swipe navbar
+    // document.body.style.overscrollBehavior = 'none'
+    // document.documentElement.style.overscrollBehavior = 'none'
+    
+    // Vérifier si l'utilisateur a déjà découvert les gestes
+    const hintsShown = localStorage.getItem('mobileNavbarHintsShown')
+    if (hintsShown && parseInt(hintsShown) >= 3) {
+      setShowHints(false)
+    }
+    
     // Écouter l'événement pour ouvrir la navbar depuis d'autres composants
     const handleOpenNavbar = () => {
       setIsOpen(true)
+      // Masquer les indices après usage
+      if (showHints) {
+        const currentCount = parseInt(localStorage.getItem('mobileNavbarHintsShown') || '0')
+        localStorage.setItem('mobileNavbarHintsShown', (currentCount + 1).toString())
+        if (currentCount >= 2) {
+          setShowHints(false)
+        }
+      }
+    }
+    
+    // Gestionnaire de double tap
+    const handleDoubleTap = (e) => {
+      const currentTime = new Date().getTime()
+      const tapLength = currentTime - lastTap
+      
+      // Double tap détecté (entre 100ms et 500ms)
+      if (tapLength < 500 && tapLength > 100) {
+        // Éviter d'ouvrir si on clique sur des éléments interactifs
+        const target = e.target
+        const isInteractive = target.closest('button, a, input, select, textarea, [role="button"]')
+        
+        if (!isInteractive) {
+          setIsOpen(true)
+          e.preventDefault()
+          // Masquer les indices après usage
+          if (showHints) {
+            const currentCount = parseInt(localStorage.getItem('mobileNavbarHintsShown') || '0')
+            localStorage.setItem('mobileNavbarHintsShown', (currentCount + 1).toString())
+            if (currentCount >= 2) {
+              setShowHints(false)
+            }
+          }
+        }
+      }
+      setLastTap(currentTime)
+    }
+
+    // Gestionnaire de swipe pour ouvrir la navbar (seulement depuis le bas vers le haut)
+    const handleTouchStart = (e) => {
+      const touch = e.touches[0]
+      
+      
+      // Détecter seulement les touches dans la partie basse de l'écran (pour swipe up)
+      const screenHeight = window.innerHeight
+      if (touch.clientY >= screenHeight - 100) { // 100px depuis le bas
+        setTouchStart({
+          x: touch.clientX,
+          y: touch.clientY,
+          time: Date.now()
+        })
+      }
+    }
+
+    const handleTouchMove = (e) => {
+      if (!touchStart) return
+      
+      const touch = e.touches[0]
+      const deltaX = touch.clientX - touchStart.x
+      const deltaY = touch.clientY - touchStart.y
+      const deltaTime = Date.now() - touchStart.time
+      
+      
+      // Swipe vers le haut depuis le bas (seul geste de swipe autorisé)
+      const screenHeight = window.innerHeight
+      if (touchStart.y >= screenHeight - 100 && deltaY < -80 && Math.abs(deltaX) < 100 && deltaTime < 400) {
+        e.preventDefault()
+        e.stopPropagation()
+        setIsOpen(true)
+        setTouchStart(null)
+        // Masquer les indices après usage
+        if (showHints) {
+          const currentCount = parseInt(localStorage.getItem('mobileNavbarHintsShown') || '0')
+          localStorage.setItem('mobileNavbarHintsShown', (currentCount + 1).toString())
+          if (currentCount >= 2) {
+            setShowHints(false)
+          }
+        }
+        return
+      }
+    }
+
+    const handleTouchEnd = () => {
+      setTouchStart(null)
     }
     
     // S'assurer que l'event listener est enregistré immédiatement
     window.addEventListener('openMobileNavbar', handleOpenNavbar)
+    document.addEventListener('touchstart', handleTouchStart, { passive: true })
+    document.addEventListener('touchmove', handleTouchMove, { passive: false }) // Non-passive pour preventDefault
+    document.addEventListener('touchend', handleTouchEnd, { passive: true })
+    document.addEventListener('click', handleDoubleTap, { passive: false })
     
     // Signaler que le listener est prêt
     window._mobileNavbarReady = true
     
     return () => {
       window.removeEventListener('openMobileNavbar', handleOpenNavbar)
+      document.removeEventListener('touchstart', handleTouchStart)
+      document.removeEventListener('touchmove', handleTouchMove)
+      document.removeEventListener('touchend', handleTouchEnd)
+      document.removeEventListener('click', handleDoubleTap)
+      
+      // Nettoyer au démontage (plus de styles CSS à supprimer)
+      // document.body.style.overscrollBehavior = ''
+      // document.documentElement.style.overscrollBehavior = ''
+      
       window._mobileNavbarReady = false
     }
-  }, [])
+  }, [touchStart, lastTap])
 
   // Gestion contrôlée du drag avec seuils adaptatifs
   const handleDragEnd = (event, info) => {
@@ -72,11 +181,65 @@ export default function MobileNavbar() {
 
   return (
     <>
+      {/* Indicateurs pour ouvrir la navbar - seulement si showHints */}
+      {showHints && (
+        <>
+          {/* Indicateur de swipe depuis le bas */}
+          <div className="md:hidden fixed bottom-20 left-1/2 transform -translate-x-1/2 z-[45] pointer-events-none">
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 0.6 }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut"
+              }}
+              className="h-1 w-16 bg-gradient-to-r from-blue-500/60 to-purple-500/60 rounded-t-full shadow-lg"
+            />
+            <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs text-white/80 whitespace-nowrap font-medium">
+              ↑ Swipe up
+            </div>
+          </div>
+
+          {/* Indicateur de double tap au centre */}
+          <div className="md:hidden fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-[45] pointer-events-none">
+            <motion.div
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 0.4 }}
+              transition={{ 
+                duration: 2,
+                repeat: Infinity,
+                repeatType: "reverse",
+                ease: "easeInOut",
+                delay: 1
+              }}
+              className="w-20 h-20 border-2 border-orange-400/40 rounded-full flex items-center justify-center"
+            >
+              <motion.div
+                initial={{ scale: 0.5 }}
+                animate={{ scale: 1 }}
+                transition={{ 
+                  duration: 0.3,
+                  repeat: Infinity,
+                  repeatType: "reverse",
+                  ease: "easeInOut"
+                }}
+                className="w-4 h-4 bg-orange-400/60 rounded-full"
+              />
+            </motion.div>
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs text-white/80 whitespace-nowrap font-medium">
+              Double tap
+            </div>
+          </div>
+        </>
+      )}
+
       {/* Bouton flottant moderne avec glassmorphism - caché sur la page calendrier */}
       {!isCalendarPage && (
         <button
           onClick={() => setIsOpen(true)}
-          className="md:hidden fixed bottom-6 right-4 w-18 h-18 text-white rounded-2xl shadow-2xl transition-all duration-300 ease-out active:scale-95 z-[50] flex items-center justify-center touch-manipulation cursor-pointer"
+          className="md:hidden fixed bottom-6 right-4 w-16 h-16 text-white rounded-2xl shadow-2xl transition-all duration-300 ease-out active:scale-95 z-[50] flex items-center justify-center touch-manipulation cursor-pointer"
         style={{
           background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(37, 99, 235, 0.95) 100%)',
           backdropFilter: 'blur(20px)',
@@ -86,7 +249,7 @@ export default function MobileNavbar() {
         }}
         aria-label="Ouvrir le menu de navigation"
         >
-          <FaBars size={22} className="drop-shadow-sm" />
+          <FaBars size={24} className="drop-shadow-sm" />
         </button>
       )}
 
@@ -97,7 +260,11 @@ export default function MobileNavbar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.1 }}
+            transition={{ 
+              type: "tween",
+              duration: 0.1,
+              ease: [0.4, 0, 0.2, 1]
+            }}
             className="md:hidden fixed inset-0 bg-black/50 z-[60]"
             onClick={() => setIsOpen(false)}
             style={{ touchAction: 'manipulation' }}
@@ -109,26 +276,27 @@ export default function MobileNavbar() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            exit={{ y: "100%" }}
+            initial={{ y: "100%", opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: "100%", opacity: 0 }}
             transition={{ 
-              duration: 0.18,
-              ease: [0.32, 0.72, 0, 1]
+              type: "tween",
+              duration: 0.08,
+              ease: [0.6, 0, 0.4, 1]
             }}
             drag="y"
             dragConstraints={{ top: 0, bottom: 0 }}
-            dragElastic={{ top: 0, bottom: 0.3 }}
+            dragElastic={{ top: 0, bottom: 0.1 }}
             dragMomentum={true}
             dragTransition={{ 
-              power: 0.3,
-              timeConstant: 400
+              power: 0.05,
+              timeConstant: 80,
+              bounceStiffness: 1200,
+              bounceDamping: 50
             }}
             whileDrag={{ 
-              scale: 0.96, 
-              rotateX: 3,
-              opacity: 0.9,
-              y: 5
+              scale: 0.98,
+              opacity: 0.95
             }}
             onDrag={handleDrag}
             onDragEnd={handleDragEnd}
