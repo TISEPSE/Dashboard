@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation"
 import { FaBars, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog, FaHome } from "react-icons/fa"
 import { motion, AnimatePresence } from "framer-motion"
 import { useSession } from 'next-auth/react'
+import { useNavbarPreferences } from '../hooks/useNavbarPreferences'
 
 export default function MobileNavbar() {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,6 +16,7 @@ export default function MobileNavbar() {
   const [showHints, setShowHints] = useState(true)
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { getFilteredNavItems, isLoaded } = useNavbarPreferences()
   
   // Cacher le bouton flottant sur la page calendrier car il a sa propre barre d'outils
   const isCalendarPage = pathname === '/Dashboard/Calendrier'
@@ -165,9 +167,9 @@ export default function MobileNavbar() {
   }
 
 
-  if (!hasMounted) return null
+  if (!hasMounted || !isLoaded) return null
 
-  const navigationItems = [
+  const allNavigationItems = [
     {href: "/", label: "Accueil", icon: <FaHome className="text-emerald-400" />},
     {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
     {href: "/Dashboard/Message", label: "Messages", icon: <FaComments className="text-blue-400" />},
@@ -178,6 +180,8 @@ export default function MobileNavbar() {
     {href: "/Dashboard/Profile", label: session ? session.user.name : "Profil", icon: <FaUser className="text-indigo-400" />, isProfile: true},
     {href: "/Dashboard/Parametres", label: "Paramètres", icon: <FaCog className="text-gray-400" />},
   ]
+
+  const navigationItems = getFilteredNavItems(allNavigationItems)
 
   return (
     <>

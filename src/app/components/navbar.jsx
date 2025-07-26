@@ -6,11 +6,13 @@ import {usePathname} from "next/navigation"
 import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog, FaHome} from "react-icons/fa"
 import { useSession } from 'next-auth/react'
 import AuthButton from "./Auth/AuthButton"
+import { useNavbarPreferences } from '../hooks/useNavbarPreferences'
 
 export default function Navbar({isOpen, setIsOpen}) {
   const [hasMounted, setHasMounted] = useState(false)
   const pathname = usePathname()
   const { data: session } = useSession()
+  const { getFilteredNavItems, isLoaded } = useNavbarPreferences()
 
   // Fonction pour obtenir les classes actives selon la route
   const getActiveClasses = (href) => {
@@ -30,7 +32,19 @@ export default function Navbar({isOpen, setIsOpen}) {
     setHasMounted(true)
   }, [])
 
-  if (!hasMounted) return null
+  if (!hasMounted || !isLoaded) return null
+
+  const allNavigationItems = [
+    {href: "/", label: "Accueil", icon: <FaHome className="text-emerald-400" />},
+    {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
+    {href: "/Dashboard/Message", label: "Messages", icon: <FaComments className="text-blue-400" />},
+    {href: "/Dashboard/Meteo", label: "Météo", icon: <FaCloudSun className="text-yellow-400" />},
+    {href: "/Dashboard/Sante", label: "Santé", icon: <FaHeartbeat className="text-red-400" />},
+    {href: "/Dashboard/Finances", label: "Finances", icon: <FaChartLine className="text-green-400" />},
+    {href: "/Dashboard/Calendrier", label: "Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
+  ]
+
+  const filteredNavItems = getFilteredNavItems(allNavigationItems)
 
   return (
     <>
@@ -83,15 +97,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               <>
                 {/* Affichage direct des liens avec icônes et textes */}
                 <div className="flex flex-col gap-2 flex-1">
-                  {[
-                    {href: "/", label: "Accueil", icon: <FaHome className="text-emerald-400" />},
-                    {href: "/Dashboard/Crypto", label: "Cryptos", icon: <FaBitcoin className="text-orange-400" />},
-                    {href: "/Dashboard/Message", label: "Messages", icon: <FaComments className="text-blue-400" />},
-                    {href: "/Dashboard/Meteo", label: "Météo", icon: <FaCloudSun className="text-yellow-400" />},
-                    {href: "/Dashboard/Sante", label: "Santé", icon: <FaHeartbeat className="text-red-400" />},
-                    {href: "/Dashboard/Finances", label: "Finances", icon: <FaChartLine className="text-green-400" />},
-                    {href: "/Dashboard/Calendrier", label: "Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
-                  ].map((item) => (
+                  {filteredNavItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
@@ -179,15 +185,7 @@ export default function Navbar({isOpen, setIsOpen}) {
               /* Version fermée - icônes uniquement */
               <div className="flex flex-col gap-2 items-center py-4 h-full">
                 <div className="flex flex-col gap-2 items-center flex-1">
-                  {[
-                    {href: "/", icon: <FaHome className="text-emerald-400" />},
-                    {href: "/Dashboard/Crypto", icon: <FaBitcoin className="text-orange-400" />},
-                    {href: "/Dashboard/Message", icon: <FaComments className="text-blue-400" />},
-                    {href: "/Dashboard/Meteo", icon: <FaCloudSun className="text-yellow-400" />},
-                    {href: "/Dashboard/Sante", icon: <FaHeartbeat className="text-red-400" />},
-                    {href: "/Dashboard/Finances", icon: <FaChartLine className="text-green-400" />},
-                    {href: "/Dashboard/Calendrier", icon: <FaCalendarAlt className="text-purple-400" />},
-                  ].map((item) => (
+                  {filteredNavItems.map((item) => (
                     <Link
                       key={item.href}
                       href={item.href}
