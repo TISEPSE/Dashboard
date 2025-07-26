@@ -208,11 +208,11 @@ export default function MobileNavbar() {
               initial={{ scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 0.4 }}
               transition={{ 
-                duration: 2,
+                duration: 1,
                 repeat: Infinity,
                 repeatType: "reverse",
                 ease: "easeInOut",
-                delay: 1
+                delay: 0.5
               }}
               className="w-20 h-20 border-2 border-orange-400/40 rounded-full flex items-center justify-center"
             >
