@@ -1,0 +1,20 @@
+/* Styles Swapy optimisés - Laisser Swapy gérer ses propres animations */
+
+[data-swapy-slot] {
+  position: relative;
+}
+
+[data-swapy-item] {
+  cursor: grab;
+  position: relative;
+}
+
+[data-swapy-item]:hover {
+  cursor: grab;
+}
+
+/* Style pendant le drag - juste le curseur et z-index */
+[data-swapy-dragging] {
+  cursor: grabbing !important;
+  z-index: 1000;
+}
