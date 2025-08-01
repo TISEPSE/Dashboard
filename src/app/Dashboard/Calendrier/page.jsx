@@ -137,18 +137,22 @@ export default function Calendrier(){
 
     // Navigation du calendrier avec animation
     const navigateDate = (direction) => {
-        setSlideDirection(direction)
-        const newDate = new Date(currentDate)
-        if (viewMode === 'month') {
-            newDate.setMonth(newDate.getMonth() + direction)
-        } else if (viewMode === 'week') {
-            newDate.setDate(newDate.getDate() + (direction * 7))
-        } else {
-            newDate.setDate(newDate.getDate() + direction)
-        }
-        setCurrentDate(newDate)
-        // Reset l'animation après un délai - plus rapide
-        setTimeout(() => setSlideDirection(0), 150)
+        // S'assurer que la direction est claire avant de déclencher l'animation
+        setSlideDirection(0) // Reset d'abord
+        setTimeout(() => {
+            setSlideDirection(direction)
+            const newDate = new Date(currentDate)
+            if (viewMode === 'month') {
+                newDate.setMonth(newDate.getMonth() + direction)
+            } else if (viewMode === 'week') {
+                newDate.setDate(newDate.getDate() + (direction * 7))
+            } else {
+                newDate.setDate(newDate.getDate() + direction)
+            }
+            setCurrentDate(newDate)
+            // Reset l'animation après un délai - plus rapide
+            setTimeout(() => setSlideDirection(0), 200)
+        }, 10) // Petit délai pour éviter les conflits
     }
 
     // Aller à aujourd'hui
@@ -157,20 +161,20 @@ export default function Calendrier(){
         setCurrentDate(new Date())
     }
     
-    // Variantes d'animation pour les slides
+    // Variantes d'animation pour les slides - avec gestion améliorée
     const getSlideVariants = () => {
         return {
             enter: (direction) => ({
-                x: direction > 0 ? '100%' : '-100%',
-                opacity: 0
+                x: direction > 0 ? '100%' : direction < 0 ? '-100%' : 0,
+                opacity: direction === 0 ? 1 : 0
             }),
             center: {
                 x: 0,
                 opacity: 1
             },
             exit: (direction) => ({
-                x: direction > 0 ? '-100%' : '100%',
-                opacity: 0
+                x: direction > 0 ? '-100%' : direction < 0 ? '100%' : 0,
+                opacity: direction === 0 ? 1 : 0
             })
         }
     }
@@ -570,7 +574,7 @@ export default function Calendrier(){
                                                 duration: 0.15,
                                                 ease: [0.25, 0.1, 0.25, 1]
                                             }}
-                                            className={`h-36 sm:h-40 lg:h-44 p-2 sm:p-3 lg:p-4 cursor-pointer touch-manipulation rounded-xl border transition-all duration-150 ease-out backdrop-blur-sm ${
+                                            className={`h-28 sm:h-32 lg:h-36 p-2 sm:p-3 lg:p-3 cursor-pointer touch-manipulation rounded-xl border transition-all duration-150 ease-out backdrop-blur-sm ${
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-400/25 to-blue-500/25 border-blue-300/50 shadow-xl shadow-blue-400/20 hover:shadow-2xl hover:shadow-blue-400/40 hover:border-blue-300/70'
                                                     : isInCurrentMonth
@@ -596,9 +600,9 @@ export default function Calendrier(){
                                             </div>
                                             
                                             {/* Événements du jour */}
-                                            <div className="space-y-1 sm:space-y-1 lg:space-y-1.5 flex-1 overflow-visible max-h-[95px] sm:max-h-[105px] lg:max-h-[115px]">
+                                            <div className="space-y-1 sm:space-y-1 lg:space-y-1.5 flex-1 overflow-visible max-h-[70px] sm:max-h-[80px] lg:max-h-[90px] flex flex-col items-center">
                                                 {/* Mobile et tablet : limiter à 2 événements */}
-                                                <div className="lg:hidden space-y-1 overflow-visible">
+                                                <div className="lg:hidden space-y-1 overflow-visible w-full">
                                                     {dayEvents.slice(0, 2).map((event, eventIndex) => {
                                                     const eventColor = getColor(event.colorId || '1')
                                                     const isMultiDay = isMultiDayEvent(event)
@@ -618,7 +622,7 @@ export default function Calendrier(){
                                                                 duration: 0.12,
                                                                 ease: "easeOut"
                                                             }}
-                                                            className={`text-xs sm:text-xs lg:text-sm p-1.5 sm:p-2 lg:p-2.5 cursor-pointer md:hover:brightness-125 md:hover:shadow-xl transition-all duration-120 ease-out touch-manipulation h-[28px] sm:h-[30px] lg:h-[34px] flex items-center w-full shadow-sm relative z-10 hover:z-20 mx-1 ${
+                                                            className={`text-xs sm:text-xs lg:text-sm p-1.5 sm:p-2 lg:p-2.5 cursor-pointer md:hover:brightness-125 md:hover:shadow-xl transition-all duration-120 ease-out touch-manipulation h-[28px] sm:h-[30px] lg:h-[34px] flex items-center w-full shadow-sm relative z-10 hover:z-20 ${
                                                                 isMultiDay ? (
                                                                     isFirstDay ? 'rounded-l-lg rounded-r-none border-r-0' :
                                                                     isLastDay ? 'rounded-r-lg rounded-l-none border-l-0' :
@@ -670,7 +674,7 @@ export default function Calendrier(){
                                                     })}
                                                     {/* Indicateur mobile sous les événements */}
                                                     {dayEvents.length > 2 && (
-                                                        <div className="text-center mt-1">
+                                                        <div className="text-center mt-1 w-full">
                                                             <span className="text-xs text-gray-400 font-medium">
                                                                 +{dayEvents.length - 2}
                                                             </span>
@@ -679,7 +683,7 @@ export default function Calendrier(){
                                                 </div>
 
                                                 {/* Desktop : affichage limité avec compteur */}
-                                                <div className="hidden lg:block space-y-1 overflow-visible">
+                                                <div className="hidden lg:block space-y-1 overflow-visible w-full">
                                                     {dayEvents.slice(0, 2).map((event, eventIndex) => {
                                                         const eventColor = getColor(event.colorId || '1')
                                                         const isMultiDay = isMultiDayEvent(event)
@@ -699,7 +703,7 @@ export default function Calendrier(){
                                                                     duration: 0.12,
                                                                     ease: "easeOut"
                                                                 }}
-                                                                className={`text-sm p-2 lg:p-2.5 shadow-sm cursor-pointer md:hover:brightness-125 md:hover:shadow-xl transition-all duration-120 ease-out touch-manipulation h-[34px] lg:h-[36px] flex items-center w-full relative z-10 hover:z-20 mx-1 ${
+                                                                className={`text-sm p-2 lg:p-2.5 shadow-sm cursor-pointer md:hover:brightness-125 md:hover:shadow-xl transition-all duration-120 ease-out touch-manipulation h-[34px] lg:h-[36px] flex items-center w-full relative z-10 hover:z-20 ${
                                                                     isMultiDay ? (
                                                                         isFirstDay ? 'rounded-l-lg rounded-r-none border-r-0' :
                                                                         isLastDay ? 'rounded-r-lg rounded-l-none border-l-0' :
@@ -750,7 +754,7 @@ export default function Calendrier(){
                                                     })}
                                                     {/* Indicateur desktop sous les événements */}
                                                     {dayEvents.length > 2 && (
-                                                        <div className="text-center mt-1">
+                                                        <div className="text-center mt-1 w-full">
                                                             <span className="text-xs text-gray-400 font-medium">
                                                                 +{dayEvents.length - 2} autres
                                                             </span>

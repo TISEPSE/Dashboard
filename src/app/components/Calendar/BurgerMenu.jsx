@@ -1,6 +1,17 @@
 "use client"
 
 import { useState, useEffect } from "react"
+
+// Style CSS pour masquer la scrollbar
+const scrollbarStyles = `
+  .burger-menu-scroll::-webkit-scrollbar {
+    display: none;
+  }
+  .burger-menu-scroll {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`
 import { motion, AnimatePresence } from "framer-motion"
 import { 
     FaBars, 
@@ -22,9 +33,14 @@ export default function BurgerMenu({
     onGoToToday,
     className = ""
 }) {
+    // Style pour masquer la scrollbar
+    const scrollbarHideStyle = {
+        scrollbarWidth: 'none', // Firefox
+        msOverflowStyle: 'none', // IE et Edge
+    }
     const [isOpen, setIsOpen] = useState(false)
 
-    // Fermer le menu quand on clique en dehors
+    // Fermer le menu quand on clique en dehors et gérer le scroll du body
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (isOpen && !event.target.closest('.burger-menu')) {
@@ -34,6 +50,20 @@ export default function BurgerMenu({
 
         document.addEventListener('mousedown', handleClickOutside)
         return () => document.removeEventListener('mousedown', handleClickOutside)
+    }, [isOpen])
+    
+    // Bloquer le scroll de l'arrière-plan quand le menu est ouvert
+    useEffect(() => {
+        if (isOpen) {
+            document.body.style.overflow = 'hidden'
+        } else {
+            document.body.style.overflow = 'unset'
+        }
+        
+        // Cleanup au démontage du composant
+        return () => {
+            document.body.style.overflow = 'unset'
+        }
     }, [isOpen])
 
     // Fermer le menu sur les changements de vue
@@ -97,11 +127,14 @@ export default function BurgerMenu({
     ]
 
     return (
+        <>
+        {/* Injection des styles CSS */}
+        <style jsx>{scrollbarStyles}</style>
         <div className={`burger-menu ${className}`}>
             {/* Bouton burger discret */}
             <motion.button
                 onClick={() => setIsOpen(!isOpen)}
-                className="fixed top-4 left-4 z-50 w-12 h-12 rounded-lg bg-slate-800/60 backdrop-blur-sm border border-slate-600/30 shadow-lg flex items-center justify-center text-slate-300 hover:text-white hover:bg-slate-700/70 transition-all duration-200"
+                className="fixed top-2 left-2 z-50 w-10 h-10 flex items-center justify-center text-slate-400 hover:text-white transition-all duration-200"
                 whileTap={{ scale: 0.95 }}
                 whileHover={{ scale: 1.02 }}
             >
@@ -109,22 +142,22 @@ export default function BurgerMenu({
                     {isOpen ? (
                         <motion.div
                             key="close"
-                            initial={{ rotate: -90, opacity: 0 }}
-                            animate={{ rotate: 0, opacity: 1 }}
-                            exit={{ rotate: 90, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
                         >
-                            <FaTimes className="w-4 h-4" />
+                            <FaTimes className="w-5 h-5" />
                         </motion.div>
                     ) : (
                         <motion.div
                             key="menu"
-                            initial={{ rotate: 90, opacity: 0 }}
-                            animate={{ rotate: 0, opacity: 1 }}
-                            exit={{ rotate: -90, opacity: 0 }}
-                            transition={{ duration: 0.2 }}
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.8, opacity: 0 }}
+                            transition={{ duration: 0.2, ease: "easeOut" }}
                         >
-                            <FaBars className="w-4 h-4" />
+                            <FaBars className="w-5 h-5" />
                         </motion.div>
                     )}
                 </AnimatePresence>
@@ -151,18 +184,18 @@ export default function BurgerMenu({
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: -300, opacity: 0 }}
                         transition={{ 
-                            type: "spring", 
-                            stiffness: 300, 
-                            damping: 25,
+                            type: "tween", 
+                            ease: [0.25, 0.1, 0.25, 1],
+                            duration: 0.3,
                             opacity: { duration: 0.2 }
                         }}
-                        className="fixed top-0 left-0 w-80 h-full bg-gradient-to-br from-[#1e293b] to-[#0f172a] shadow-2xl z-45 border-r border-slate-600/30 backdrop-blur-xl"
+                        className="fixed top-0 left-0 w-80 h-full bg-gradient-to-br from-[#1e293b] to-[#0f172a] shadow-2xl z-45 border-r border-slate-600/30 backdrop-blur-xl overflow-y-auto burger-menu-scroll"
+                        style={scrollbarHideStyle}
                     >
-                        <div className="p-6 pt-20">
+                        <div className="p-6 pt-12 pb-32 min-h-[120vh] flex flex-col">
                             {/* Titre */}
                             <div className="mb-8">
                                 <h2 className="text-2xl font-bold text-white mb-2">Options d'affichage</h2>
-                                <p className="text-slate-400 text-sm">Choisissez votre vue préférée</p>
                             </div>
 
                             {/* Vues du calendrier */}
@@ -241,5 +274,6 @@ export default function BurgerMenu({
                 )}
             </AnimatePresence>
         </div>
+        </>
     )
 }
