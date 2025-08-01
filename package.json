@@ -1,36 +1,27 @@
 {
   "name": "dashboard",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
+  "main": "public/electron.js",
+  "homepage": "./",
   "scripts": {
-    "dev": "next dev --turbo",
-    "dev:clean": "rm -rf .next && next dev --turbo",
-    "dev:fresh": "pkill -f 'next dev' || true && rm -rf .next node_modules/.cache .turbo && sleep 1 && next dev --turbo",
-    "dev:safe": "rm -rf .next && sleep 2 && next dev --turbo",
+    "dev": "next dev",
     "build": "next build",
-    "build:clean": "rm -rf .next && next build",
-    "export": "next export",
-    "serve": "serve -s .next",
     "start": "next start",
     "lint": "next lint",
-    "db:generate": "prisma generate",
-    "db:push": "prisma db push",
-    "db:studio": "prisma studio",
-    "db:migrate": "node scripts/migrate-to-postgres.js",
-    "db:deploy": "prisma migrate deploy",
-    "postinstall": "prisma generate"
+    "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
+    "electron:pack": "npm run build && electron-builder",
+    "electron:dist": "npm run build && electron-builder --publish=never",
+    "release": "npm run build && electron-builder --publish=always",
+    "release:draft": "npm run build && electron-builder --publish=onTagOrDraft",
+    "db:init": "node scripts/init-sqlite.js",
+    "postinstall": "npm run db:init"
   },
   "dependencies": {
-    "@capacitor/android": "^7.4.2",
-    "@capacitor/cli": "^7.4.2",
-    "@capacitor/core": "^7.4.2",
-    "@capacitor/splash-screen": "^7.0.1",
-    "@prisma/client": "^5.22.0",
-    "@vercel/postgres": "^0.10.0",
-    "@vercel/speed-insights": "^1.2.0",
     "axios": "^1.10.0",
+    "better-sqlite3": "^9.2.2",
     "chart.js": "^4.5.0",
-    "core-js": "^3.44.0",
+    "crypto-js": "^4.2.0",
     "framer-motion": "^12.23.6",
     "googleapis": "^153.0.0",
     "next": "15.3.5",
@@ -39,29 +30,55 @@
     "react-chartjs-2": "^5.3.0",
     "react-dom": "^19.0.0",
     "react-icons": "^5.5.0",
-    "recharts": "^3.1.0",
-    "regenerator-runtime": "^0.14.1",
-    "rsuite": "^5.83.1",
-    "serve": "^14.2.4"
+    "recharts": "^3.1.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.28.0",
-    "@babel/preset-env": "^7.28.0",
-    "@eslint/eslintrc": "^3",
     "@tailwindcss/postcss": "^4.1.11",
-    "babel-loader": "^10.0.0",
-    "daisyui": "^5.0.46",
-    "dotenv-cli": "^8.0.0",
+    "concurrently": "^8.2.2",
+    "electron": "^28.0.0",
+    "electron-builder": "^24.9.1",
+    "electron-updater": "^6.1.7",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",
-    "prisma": "^5.22.0",
-    "tailwindcss": "^4.1.11"
+    "tailwindcss": "^4.1.11",
+    "wait-on": "^7.2.0"
   },
-  "browserslist": [
-    "defaults",
-    "last 2 versions",
-    "> 0.2%",
-    "not dead",
-    "not op_mini all"
-  ]
+  "build": {
+    "appId": "com.dashboard.app",
+    "productName": "Dashboard",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "out/**/*",
+      "public/electron.js",
+      "public/preload.js",
+      "public/database/**/*",
+      "config/**/*",
+      "node_modules/**/*"
+    ],
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "YOUR_GITHUB_USERNAME",
+        "repo": "Dashboard"
+      }
+    ],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis",
+      "publisherName": "Dashboard App"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  }
 }

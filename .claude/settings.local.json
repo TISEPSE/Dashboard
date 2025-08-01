@@ -1,46 +1,14 @@
 {
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "agents": {
+    "web-research-analyst": {
+      "enabled": true,
+      "path": "agents/web-research-analyst.md"
+    }
+  },
   "permissions": {
     "allow": [
-      "Bash(npm run dev:*)",
-      "Bash(npm install:*)",
-      "Bash(npx prisma:*)",
-      "Bash(npm run:*)",
-      "Bash(rm:*)",
-      "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\lib\\prisma.js\")",
-      "Bash(curl:*)",
-      "Bash(find:*)",
-      "Bash(dotenv -e .env.local -- npx prisma db push:*)",
-      "Bash(npx dotenv -e .env.local -- npx prisma db push:*)",
-      "Bash(npx dotenv -e .env.local -- npm run db:migrate:*)",
-      "Bash(npx dotenv -e .env.local -- npm run dev:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(grep:*)",
-      "Bash(cmd /c:*)",
-      "Bash(git checkout:*)",
-      "mcp__ide__getDiagnostics",
-      "Bash(mv:*)",
-      "Bash(node:*)",
-      "Bash(timeout 10 npm run build:*)",
-      "Bash(timeout 15 npm run build)",
-      "Bash(npx next lint:*)",
-      "Bash(awk:*)",
-      "Bash(cp:*)",
-      "Bash(chmod:*)",
-      "Bash(bash:*)",
-      "Bash(git push:*)",
-      "Bash(git restore:*)",
-      "Bash(npm exec:*)",
-      "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\dashboard\\src\\app\\styles\\neomorphism.css\")",
-      "Bash(del:*)",
-      "Bash(powershell:*)",
-      "WebFetch(domain:st2.depositphotos.com)",
-      "Bash(taskkill:*)",
-      "WebFetch(domain:developers.google.com)",
-      "Bash(npx next build:*)",
-      "WebFetch(domain:swapy.tahazsh.com)",
-      "Bash(dir:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:www.schemecolor.com)"
     ],
     "deny": []
   }

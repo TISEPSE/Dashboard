@@ -1,38 +1,39 @@
 'use client'
 
 import { createContext, useContext, useState, useEffect } from 'react'
-import { useSession } from 'next-auth/react'
+import { getDatabaseAdapter } from '../lib/database-adapter'
 
 const FavoritesContext = createContext()
 
+export const useFavoritesContext = () => {
+  const context = useContext(FavoritesContext)
+  if (!context) {
+    throw new Error('useFavoritesContext must be used within a FavoritesProvider')
+  }
+  return context
+}
+
 export const FavoritesProvider = ({ children }) => {
-  const { data: session, status } = useSession()
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
+  const db = getDatabaseAdapter()
 
   useEffect(() => {
-    if (status === 'loading') return
-    if (!session?.user?.id) {
-      setFavorites([])
-      setLoading(false)
-      setError(null)
-      return
-    }
-
     const loadFavorites = async () => {
       try {
         setLoading(true)
         setError(null)
-        const response = await fetch(`/api/favorites?userId=${session.user.id}`)
-        if (!response.ok) {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Failed to fetch favorites')
-        }
-        const data = await response.json()
-        setFavorites(data)
+        console.log('🔍 [FAVORITES] Chargement des favoris depuis le stockage local...')
+        
+        const favoritesList = await db.getCryptoFavorites()
+        console.log('✅ [FAVORITES] Favoris chargés:', favoritesList)
+        
+        // Convert to array of symbol strings for backwards compatibility
+        const favoriteSymbols = favoritesList ? favoritesList.map(fav => fav.symbol.toLowerCase()) : []
+        setFavorites(favoriteSymbols)
       } catch (err) {
-        console.error('Error fetching favorites:', err)
+        console.error('❌ [FAVORITES] Erreur lors du chargement des favoris:', err)
         setError(err.message)
         setFavorites([])
       } finally {
@@ -41,85 +42,78 @@ export const FavoritesProvider = ({ children }) => {
     }
 
     loadFavorites()
-  }, [session?.user?.id, status])
+  }, [])
 
   const addFavorite = async (symbol, name) => {
-    if (!session?.user?.id) {
-      return { 
-        success: false, 
-        message: 'Connectez-vous avec Google pour ajouter des favoris',
-        needsAuth: true 
-      }
-    }
-
     try {
-      const response = await fetch('/api/favorites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbol, name, userId: session.user.id })
+      console.log('➕ [FAVORITES] Ajout favori:', { symbol, name })
+      
+      const result = await db.addCryptoFavorite({
+        symbol: symbol.toLowerCase(),
+        name: name,
+        addedAt: new Date().toISOString()
       })
       
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to add favorite')
-      }
+      console.log('✅ [FAVORITES] Favori ajouté:', result)
       
       // Refresh favorites after adding
-      const favoritesResponse = await fetch(`/api/favorites?userId=${session.user.id}`)
-      const data = await favoritesResponse.json()
-      setFavorites(data)
+      const favoritesList = await db.getCryptoFavorites()
+      const favoriteSymbols = favoritesList ? favoritesList.map(fav => fav.symbol.toLowerCase()) : []
+      setFavorites(favoriteSymbols)
       
-      return { success: true, message: `${name} ajouté aux favoris` }
-    } catch (err) {
-      setError(err.message)
-      return { success: false, message: `Erreur: ${err.message}` }
+      return {
+        success: true,
+        message: `${symbol.toUpperCase()} ajouté aux favoris`
+      }
+    } catch (error) {
+      console.error('❌ [FAVORITES] Erreur lors de l\'ajout:', error)
+      setError(error.message)
+      return {
+        success: false,
+        message: 'Erreur lors de l\'ajout aux favoris'
+      }
     }
   }
 
   const removeFavorite = async (symbol) => {
-    if (!session?.user?.id) {
-      return { 
-        success: false, 
-        message: 'Connectez-vous avec Google pour gérer vos favoris',
-        needsAuth: true 
-      }
-    }
-
     try {
-      const favorite = favorites.find(fav => fav.symbol === symbol)
-      const name = favorite?.name || symbol.toUpperCase()
+      console.log('➖ [FAVORITES] Suppression favori:', symbol)
       
-      const response = await fetch(`/api/favorites?symbol=${symbol}&userId=${session.user.id}`, {
-        method: 'DELETE'
-      })
-      
-      if (!response.ok) throw new Error('Failed to remove favorite')
+      const result = await db.removeCryptoFavorite(symbol.toLowerCase())
+      console.log('✅ [FAVORITES] Favori supprimé:', result)
       
       // Refresh favorites after removing
-      const favoritesResponse = await fetch(`/api/favorites?userId=${session.user.id}`)
-      const data = await favoritesResponse.json()
-      setFavorites(data)
+      const favoritesList = await db.getCryptoFavorites()
+      const favoriteSymbols = favoritesList ? favoritesList.map(fav => fav.symbol.toLowerCase()) : []
+      setFavorites(favoriteSymbols)
       
-      return { success: true, message: `${name} retiré des favoris` }
-    } catch (err) {
-      setError(err.message)
-      return { success: false, message: `Erreur: ${err.message}` }
+      return {
+        success: true,
+        message: `${symbol.toUpperCase()} retiré des favoris`
+      }
+    } catch (error) {
+      console.error('❌ [FAVORITES] Erreur lors de la suppression:', error)
+      setError(error.message)
+      return {
+        success: false,
+        message: 'Erreur lors de la suppression'
+      }
     }
   }
 
   const isFavorite = (symbol) => {
-    return favorites.some(fav => fav.symbol === symbol)
+    return favorites.includes(symbol.toLowerCase())
   }
 
   const refreshFavorites = async () => {
-    if (!session?.user?.id) return
-    
     try {
-      const response = await fetch(`/api/favorites?userId=${session.user.id}`)
-      const data = await response.json()
-      setFavorites(data)
+      console.log('🔄 [FAVORITES] Actualisation des favoris...')
+      const favoritesList = await db.getCryptoFavorites()
+      const favoriteSymbols = favoritesList ? favoritesList.map(fav => fav.symbol.toLowerCase()) : []
+      setFavorites(favoriteSymbols)
+      console.log('✅ [FAVORITES] Favoris actualisés:', favoriteSymbols)
     } catch (err) {
-      console.error('Error refreshing favorites:', err)
+      console.error('❌ [FAVORITES] Erreur lors de l\'actualisation:', err)
     }
   }
 
@@ -138,12 +132,4 @@ export const FavoritesProvider = ({ children }) => {
       {children}
     </FavoritesContext.Provider>
   )
-}
-
-export const useFavoritesContext = () => {
-  const context = useContext(FavoritesContext)
-  if (!context) {
-    throw new Error('useFavoritesContext must be used within FavoritesProvider')
-  }
-  return context
 }

@@ -1,642 +1,222 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSession } from 'next-auth/react'
-import { 
-  getLocalEvents, 
-  addLocalEvent, 
-  updateLocalEvent, 
-  deleteLocalEvent,
-  getLocalEventsForPeriod,
-  markEventAsSynced,
-  getUnsyncedEvents,
-  setSyncStatus,
-  addPendingUpdate,
-  getPendingUpdates,
-  removePendingUpdate
-} from '../services/localCalendar'
+import { getDatabaseAdapter } from '../lib/database-adapter'
+
+// Couleurs inspirées de Samsung Calendar (OneUI Design System)
+const COLORS = {
+  '1': { bg: 'bg-[#1E40AF]', text: 'text-white', border: 'border-[#1E40AF]', background: '#1E40AF' }, // Bleu roi
+  '2': { bg: 'bg-[#4CAF50]', text: 'text-white', border: 'border-[#4CAF50]', background: '#4CAF50' }, // Vert nature
+  '3': { bg: 'bg-[#FF6B35]', text: 'text-white', border: 'border-[#FF6B35]', background: '#FF6B35' }, // Orange vif
+  '4': { bg: 'bg-[#E91E63]', text: 'text-white', border: 'border-[#E91E63]', background: '#E91E63' }, // Rose vif
+  '5': { bg: 'bg-[#9C27B0]', text: 'text-white', border: 'border-[#9C27B0]', background: '#9C27B0' }, // Violet
+  '6': { bg: 'bg-[#F44336]', text: 'text-white', border: 'border-[#F44336]', background: '#F44336' }, // Rouge
+  '7': { bg: 'bg-[#FF9800]', text: 'text-white', border: 'border-[#FF9800]', background: '#FF9800' }, // Orange
+  '8': { bg: 'bg-[#795548]', text: 'text-white', border: 'border-[#795548]', background: '#795548' }, // Marron
+  '9': { bg: 'bg-[#607D8B]', text: 'text-white', border: 'border-[#607D8B]', background: '#607D8B' }, // Bleu-gris
+  '10': { bg: 'bg-[#009688]', text: 'text-white', border: 'border-[#009688]', background: '#009688' }, // Teal
+  '11': { bg: 'bg-[#8BC34A]', text: 'text-white', border: 'border-[#8BC34A]', background: '#8BC34A' }, // Vert clair
+  '12': { bg: 'bg-[#CDDC39]', text: 'text-white', border: 'border-[#CDDC39]', background: '#CDDC39' }, // Lime
+  '13': { bg: 'bg-[#FFEB3B]', text: 'text-white', border: 'border-[#FFEB3B]', background: '#FFEB3B' }, // Jaune
+  '14': { bg: 'bg-[#FFC107]', text: 'text-white', border: 'border-[#FFC107]', background: '#FFC107' }, // Ambre
+  '15': { bg: 'bg-[#FF5722]', text: 'text-white', border: 'border-[#FF5722]', background: '#FF5722' }, // Deep Orange
+  '16': { bg: 'bg-[#3F51B5]', text: 'text-white', border: 'border-[#3F51B5]', background: '#3F51B5' }, // Indigo
+  '17': { bg: 'bg-[#2196F3]', text: 'text-white', border: 'border-[#2196F3]', background: '#2196F3' }, // Bleu
+  '18': { bg: 'bg-[#03A9F4]', text: 'text-white', border: 'border-[#03A9F4]', background: '#03A9F4' }, // Bleu clair
+  '19': { bg: 'bg-[#00BCD4]', text: 'text-white', border: 'border-[#00BCD4]', background: '#00BCD4' }, // Cyan
+  '20': { bg: 'bg-[#4DD0E1]', text: 'text-white', border: 'border-[#4DD0E1]', background: '#4DD0E1' }, // Cyan clair
+  '21': { bg: 'bg-[#81C784]', text: 'text-white', border: 'border-[#81C784]', background: '#81C784' }, // Vert pastel
+  '22': { bg: 'bg-[#AED581]', text: 'text-white', border: 'border-[#AED581]', background: '#AED581' }, // Vert lime clair
+  '23': { bg: 'bg-[#FFB74D]', text: 'text-white', border: 'border-[#FFB74D]', background: '#FFB74D' }, // Orange clair
+  '24': { bg: 'bg-[#F06292]', text: 'text-white', border: 'border-[#F06292]', background: '#F06292' }  // Rose clair
+}
 
 export const useCalendar = () => {
   const [events, setEvents] = useState([])
   const [loadingEvents, setLoadingEvents] = useState(false)
-  const [syncStatus, setSyncStatusState] = useState(null)
-  const [lastTimeRange, setLastTimeRange] = useState({ timeMin: null, timeMax: null })
+  const [syncStatus, setSyncStatus] = useState('idle') // 'idle', 'syncing', 'success', 'error'
   const [notification, setNotification] = useState(null)
   const { data: session } = useSession()
+  const db = getDatabaseAdapter()
 
   // Fonction pour afficher une notification
   const showNotification = useCallback((message, type = 'success') => {
     setNotification({ message, type, id: Date.now() })
-    // Auto-hide après 3 secondes
-    setTimeout(() => setNotification(null), 3000)
+    setTimeout(() => setNotification(null), 5000)
   }, [])
 
-  // Charger les événements (Google + locaux)
-  const loadEvents = useCallback(async (timeMin, timeMax, forceRefresh = false) => {
-    // Utiliser les dernières valeurs si pas de paramètres fournis
-    const finalTimeMin = timeMin || lastTimeRange.timeMin
-    const finalTimeMax = timeMax || lastTimeRange.timeMax
-    
-    // Si pas de paramètres et pas de dernière plage, ne rien faire
-    if (!finalTimeMin || !finalTimeMax) {
-      return
-    }
+  // Fonction pour fermer manuellement la notification
+  const closeNotification = useCallback(() => {
+    setNotification(null)
+  }, [])
 
-    // Sauvegarder la plage pour les prochains appels sans paramètres
-    setLastTimeRange({ timeMin: finalTimeMin, timeMax: finalTimeMax })
+  // Charger les événements depuis la base de données (SQLite local ou API)
+  const loadEvents = useCallback(async (timeMin, timeMax) => {
+    console.log('🔄 [CLIENT] Chargement des événements...', { timeMin, timeMax, session: !!session })
     setLoadingEvents(true)
-    
     try {
-      let allEvents = []
+      const events = await db.getCalendarEvents(timeMin, timeMax)
+      console.log('📅 [CLIENT] Événements reçus:', events)
       
-      // Charger les événements Google si connecté
-      if (session?.accessToken) {
-        try {
-          const params = new URLSearchParams({
-            timeMin: finalTimeMin,
-            timeMax: finalTimeMax,
-            maxResults: '500'
-          })
-          
-          // Ajouter un timestamp pour éviter le cache lors du force refresh
-          if (forceRefresh) {
-            params.append('_t', Date.now().toString())
-          }
-
-          const response = await fetch(`/api/calendar/events?${params}`, {
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.accessToken}`,
-              'Cache-Control': forceRefresh ? 'no-cache, no-store, must-revalidate' : 'no-cache',
-              'Pragma': forceRefresh ? 'no-cache' : undefined,
-              'Expires': forceRefresh ? '0' : undefined
-            }
-          })
-          
-          if (response.ok) {
-            const data = await response.json()
-            allEvents = data.events || []
-          } else {
-            const errorData = await response.json().catch(() => ({}))
-            
-            // Si c'est une erreur d'authentification, on continue avec les événements locaux seulement
-            if (errorData.needsReauth || response.status === 401) {
-              // Optionnel: notifier l'utilisateur qu'il doit se reconnecter
-              if (showNotification) {
-                showNotification('Session Google expirée. Reconnectez-vous pour synchroniser avec Google Calendar.', 'warning')
-              }
-            }
-          }
-        } catch (error) {
-          console.error('❌ Erreur API Google:', error)
+      // Trier les événements par date
+      const sortedEvents = events.sort((a, b) => 
+        new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+      )
+      
+      setEvents(sortedEvents)
+      console.log('✅ [CLIENT] Événements triés et mis à jour:', sortedEvents.length)
+      
+      // Afficher un message informatif si aucun événement n'est trouvé
+      if (sortedEvents.length === 0) {
+        console.log('⚠️ [CLIENT] Aucun événement trouvé')
+        showNotification('Aucun événement trouvé. Connectez-vous à Google pour synchroniser vos événements.', 'info')
+      } else {
+        // Compter les événements par source
+        const googleEvents = sortedEvents.filter(e => e.source === 'google').length
+        const localEvents = sortedEvents.filter(e => e.source !== 'google').length
+        
+        console.log(`📊 [CLIENT] Google: ${googleEvents}, Local: ${localEvents}`)
+        
+        if (googleEvents > 0) {
+          showNotification(`${googleEvents} événements Google synchronisés`, 'success')
         }
       }
-      
-      // Charger les événements locaux
-      const localEvents = getLocalEventsForPeriod(finalTimeMin, finalTimeMax)
-      
-      // Appliquer les modifications en attente aux événements Google
-      const pendingUpdates = getPendingUpdates()
-      const modifiedGoogleEvents = allEvents.map(event => {
-        if (pendingUpdates[event.id]) {
-          return { ...event, ...pendingUpdates[event.id] }
-        }
-        return event
-      })
-      
-      // Combiner les événements (éviter les doublons si déjà synchronisés)
-      const combinedEvents = [...modifiedGoogleEvents]
-      localEvents.forEach(localEvent => {
-        // Ajouter seulement les événements locaux non synchronisés
-        if (!localEvent.synced) {
-          combinedEvents.push(localEvent)
-        }
-      })
-      
-      setEvents(combinedEvents)
-      
     } catch (error) {
-      console.warn('⚠️ Erreur chargement événements Google (fallback sur événements locaux):', error.message)
-      // En cas d'erreur, charger au moins les événements locaux
-      try {
-        const localEvents = getLocalEventsForPeriod(finalTimeMin, finalTimeMax)
-        setEvents(localEvents)
-      } catch (localError) {
-        console.error('❌ Erreur critique - impossible de charger les événements locaux:', localError)
-        setEvents([])
+      console.error('❌ [CLIENT] Erreur lors du chargement des événements:', error)
+      
+      // Gérer spécifiquement les erreurs d'authentification
+      if (error.message?.includes('Session expirée') || error.message?.includes('needsReauth')) {
+        showNotification('Session Google expirée. Reconnectez-vous pour voir vos événements.', 'warning')
+      } else {
+        showNotification('Erreur lors du chargement des événements', 'error')
       }
+      
+      setEvents([])
     } finally {
       setLoadingEvents(false)
     }
-  }, [session?.accessToken, lastTimeRange.timeMin, lastTimeRange.timeMax])
+  }, [db, showNotification, session])
 
-  // Fonction pour recharger avec la dernière plage connue
-  const reloadCurrentEvents = useCallback(async (forceRefresh = false) => {
-    if (lastTimeRange.timeMin && lastTimeRange.timeMax) {
-      if (forceRefresh) {
-        // Vider les événements en cours pour forcer un rechargement complet
-        setEvents([])
-      }
-      await loadEvents(lastTimeRange.timeMin, lastTimeRange.timeMax, forceRefresh)
-    } else {
-    }
-  }, [loadEvents, lastTimeRange.timeMin, lastTimeRange.timeMax])
-
-  // Ajouter un événement avec feedback visuel instantané
+  // Ajouter un événement
   const addEvent = useCallback(async (eventData) => {
-    // Créer un événement temporaire avec feedback visuel
-    const tempId = `temp_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    const tempEvent = {
-      ...eventData,
-      id: tempId,
-      _isTemporary: true,
-      _isUpdating: true,
-      _syncStatus: 'creating',
-      _lastModified: Date.now()
-    }
-
     try {
-      // 🎯 AJOUT INSTANTANÉ - L'événement apparaît immédiatement avec sa couleur
-      setEvents(prevEvents => [...prevEvents, tempEvent])
-      showNotification('✨ Événement créé', 'success')
-
-      let finalEvent
-      if (session?.accessToken) {
-        // 🚀 Synchronisation Google en arrière-plan
-        setTimeout(async () => {
-          try {
-            const response = await fetch('/api/calendar/events', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${session.accessToken}`
-              },
-              body: JSON.stringify(eventData)
-            })
-
-            if (response.ok) {
-              const data = await response.json()
-              // Remplacer par l'événement Google avec statut de synchronisation
-              setEvents(prevEvents => 
-                prevEvents.map(event => 
-                  event.id === tempId ? { 
-                    ...data.event, 
-                    _syncStatus: 'synced',
-                    _isUpdating: false 
-                  } : event
-                )
-              )
-            } else {
-              throw new Error('Erreur API Google')
-            }
-          } catch (error) {
-            console.error('❌ Erreur API Google, fallback local:', error)
-            // Fallback: sauvegarder localement
-            const localEvent = addLocalEvent(eventData)
-            setEvents(prevEvents => 
-              prevEvents.map(event => 
-                event.id === tempId ? { 
-                  ...localEvent, 
-                  _syncStatus: 'local',
-                  _isUpdating: false 
-                } : event
-              )
-            )
-          }
-        }, 100)
-        
-        // Mettre à jour le statut de synchronisation
-        setEvents(prevEvents => 
-          prevEvents.map(event => 
-            event.id === tempId ? { 
-              ...event, 
-              _syncStatus: 'syncing' 
-            } : event
-          )
-        )
-        
-      } else {
-        // Ajouter localement avec feedback immédiat
-        finalEvent = addLocalEvent(eventData)
-        setEvents(prevEvents => 
-          prevEvents.map(event => 
-            event.id === tempId ? { 
-              ...finalEvent, 
-              _syncStatus: 'local',
-              _isUpdating: false 
-            } : event
-          )
-        )
-      }
-
-      // Retourner l'événement temporaire pour une réponse immédiate
-      return { ...tempEvent, _syncStatus: session?.accessToken ? 'syncing' : 'local' }
+      const newEvent = await db.addCalendarEvent({
+        ...eventData,
+        userId: session?.user?.id || 'anonymous'
+      })
+      
+      // Mettre à jour l'état local
+      setEvents(prev => [...prev, newEvent].sort((a, b) => 
+        new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+      ))
+      
+      const contextMessage = db.isElectronApp() ? 'localement' : 'avec succès'
+      showNotification(`Événement ajouté ${contextMessage}`, 'success')
+      return newEvent
     } catch (error) {
-      console.error('❌ Erreur ajout événement:', error)
-      // Supprimer l'événement temporaire en cas d'erreur
-      setEvents(prevEvents => 
-        prevEvents.filter(event => event.id !== tempId)
-      )
-      showNotification('⚠️ Erreur lors de l\'ajout', 'error')
+      console.error('Erreur lors de l\'ajout de l\'événement:', error)
+      showNotification('Erreur lors de l\'ajout de l\'événement', 'error')
       throw error
     }
-  }, [session?.accessToken, showNotification])
+  }, [db, session, showNotification])
 
-  // Modifier un événement avec feedback visuel instantané
-  const updateEvent = useCallback(async (eventData) => {
-    // Marquer l'événement comme en cours de modification pour le feedback visuel
-    const eventWithStatus = { 
-      ...eventData, 
-      _isUpdating: true,
-      _lastModified: Date.now() 
-    }
-    
+  // Mettre à jour un événement
+  const updateEvent = useCallback(async (eventId, eventData) => {
     try {
-      // 🎯 MISE À JOUR INSTANTANÉE - L'utilisateur voit le changement immédiatement
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === eventData.id ? eventWithStatus : event
-        )
-      )
+      const success = await db.updateCalendarEvent(eventId, {
+        ...eventData,
+        userId: session?.user?.id || 'anonymous'
+      })
       
-      // Feedback visuel immédiat avec notification discrète
-      showNotification('✨ Modification appliquée', 'success')
-      
-      const isLocalEvent = eventData.id.startsWith('local_')
-      
-      if (isLocalEvent) {
-        // Modifier événement local instantanément
-        const updatedEvent = updateLocalEvent(eventData.id, eventData)
+      if (success) {
+        // Mettre à jour l'état local
+        const updatedEvent = { ...eventData, id: eventId, updated: new Date().toISOString() }
+        setEvents(prev => prev.map(event => 
+          event.id === eventId ? updatedEvent : event
+        ).sort((a, b) => 
+          new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+        ))
         
-        // Mettre à jour avec l'événement final (sans status de modification)
-        setEvents(prevEvents => 
-          prevEvents.map(event => 
-            event.id === eventData.id ? { ...updatedEvent, _syncStatus: 'local' } : event
-          )
-        )
-        
+        const contextMessage = db.isElectronApp() ? 'localement' : 'avec succès'
+        showNotification(`Événement modifié ${contextMessage}`, 'success')
         return updatedEvent
       } else {
-        // 🚀 Événement Google - Synchronisation en arrière-plan
-        if (session?.accessToken) {
-          // Lancer la synchronisation en arrière-plan sans bloquer l'UI
-          setTimeout(async () => {
-            try {
-              const response = await fetch('/api/calendar/events', {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${session.accessToken}`
-                },
-                body: JSON.stringify(eventData)
-              })
-
-              if (response.ok) {
-                const data = await response.json()
-                // Mise à jour discrète du statut de synchronisation
-                setEvents(prevEvents => 
-                  prevEvents.map(event => 
-                    event.id === eventData.id ? { 
-                      ...data.event, 
-                      _syncStatus: 'synced',
-                      _isUpdating: false 
-                    } : event
-                  )
-                )
-              } else {
-                throw new Error('Erreur API Google')
-              }
-            } catch (error) {
-              // Fallback silencieux : marquer comme à synchroniser
-              addPendingUpdate(eventData.id, eventData)
-              setEvents(prevEvents => 
-                prevEvents.map(event => 
-                  event.id === eventData.id ? { 
-                    ...event, 
-                    _syncStatus: 'pending',
-                    _isUpdating: false 
-                  } : event
-                )
-              )
-            }
-          }, 100) // Petite délai pour une UX fluide
-          
-          // Retourner immédiatement l'événement modifié
-          const immediateUpdate = { ...eventData, _syncStatus: 'syncing' }
-          setEvents(prevEvents => 
-            prevEvents.map(event => 
-              event.id === eventData.id ? immediateUpdate : event
-            )
-          )
-          return immediateUpdate
-          
-        } else {
-          // Pas connecté : marquer comme à synchroniser
-          addPendingUpdate(eventData.id, eventData)
-          const offlineUpdate = { ...eventData, _syncStatus: 'offline', _isUpdating: false }
-          setEvents(prevEvents => 
-            prevEvents.map(event => 
-              event.id === eventData.id ? offlineUpdate : event
-            )
-          )
-          return offlineUpdate
-        }
+        throw new Error('Échec de la mise à jour')
       }
     } catch (error) {
-      console.error('❌ Erreur modification événement:', error)
-      // En cas d'erreur critique, restaurer l'état original
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event.id === eventData.id ? { 
-            ...event, 
-            _isUpdating: false, 
-            _syncStatus: 'error' 
-          } : event
-        )
-      )
-      showNotification('⚠️ Erreur lors de la modification', 'error')
+      console.error('Erreur lors de la modification de l\'événement:', error)
+      showNotification('Erreur lors de la modification de l\'événement', 'error')
       throw error
     }
-  }, [session?.accessToken, showNotification])
+  }, [db, session, showNotification])
 
-  // Supprimer un événement (optimiste)
+  // Supprimer un événement
   const deleteEvent = useCallback(async (eventId) => {
     try {
-      const isLocalEvent = eventId.startsWith('local_')
+      const success = await db.deleteCalendarEvent(eventId)
       
-      // Suppression optimiste : mettre à jour l'interface immédiatement
-      setEvents(prevEvents => prevEvents.filter(event => event.id !== eventId))
-      showNotification('Événement supprimé', 'success')
-      
-      if (isLocalEvent) {
-        // Supprimer événement local
-        deleteLocalEvent(eventId)
-        return true
-      } else if (session?.accessToken) {
-        // Supprimer événement Google en arrière-plan
-        try {
-          const response = await fetch(`/api/calendar/events/${eventId}`, {
-            method: 'DELETE',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${session.accessToken}`
-            }
-          })
-
-          if (!response.ok) {
-            // En cas d'erreur, recharger pour restaurer l'état correct
-            const error = await response.json()
-            showNotification('Erreur lors de la suppression, événement restauré', 'error')
-            setTimeout(() => reloadCurrentEvents(true), 100)
-            throw new Error(error.error || 'Erreur lors de la suppression')
-          }
-          return true
-        } catch (error) {
-          // En cas d'erreur réseau, recharger pour restaurer l'état
-          showNotification('Erreur réseau, événement restauré', 'error')
-          setTimeout(() => reloadCurrentEvents(true), 100)
-          throw error
-        }
+      if (success) {
+        // Mettre à jour l'état local
+        setEvents(prev => prev.filter(event => event.id !== eventId))
+        showNotification('Événement supprimé avec succès', 'success')
       } else {
-        // Pas de session, restaurer l'événement
-        setTimeout(() => reloadCurrentEvents(true), 100)
-        throw new Error('Non connecté et événement non local')
+        throw new Error('Échec de la suppression')
       }
     } catch (error) {
+      console.error('Erreur lors de la suppression de l\'événement:', error)
+      showNotification('Erreur lors de la suppression de l\'événement', 'error')
       throw error
     }
-  }, [session?.accessToken, showNotification, reloadCurrentEvents])
+  }, [db, showNotification])
 
-  // Synchroniser avec Google Calendar de manière optimisée
-  const syncWithGoogle = useCallback(async (showNotifications = true) => {
-    if (!session?.accessToken) {
-      if (showNotifications) {
-        showNotification('Veuillez vous connecter à Google Calendar pour synchroniser', 'warning')
-      }
+  // Synchroniser avec Google Calendar (mode web uniquement)
+  const syncWithGoogle = useCallback(async () => {
+    if (db.isElectronApp()) {
+      showNotification('Synchronisation Google non disponible en mode local', 'info')
       return
     }
 
-    // 🚀 Synchronisation rapide et non-bloquante
-    setLoadingEvents(true)
-    
+    if (!session?.accessToken) {
+      showNotification('Connexion Google requise pour la synchronisation', 'warning')
+      return
+    }
+
+    setSyncStatus('syncing')
     try {
-      // 1. Refresh instantané des événements Google
-      if (showNotifications) {
-        showNotification('🔄 Synchronisation...', 'info')
-      }
+      // Utiliser la synchronisation du database adapter
+      await db.syncWithGoogle()
       
-      // Recharger immédiatement pour avoir les dernières données
-      await reloadCurrentEvents(true)
+      // Recharger les événements après synchronisation
+      // Note: ici on ne peut pas passer timeMin/timeMax car on ne les a pas stockés
+      // Dans une version future, on pourrait les stocker dans le state
       
-      // 2. Traiter les événements avec statuts de synchronisation
-      const unsyncedEvents = getUnsyncedEvents()
-      const pendingUpdates = getPendingUpdates()
-      
-      // Mettre à jour visuellement les événements en cours de sync
-      setEvents(prevEvents => 
-        prevEvents.map(event => {
-          if (unsyncedEvents.some(unsynced => unsynced.id === event.id) || 
-              pendingUpdates[event.id]) {
-            return { ...event, _syncStatus: 'syncing' }
-          }
-          return event
-        })
-      )
-      
-      if (unsyncedEvents.length === 0 && Object.keys(pendingUpdates).length === 0) {
-        setLoadingEvents(false)
-        // Mettre à jour les statuts de synchronisation pour les événements déjà synchronisés
-        setEvents(prevEvents => 
-          prevEvents.map(event => ({
-            ...event,
-            _syncStatus: event._syncStatus === 'syncing' ? 'synced' : event._syncStatus
-          }))
-        )
-        return
-      }
-
-      // 3. Synchroniser en arrière-plan de manière parallèle
-      const syncPromises = []
-      
-      // Synchroniser les nouveaux événements locaux
-      for (const localEvent of unsyncedEvents) {
-        const syncPromise = fetch('/api/calendar/events', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.accessToken}`
-          },
-          body: JSON.stringify({
-            summary: localEvent.summary,
-            description: localEvent.description,
-            location: localEvent.location,
-            start: localEvent.start.dateTime,
-            end: localEvent.end.dateTime,
-            colorId: localEvent.colorId
-          })
-        }).then(async (response) => {
-          if (response.ok) {
-            const data = await response.json()
-            markEventAsSynced(localEvent.id, data.event.id)
-            // Mettre à jour le statut visuel
-            setEvents(prevEvents => 
-              prevEvents.map(event => 
-                event.id === localEvent.id ? { 
-                  ...data.event, 
-                  _syncStatus: 'synced' 
-                } : event
-              )
-            )
-            return { success: true, type: 'create', id: localEvent.id }
-          } else {
-            // Marquer comme erreur de synchronisation
-            setEvents(prevEvents => 
-              prevEvents.map(event => 
-                event.id === localEvent.id ? { 
-                  ...event, 
-                  _syncStatus: 'error' 
-                } : event
-              )
-            )
-            return { success: false, type: 'create', id: localEvent.id }
-          }
-        }).catch(() => {
-          setEvents(prevEvents => 
-            prevEvents.map(event => 
-              event.id === localEvent.id ? { 
-                ...event, 
-                _syncStatus: 'error' 
-              } : event
-            )
-          )
-          return { success: false, type: 'create', id: localEvent.id }
-        })
-        
-        syncPromises.push(syncPromise)
-      }
-      
-      // Synchroniser les modifications en attente
-      for (const [eventId, updates] of Object.entries(pendingUpdates)) {
-        const syncPromise = fetch('/api/calendar/events', {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${session.accessToken}`
-          },
-          body: JSON.stringify({
-            id: eventId,
-            ...updates
-          })
-        }).then(async (response) => {
-          if (response.ok) {
-            removePendingUpdate(eventId)
-            // Mettre à jour le statut visuel
-            setEvents(prevEvents => 
-              prevEvents.map(event => 
-                event.id === eventId ? { 
-                  ...event, 
-                  _syncStatus: 'synced' 
-                } : event
-              )
-            )
-            return { success: true, type: 'update', id: eventId }
-          } else {
-            setEvents(prevEvents => 
-              prevEvents.map(event => 
-                event.id === eventId ? { 
-                  ...event, 
-                  _syncStatus: 'error' 
-                } : event
-              )
-            )
-            return { success: false, type: 'update', id: eventId }
-          }
-        }).catch(() => {
-          setEvents(prevEvents => 
-            prevEvents.map(event => 
-              event.id === eventId ? { 
-                ...event, 
-                _syncStatus: 'error' 
-              } : event
-            )
-          )
-          return { success: false, type: 'update', id: eventId }
-        })
-        
-        syncPromises.push(syncPromise)
-      }
-      
-      // Attendre que toutes les synchronisations se terminent
-      const results = await Promise.all(syncPromises)
-      const successCount = results.filter(r => r.success).length
-      const errorCount = results.filter(r => !r.success).length
-      
-      setSyncStatus(errorCount === 0 ? 'success' : 'partial')
-      setSyncStatusState(errorCount === 0 ? 'success' : 'partial')
-      
-      if (showNotifications && successCount > 0) {
-        if (errorCount === 0) {
-          showNotification(`✅ ${successCount} élément(s) synchronisé(s)`, 'success')
-        } else {
-          showNotification(`⚠️ ${successCount} synchronisé(s), ${errorCount} erreur(s)`, 'warning')
-        }
-      }
-      
-      // Refresh final pour s'assurer de la cohérence
-      setTimeout(() => reloadCurrentEvents(true), 500)
-      
+      setSyncStatus('success')
+      showNotification('Synchronisation réussie', 'success')
     } catch (error) {
-      console.error('❌ Erreur synchronisation:', error)
+      console.error('Erreur synchronisation:', error)
       setSyncStatus('error')
-      setSyncStatusState('error')
-      
-      // Marquer tous les événements en cours de sync comme en erreur
-      setEvents(prevEvents => 
-        prevEvents.map(event => 
-          event._syncStatus === 'syncing' ? { 
-            ...event, 
-            _syncStatus: 'error' 
-          } : event
-        )
-      )
-      
-      if (showNotifications) {
-        showNotification('❌ Erreur lors de la synchronisation', 'error')
-      }
-    } finally {
-      setLoadingEvents(false)
+      showNotification('Erreur lors de la synchronisation', 'error')
     }
-  }, [session?.accessToken, showNotification, reloadCurrentEvents])
+  }, [db, session, showNotification])
 
-  // Auto-sync quand l'utilisateur se connecte
-  useEffect(() => {
-    if (session?.accessToken && !syncStatus) {
-      const timer = setTimeout(() => {
-        syncWithGoogle(false) // Garder la sync auto mais sans les notifications de résultat
-      }, 500) // Attendre 0.5s après la connexion
-      
-      return () => clearTimeout(timer)
-    }
-  }, [session?.accessToken, syncStatus]) // Retiré syncWithGoogle et showNotification pour éviter les re-renders
+  // Obtenir la couleur d'un événement
+  const getEventColor = useCallback((colorId) => {
+    return COLORS[colorId] || COLORS['1']
+  }, [])
 
   return {
     events,
     loadingEvents,
     syncStatus,
     notification,
+    closeNotification,
     loadEvents,
     addEvent,
     updateEvent,
     deleteEvent,
     syncWithGoogle,
-    // Fonction utilitaire pour vérifier les statuts de synchronisation
-    getSyncStatusInfo: () => {
-      const total = events.length
-      const synced = events.filter(e => e._syncStatus === 'synced' || !e._syncStatus).length
-      const syncing = events.filter(e => e._syncStatus === 'syncing' || e._syncStatus === 'creating').length
-      const pending = events.filter(e => e._syncStatus === 'pending' || e._syncStatus === 'offline').length
-      const errors = events.filter(e => e._syncStatus === 'error').length
-      const local = events.filter(e => e._syncStatus === 'local').length
-      
-      return { total, synced, syncing, pending, errors, local }
-    }
+    getEventColor,
+    // Nouvelles propriétés pour identifier le contexte
+    isElectronMode: db.isElectronApp(),
+    databaseType: db.isElectronApp() ? 'sqlite-local' : 'api-rest'
   }
 }

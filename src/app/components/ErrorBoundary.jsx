@@ -35,19 +35,12 @@ class ErrorBoundary extends React.Component {
               </p>
             </div>
             
-            <div className="space-y-2">
+            <div>
               <button
                 onClick={() => window.location.reload()}
-                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-2 px-4 rounded-md font-medium hover:from-blue-500 hover:to-blue-600 transition-all duration-200"
+                className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-3 px-6 rounded-md font-medium hover:from-blue-500 hover:to-blue-600 transition-all duration-200"
               >
                 Recharger la page
-              </button>
-              
-              <button
-                onClick={() => this.setState({ hasError: false, error: null })}
-                className="w-full bg-gradient-to-r from-gray-600 to-gray-700 text-white py-2 px-4 rounded-md font-medium hover:from-gray-500 hover:to-gray-600 transition-all duration-200"
-              >
-                Réessayer
               </button>
             </div>
             

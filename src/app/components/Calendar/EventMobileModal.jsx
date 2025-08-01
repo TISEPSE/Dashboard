@@ -107,259 +107,199 @@ export default function EventMobileModal({
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+                        className="fixed inset-0 bg-black/70 backdrop-blur-md z-50"
                         onClick={onClose}
                     />
 
-                    {/* Modal Plein Écran Mobile */}
+                    {/* Modal - Plein écran mobile, centré desktop */}
                     <motion.div
-                        initial={{ y: "100%", opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: "100%", opacity: 0 }}
+                        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        exit={{ scale: 0.9, opacity: 0, y: 20 }}
                         transition={{ 
-                            type: "tween", 
-                            ease: [0.25, 0.1, 0.25, 1],
+                            type: "spring", 
+                            damping: 25,
+                            stiffness: 300,
                             duration: 0.3 
                         }}
-                        className="fixed inset-0 bg-gradient-to-br from-[#1e293b] to-[#0f172a] shadow-2xl z-50 overflow-y-auto block md:hidden min-h-screen flex flex-col"
-                        style={{
-                            scrollbarWidth: 'none',
-                            msOverflowStyle: 'none'
-                        }}
+                        className="fixed inset-0 md:inset-6 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-4xl md:h-[82vh] bg-gradient-to-br from-[#1e293b] to-[#0f172a] md:rounded-3xl shadow-2xl z-50 flex flex-col"
+                        onClick={(e) => e.stopPropagation()}
                     >
-                        {/* Header simplifié */}
-                        <div className="flex items-center justify-between px-4 py-4 bg-slate-900/50 backdrop-blur-sm border-b border-slate-700/50 flex-shrink-0">
+                        {/* Header */}
+                        <div className="flex items-center justify-between px-6 py-4 bg-slate-900/60 backdrop-blur-md border-b border-slate-700/40 flex-shrink-0 md:rounded-t-3xl">
+                            {/* Bouton retour à gauche - toujours visible */}
                             <button
                                 onClick={onBack || onClose}
-                                className="w-10 h-10 rounded-lg bg-slate-800/50 hover:bg-slate-700/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
+                                className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
                             >
                                 <FaArrowLeft className="w-4 h-4" />
                             </button>
 
-                            <h2 className="text-base font-semibold text-white uppercase tracking-wide">Détails de l'événement</h2>
-
-                            {/* Espace pour équilibrer le layout */}
-                            <div className="w-10 h-10"></div>
-                        </div>
-
-                        {/* Contenu principal avec flex pour utiliser tout l'espace */}
-                        <div className="flex-1 flex flex-col px-4 py-6 space-y-6 min-h-0 overflow-y-auto">
-                            {/* Titre avec icône - H1 */}
-                            <div className="flex items-center justify-center bg-gradient-to-r from-slate-800/40 to-slate-700/30 rounded-2xl p-6 border border-slate-600/20">
-                                <div className="flex items-center justify-center gap-3">
-                                    <FaCalendarAlt className="w-6 h-6 text-blue-400 flex-shrink-0" />
-                                    <h1 className="text-xl sm:text-2xl font-bold text-white leading-tight break-words hyphens-auto max-w-full overflow-wrap-anywhere">
-                                        {event.summary || event.title || 'Événement sans titre'}
-                                    </h1>
-                                </div>
+                            {/* Titre centré avec pastille */}
+                            <div className="flex items-center gap-3">
+                                <div 
+                                    className="w-3 h-3 rounded-full"
+                                    style={{ backgroundColor: eventColor.background }}
+                                />
+                                <h2 className="text-xl font-bold text-white">
+                                    Détails de l'événement
+                                </h2>
                             </div>
 
-                            {/* Informations principales dans des cartes */}
-                            <div className="space-y-4">
-                                {/* Date et heure avec support multi-jours */}
-                                <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/30 rounded-2xl p-5 border border-slate-600/20">
-                                    <div className="flex items-center gap-3 mb-4">
-                                        <div className="w-8 h-8 bg-blue-500/20 rounded-xl flex items-center justify-center">
-                                            <FaClock className="w-4 h-4 text-blue-400" />
-                                        </div>
-                                        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">
-                                            {isMultiDay() ? 'PÉRIODE' : 'DATE & HEURE'}
-                                        </h2>
-                                    </div>
-                                    
-                                    {isMultiDay() ? (
-                                        // Affichage pour événements multi-jours
-                                        <div className="space-y-3">
-                                            <div className="flex items-start gap-3">
-                                                <div className="bg-green-500/20 rounded-lg p-2 mt-0.5">
-                                                    <div className="w-2 h-2 bg-green-400 rounded-full"></div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-slate-400 mb-1">Début</p>
-                                                    <p className="text-lg font-medium text-white capitalize leading-tight">
-                                                        {startDateTime.date}
+                            {/* Desktop: boutons d'action à droite */}
+                            <div className="hidden md:flex items-center gap-2">
+                                <button
+                                    onClick={() => onEdit && onEdit(event)}
+                                    className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
+                                >
+                                    <FaEdit className="w-3 h-3" />
+                                    Modifier
+                                </button>
+                                <button
+                                    onClick={() => onDelete && onDelete(event.id)}
+                                    className="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
+                                >
+                                    <FaTrash className="w-3 h-3" />
+                                    Supprimer
+                                </button>
+                                <button
+                                    onClick={onClose}
+                                    className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 ml-2"
+                                >
+                                    <FaTimes className="w-4 h-4" />
+                                </button>
+                            </div>
+
+                            {/* Mobile: bouton fermer à droite */}
+                            <button
+                                onClick={onClose}
+                                className="md:hidden w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
+                            >
+                                <FaTimes className="w-4 h-4" />
+                            </button>
+                        </div>
+
+                        {/* Contenu principal */}
+                        <div className="flex-1 px-4 md:px-8 py-6 overflow-y-auto min-h-0 scrollbar-hide">
+                            {/* Design moderne uni-colonne */}
+                            <div className="space-y-6">
+                                {/* Titre principal sans pastille */}
+                                <div className="mb-6">
+                                    <h1 className="text-2xl md:text-3xl font-bold text-white">{event.summary}</h1>
+                                </div>
+
+                                {/* Informations principales - pleine largeur */}
+                                <div className="space-y-6">
+                                    {/* Date - pleine largeur */}
+                                    <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+                                        <div className="flex items-center gap-4">
+                                            <FaCalendarAlt className="w-7 h-7 text-blue-400 flex-shrink-0" />
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-semibold text-lg mb-3">Date et heure</h3>
+                                                <div className="flex flex-wrap items-center gap-4">
+                                                    <p className="text-slate-300 text-base">
+                                                        {isAllDay ? 'Toute la journée' : `${startDateTime.time} - ${endDateTime.time}`}
                                                     </p>
-                                                    {!isAllDay && startDateTime.time && (
-                                                        <div className="flex items-center gap-2 mt-2">
-                                                            <FaClock className="w-3 h-3 text-slate-400" />
-                                                            <p className="text-sm text-slate-300 font-medium">{startDateTime.time}</p>
-                                                        </div>
+                                                    <p className="text-slate-400 text-sm">{startDateTime.shortDate}</p>
+                                                    {isMultiDay() && (
+                                                        <p className="text-slate-400 text-sm">jusqu'au {endDateTime.shortDate}</p>
                                                     )}
                                                 </div>
                                             </div>
-                                            
-                                            <div className="flex items-start gap-3">
-                                                <div className="bg-red-500/20 rounded-lg p-2 mt-0.5">
-                                                    <div className="w-2 h-2 bg-red-400 rounded-full"></div>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm text-slate-400 mb-1">Fin</p>
-                                                    <p className="text-lg font-medium text-white capitalize leading-tight">
-                                                        {endDateTime.date}
-                                                    </p>
-                                                    {!isAllDay && endDateTime.time && (
-                                                        <div className="flex items-center gap-2 mt-2">
-                                                            <FaClock className="w-3 h-3 text-slate-400" />
-                                                            <p className="text-sm text-slate-300 font-medium">{endDateTime.time}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Lieu - pleine largeur */}
+                                    <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+                                        <div className="flex items-center gap-4">
+                                            <FaMapMarkerAlt className="w-7 h-7 text-green-400 flex-shrink-0" />
+                                            <div className="flex-1">
+                                                <h3 className="text-white font-semibold text-lg mb-3">Lieu</h3>
+                                                <p className="text-slate-300 text-base break-words">
+                                                    {event.location || "Pas de lieu spécifié"}
+                                                </p>
                                             </div>
-                                            
-                                            {isAllDay && (
-                                                <div className="bg-blue-500/10 rounded-lg p-2 mt-2">
-                                                    <p className="text-sm text-blue-300 text-center">Événement sur plusieurs jours</p>
-                                                </div>
-                                            )}
                                         </div>
-                                    ) : (
-                                        // Affichage pour événements d'un seul jour
-                                        <div>
-                                            <p className="text-lg font-medium text-white capitalize mb-2 leading-tight">
-                                                {startDateTime.date}
-                                            </p>
-                                            {!isAllDay ? (
-                                                <div className="flex items-center gap-2">
-                                                    <FaClock className="w-4 h-4 text-slate-400" />
-                                                    <p className="text-base text-slate-300 font-medium">
-                                                        {startDateTime.time}
-                                                        {endDateTime.time && endDateTime.time !== startDateTime.time && 
-                                                            ` - ${endDateTime.time}`
-                                                        }
-                                                    </p>
-                                                </div>
-                                            ) : (
-                                                <p className="text-sm text-slate-400">Toute la journée</p>
-                                            )}
+                                    </div>
+
+                                    {/* Participants - pleine largeur */}
+                                    <div className="bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+                                        <div className="flex items-start gap-4">
+                                            <FaUsers className="w-7 h-7 text-orange-400 flex-shrink-0 mt-1" />
+                                            <div className="flex-1">
+                                                {event.attendees && event.attendees.length > 0 ? (
+                                                    <>
+                                                        <h3 className="text-white font-semibold text-lg mb-3">
+                                                            {event.attendees.length} participant{event.attendees.length > 1 ? 's' : ''}
+                                                        </h3>
+                                                        <div className="flex flex-wrap gap-2">
+                                                            {event.attendees.slice(0, 8).map((attendee, index) => (
+                                                                <div key={index} className="flex items-center gap-2 bg-slate-700/30 rounded-lg px-3 py-2">
+                                                                    <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
+                                                                        {attendee.email ? attendee.email.charAt(0).toUpperCase() : '?'}
+                                                                    </div>
+                                                                    <span className="text-slate-300 text-sm">
+                                                                        {attendee.email ? attendee.email.split('@')[0] : 'Invité'}
+                                                                    </span>
+                                                                    {attendee.responseStatus === 'accepted' && (
+                                                                        <span className="text-green-400 text-xs">✓</span>
+                                                                    )}
+                                                                </div>
+                                                            ))}
+                                                            {event.attendees.length > 8 && (
+                                                                <div className="flex items-center gap-2 bg-slate-600/40 rounded-lg px-3 py-2">
+                                                                    <span className="text-slate-300 text-sm">
+                                                                        +{event.attendees.length - 8} autres
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <h3 className="text-white font-semibold text-lg mb-3">Participants</h3>
+                                                        <p className="text-slate-400 text-base">Pas de participants</p>
+                                                    </>
+                                                )}
+                                            </div>
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
 
-                                {/* Lieu - Toujours affiché */}
-                                <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/30 rounded-2xl p-5 border border-slate-600/20">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-8 h-8 bg-red-500/20 rounded-xl flex items-center justify-center">
-                                            <FaMapMarkerAlt className="w-4 h-4 text-red-400" />
+                                {/* Description - toujours affichée */}
+                                <div className="bg-slate-800/40 rounded-2xl p-6 border border-slate-700/30">
+                                    <div className="flex items-center gap-4">
+                                        <FaAlignLeft className="w-7 h-7 text-purple-400 flex-shrink-0" />
+                                        <div className="flex-1">
+                                            <h3 className="text-white font-semibold text-lg mb-3">Description</h3>
+                                            <p className="text-slate-300 leading-relaxed text-lg">
+                                                {description || "Pas de description"}
+                                            </p>
                                         </div>
-                                        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">LIEU</h2>
                                     </div>
-                                    <p className="text-lg font-medium text-white leading-tight">
-                                        {event.location || 'Aucun lieu spécifié'}
-                                    </p>
                                 </div>
 
-                                {/* Participants - Toujours affiché */}
-                                <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/30 rounded-2xl p-5 border border-slate-600/20">
-                                    <div className="flex items-center gap-3 mb-3">
-                                        <div className="w-8 h-8 bg-green-500/20 rounded-xl flex items-center justify-center">
-                                            <FaUsers className="w-4 h-4 text-green-400" />
-                                        </div>
-                                        <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">PARTICIPANTS</h2>
-                                    </div>
-                                    {event.attendees && event.attendees.length > 0 ? (
-                                        <>
-                                            <p className="text-lg font-medium text-white mb-2 leading-tight">
-                                                {event.attendees.length} participant{event.attendees.length > 1 ? 's' : ''}
-                                            </p>
-                                            <p className="text-sm text-slate-400 leading-relaxed">
-                                                {event.attendees.slice(0, 3).map(attendee => attendee.email).join(', ')}
-                                                {event.attendees.length > 3 && ` et ${event.attendees.length - 3} autres`}
-                                            </p>
-                                        </>
-                                    ) : (
-                                        <p className="text-lg font-medium text-white leading-tight">
-                                            Aucun participant
-                                        </p>
-                                    )}
-                                </div>
                             </div>
 
-                            {/* Description - Toujours affichée et compactée */}
-                            <div className="bg-gradient-to-r from-slate-800/40 to-slate-700/30 rounded-2xl p-4 border border-slate-600/20">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-8 h-8 bg-purple-500/20 rounded-xl flex items-center justify-center">
-                                        <FaAlignLeft className="w-4 h-4 text-purple-400" />
-                                    </div>
-                                    <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-wide">DESCRIPTION</h2>
-                                </div>
-                                <div className="max-h-24 overflow-y-auto">
-                                    {description ? (
-                                        <>
-                                            <p className={`text-white leading-relaxed text-base ${
-                                                !showFullDescription && isLongDescription ? 'line-clamp-3' : ''
-                                            }`}>
-                                                {description}
-                                            </p>
-                                            {isLongDescription && (
-                                                <button
-                                                    onClick={() => setShowFullDescription(!showFullDescription)}
-                                                    className="flex items-center gap-2 mt-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors duration-200"
-                                                >
-                                                    {showFullDescription ? (
-                                                        <>
-                                                            <FaChevronUp className="w-3 h-3" />
-                                                            Voir moins
-                                                        </>
-                                                    ) : (
-                                                        <>
-                                                            <FaChevronDown className="w-3 h-3" />
-                                                            Voir plus
-                                                        </>
-                                                    )}
-                                                </button>
-                                            )}
-                                        </>
-                                    ) : (
-                                        <p className="text-lg font-medium text-white leading-tight">
-                                            Aucune description
-                                        </p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Bouton Modifier intégré dans le contenu */}
-                            {onEdit && (
-                                <div className="flex justify-center">
-                                    <button
-                                        onClick={() => {
-                                            onEdit(event)
-                                            onClose()
-                                        }}
-                                        className="bg-blue-500 hover:bg-blue-600 text-white py-3 px-6 rounded-xl font-medium text-base transition-all duration-200 flex items-center justify-center gap-2 shadow-lg min-w-[160px]"
-                                    >
-                                        <FaEdit className="w-4 h-4" />
-                                        Modifier
-                                    </button>
-                                </div>
-                            )}
                         </div>
 
-                        {/* Actions secondaires fixées en bas */}
-                        <div className="mt-auto bg-slate-900/80 backdrop-blur-sm border-t border-slate-700/50 p-4">
-                            <div className="flex gap-2">
-                                <button className="flex-1 bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 hover:text-white py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
-                                    <FaShare className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Partager</span>
-                                </button>
-                                
-                                <button className="flex-1 bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 hover:text-white py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2">
-                                    <FaBell className="w-4 h-4" />
-                                    <span className="text-sm font-medium">Rappel</span>
-                                </button>
-
-                                {onDelete && (
-                                    <button 
-                                        onClick={() => {
-                                            onDelete(event.id)
-                                            onClose()
-                                        }}
-                                        className="flex-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 py-3 px-4 rounded-xl transition-all duration-200 flex items-center justify-center gap-2"
-                                    >
-                                        <FaTrash className="w-4 h-4" />
-                                        <span className="text-sm font-medium">Supprimer</span>
-                                    </button>
-                                )}
-                            </div>
+                        {/* Boutons d'action mobile uniquement - Fixés en bas */}
+                        <div className="md:hidden flex gap-2 px-4 py-3 bg-slate-900/40 border-t border-slate-700/40 backdrop-blur-md flex-shrink-0">
+                            <button
+                                onClick={() => onEdit && onEdit(event)}
+                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                            >
+                                <FaEdit className="w-3.5 h-3.5" />
+                                Modifier
+                            </button>
+                            
+                            <button
+                                onClick={() => onDelete && onDelete(event.id)}
+                                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2.5 px-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                            >
+                                <FaTrash className="w-3.5 h-3.5" />
+                                Supprimer
+                            </button>
                         </div>
                     </motion.div>
                 </>
@@ -367,14 +307,3 @@ export default function EventMobileModal({
         </AnimatePresence>
     )
 }
-
-// Style CSS pour masquer la scrollbar
-const scrollbarStyles = `
-  .event-modal-scroll::-webkit-scrollbar {
-    display: none;
-  }
-  .event-modal-scroll {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-`

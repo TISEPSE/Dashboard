@@ -1,120 +1,153 @@
-# 🚀 Structure Modulaire du Dashboard Crypto
+# Dashboard - Application Hybride Web/Desktop
 
-## 📁 Organisation des fichiers
+Une application de dashboard moderne avec support hybride web et desktop (Electron) utilisant SQLite local chiffré.
 
-```
-src/
-├── components/
-│   ├── Crypto/
-│   │   ├── CryptoDashboard.jsx      # Composant principal
-│   │   ├── CryptoCard.jsx           # Carte individuelle
-│   │   ├── CryptoToolbar.jsx        # Barre d'outils
-│   │   ├── CryptoPagination.jsx     # Navigation des pages
-│   │   ├── CryptoStates.jsx         # États d'erreur/chargement
-│   │   └── CryptoSelector.jsx       # Sélecteur existant
-│   └── hooks/
-│       ├── useCryptoData.js         # Gestion des données API
-│       └── useCryptoPreferences.js  # Gestion localStorage
-└── pages/
-    └── Dashboard/
-        └── Crypto/
-            └── page.jsx             # Page principale
-```
+## 🚀 Fonctionnalités
 
-## 🔧 Comment migrer
+- **🌐 Mode Web** : Interface web classique avec APIs REST
+- **💻 Mode Desktop** : Application Electron avec base de données SQLite locale chiffrée
+- **📅 Calendrier** : Gestion d'événements avec synchronisation Google Calendar (mode web)
+- **₿ Crypto** : Suivi des cryptomonnaies avec gestion des favoris
+- **🔒 Chiffrement** : Données sensibles chiffrées avec AES-256
+- **🔄 Mises à jour automatiques** : Système de mise à jour intégré pour l'app desktop
 
-### 1. Créer les nouveaux fichiers
-Copiez chaque artefact dans le fichier correspondant selon la structure ci-dessus.
+## 📦 Installation
 
-### 2. Remplacer votre page principale
-Dans `pages/Dashboard/Crypto/page.jsx` :
+```bash
+# Cloner le projet
+git clone <repository-url>
+cd Dashboard
 
-```javascript
-import CryptoDashboard from "../../../components/Crypto/CryptoDashboard"
+# Installer les dépendances
+npm install
 
-export default function CryptoPage() {
-  return <CryptoDashboard />
-}
+# Initialiser la base de données SQLite
+npm run postinstall
 ```
 
-### 3. Ajuster les imports
-Vérifiez que tous les chemins d'import correspondent à votre structure :
+## 🛠️ Développement
 
-```javascript
-// Dans CryptoDashboard.jsx
-import { useCryptoData } from "../hooks/useCryptoData"
-import { useCryptoPreferences } from "../hooks/useCryptoPreferences"
-import CryptoCard from "./CryptoCard"
-// etc...
+### Mode Web
+```bash
+# Développement web classique
+npm run dev
+# ➜ http://localhost:3000
 ```
 
-## ✅ Avantages de cette structure
-
-### 🎯 **Maintenabilité**
-- Chaque composant a une responsabilité unique
-- Modifications isolées (ex: changer le design des cartes)
-- Débogage plus facile
-
-### 🔄 **Réutilisabilité**
-- `CryptoCard` peut être utilisé ailleurs
-- `useCryptoData` réutilisable pour d'autres vues crypto
-- `CryptoToolbar` modulaire
-
-### ⚡ **Performance**
-- Hooks optimisés avec `useMemo` et `useCallback`
-- Composants React.memo pour éviter les re-renders
-- Chargement paresseux possible
-
-### 🧪 **Testabilité**
-- Chaque composant testable individuellement
-- Hooks testables séparément
-- Mocks plus faciles
-
-## 🎨 Personnalisation
-
-### Modifier une carte crypto
-Éditez uniquement `CryptoCard.jsx` sans impacter le reste.
-
-### Ajouter une nouvelle fonctionnalité
-Créez un nouveau hook ou composant sans toucher l'existant.
-
-### Changer l'API
-Modifiez uniquement `useCryptoData.js`.
-
-## 🔮 Extensions possibles
-
-### 1. Gestion d'état globale
-```javascript
-// hooks/useCryptoStore.js
-import { create } from 'zustand'
-
-export const useCryptoStore = create((set) => ({
-  favorites: [],
-  addFavorite: (crypto) => set((state) => ({ 
-    favorites: [...state.favorites, crypto] 
-  }))
-}))
+### Mode Electron (Desktop)
+```bash
+# Développement Electron avec hot reload
+npm run electron:dev
+# ➜ Ouvre l'application desktop
 ```
 
-### 2. Composants supplémentaires
-```javascript
-// components/CryptoFavorites.jsx
-// components/CryptoChart.jsx
-// components/CryptoSearch.jsx
+## 🏗️ Build & Distribution
+
+### Build Web
+```bash
+npm run build
+npm run start
 ```
 
-### 3. Hooks avancés
-```javascript
-// hooks/useCryptoWebSocket.js
-// hooks/useCryptoNotifications.js
-// hooks/useCryptoAnalytics.js
+### Build Electron
+```bash
+# Package pour la plateforme courante
+npm run electron:pack
+
+# Build pour distribution
+npm run electron:dist
 ```
 
-## 🚨 Points d'attention
+## 📁 Architecture
 
-1. **Imports** : Vérifiez tous les chemins d'import
-2. **CryptoSelector** : Assurez-vous qu'il existe dans votre projet
-3. **Styles** : Tous les styles Tailwind sont conservés
-4. **Props** : Vérifiez que toutes les props sont bien passées
+```
+Dashboard/
+├── src/app/                    # Code Next.js
+│   ├── lib/database-adapter.js # Adaptateur base de données
+│   ├── hooks/useCalendar.js    # Hook calendrier unifié
+│   └── api/                    # APIs REST (mode web)
+├── public/
+│   ├── electron.js             # Processus principal Electron
+│   ├── preload.js              # Script sécurisé
+│   └── database/
+│       └── sqlite-manager.js   # Gestionnaire SQLite chiffré
+├── scripts/
+│   └── init-sqlite.js          # Initialisation base de données
+└── config/                     # Configuration app
+```
 
-Cette structure vous permet de faire évoluer votre dashboard crypto facilement et proprement ! 🎉
+## 🔐 Sécurité
+
+- **Chiffrement AES-256** : Toutes les données sensibles sont chiffrées
+- **Clé unique** : Chaque installation génère sa propre clé de chiffrement
+- **Stockage sécurisé** : Clés stockées dans le dossier utilisateur avec permissions restrictives
+- **Isolation** : Mode Electron avec `contextIsolation` activé
+
+## 💾 Base de Données
+
+### Mode Web
+- APIs REST avec stockage en mémoire (fallback)
+- Support Google Calendar pour synchronisation
+
+### Mode Desktop  
+- SQLite local avec chiffrement
+- Stockage dans `%APPDATA%\Dashboard` (Windows) ou `~/.config/Dashboard` (Linux/Mac)
+- Sauvegarde automatique
+
+## 🔄 Synchronisation
+
+### Mode Web
+- Synchronisation directe avec Google Calendar
+- Gestion des tokens d'authentification
+
+### Mode Desktop
+- Base de données locale autonome
+- Pas de dépendance réseau
+- Données totalement privées
+
+## 📋 Scripts Disponibles
+
+```bash
+npm run dev              # Développement web
+npm run electron:dev     # Développement Electron  
+npm run build           # Build web
+npm run electron:pack   # Package Electron
+npm run electron:dist   # Distribution Electron
+npm run db:init         # Initialiser base de données
+```
+
+## 🎯 Avantages de l'Architecture Hybride
+
+### Mode Web
+✅ Accès depuis n'importe quel navigateur  
+✅ Synchronisation Google Calendar  
+✅ Mises à jour automatiques  
+✅ Partage facile  
+
+### Mode Desktop
+✅ Données 100% privées et chiffrées  
+✅ Pas de dépendance internet  
+✅ Performances optimales  
+✅ Contrôle total des données  
+
+## 🔧 Configuration
+
+### Variables d'environnement (mode web)
+```env
+GOOGLE_CLIENT_ID=your_google_client_id
+GOOGLE_CLIENT_SECRET=your_google_client_secret
+NEXTAUTH_SECRET=your_nextauth_secret
+```
+
+### Configuration Electron
+Voir `config/electron.json` pour personnaliser la fenêtre et les mises à jour.
+
+## 🆘 Support
+
+- Mode web : Utilise les APIs REST classiques
+- Mode desktop : Base de données SQLite locale autonome  
+- Les deux modes partagent la même interface utilisateur
+
+---
+
+**Développé avec ❤️ en utilisant Next.js, Electron, et SQLite**

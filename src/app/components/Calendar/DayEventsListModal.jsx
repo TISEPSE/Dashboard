@@ -41,10 +41,10 @@ const DayEventsListModal = ({ isOpen, onClose, events, date, onAddEvent, onEditE
   return (
     <AnimatePresence>
       <motion.div
-        initial={events.length > 1 ? { opacity: 0 } : { opacity: 1 }}
+        initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={events.length > 1 ? { opacity: 0 } : { opacity: 1 }}
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[9999] flex items-center justify-center p-4"
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/70 backdrop-blur-md z-[9999] flex items-end sm:items-center justify-center"
         onClick={onClose}
       >
         <motion.div

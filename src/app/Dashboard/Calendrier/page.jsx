@@ -36,6 +36,7 @@ export default function Calendrier(){
         loadingEvents, 
         syncStatus, 
         notification,
+        closeNotification,
         loadEvents, 
         addEvent, 
         updateEvent, 
@@ -63,15 +64,9 @@ export default function Calendrier(){
 
     // Fonction pour ouvrir directement le modal d'édition d'un événement
     const handleEventClick = (event, date) => {
-        // Sur mobile, ouvrir le modal optimisé. Sur desktop, ouvrir l'éditeur
-        if (window.innerWidth < 768) {
-            setSelectedEventForModal(event)
-            setShowEventMobileModal(true)
-        } else {
-            setSelectedEvent(event)
-            setSelectedEventDate(date)
-            setShowEditEvent(true)
-        }
+        // Utiliser le modal mobile moderne sur toutes les tailles d'écran
+        setSelectedEventForModal(event)
+        setShowEventMobileModal(true)
     }
     
     const handleEditFromModal = (event) => {
@@ -432,21 +427,39 @@ export default function Calendrier(){
                             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-3xl px-6 py-4 sm:px-12 sm:py-5 shadow-2xl border border-slate-700/50 backdrop-blur-xl inline-block sm:min-w-[300px]"
                         >
                         <div className="text-center">
-                            <h1 className="text-2xl lg:text-3xl font-bold text-white capitalize whitespace-nowrap">
-                                {viewMode === 'month' && formatMonthYear(currentDate)}
-                                {viewMode === 'week' && (() => {
-                                    const weekStart = new Date(currentDate)
-                                    const dayOfWeek = weekStart.getDay()
-                                    const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
-                                    weekStart.setDate(weekStart.getDate() + mondayOffset)
-                                    
-                                    const weekEnd = new Date(weekStart)
-                                    weekEnd.setDate(weekStart.getDate() + 6)
-                                    
-                                    return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
-                                })()}
-                                {viewMode === 'day' && formatDate(currentDate)}
-                            </h1>
+                            <div className="flex items-center justify-center gap-4">
+                                {/* Flèche gauche - visible seulement sur desktop */}
+                                <button
+                                    onClick={() => navigateDate(-1)}
+                                    className="hidden md:flex w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center text-white transition-all duration-200"
+                                >
+                                    <FaChevronLeft className="w-3 h-3" />
+                                </button>
+                                
+                                <h1 className="text-2xl lg:text-3xl font-bold text-white capitalize whitespace-nowrap">
+                                    {viewMode === 'month' && formatMonthYear(currentDate)}
+                                    {viewMode === 'week' && (() => {
+                                        const weekStart = new Date(currentDate)
+                                        const dayOfWeek = weekStart.getDay()
+                                        const mondayOffset = dayOfWeek === 0 ? -6 : 1 - dayOfWeek
+                                        weekStart.setDate(weekStart.getDate() + mondayOffset)
+                                        
+                                        const weekEnd = new Date(weekStart)
+                                        weekEnd.setDate(weekStart.getDate() + 6)
+                                        
+                                        return `${weekStart.getDate()} - ${weekEnd.getDate()} ${weekEnd.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`
+                                    })()}
+                                    {viewMode === 'day' && formatDate(currentDate)}
+                                </h1>
+                                
+                                {/* Flèche droite - visible seulement sur desktop */}
+                                <button
+                                    onClick={() => navigateDate(1)}
+                                    className="hidden md:flex w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 items-center justify-center text-white transition-all duration-200"
+                                >
+                                    <FaChevronRight className="w-3 h-3" />
+                                </button>
+                            </div>
                         </div>
                         </motion.div>
                     </AnimatePresence>
@@ -607,8 +620,8 @@ export default function Calendrier(){
                                                 isCurrentDay 
                                                     ? 'bg-gradient-to-br from-blue-400/25 to-blue-500/25 border-blue-300/50 shadow-xl shadow-blue-400/20 hover:shadow-2xl hover:shadow-blue-400/40 hover:border-blue-300/70'
                                                     : isInCurrentMonth
-                                                    ? 'bg-gradient-to-br from-slate-700/40 to-slate-800/40 hover:from-slate-600/60 hover:to-slate-700/60 border-slate-600/30 hover:border-slate-400/70 hover:shadow-xl hover:shadow-slate-500/30'
-                                                    : 'bg-slate-800/20 text-slate-600 border-slate-700/30 hover:bg-slate-700/40 hover:border-slate-600/50 hover:shadow-lg hover:shadow-slate-600/20'
+                                                    ? 'bg-gradient-to-br from-slate-700/40 to-slate-800/40 hover:from-slate-700/45 hover:to-slate-800/45 border-slate-600/30 hover:border-slate-600/35 hover:shadow-sm hover:shadow-slate-500/10'
+                                                    : 'bg-slate-800/20 text-slate-600 border-slate-700/30 hover:bg-slate-800/25 hover:border-slate-700/35 hover:shadow-xs hover:shadow-slate-600/10'
                                             } ${dayEvents.length > 0 ? 'ring-1 ring-slate-500/40 hover:ring-2 hover:ring-slate-400/60' : ''}`}
                                             onClick={() => handleDayClick(date)}
                                         >
@@ -660,17 +673,13 @@ export default function Calendrier(){
                                                             }`}
                                                             style={{
                                                                 backgroundColor: eventColor.background,
-                                                                color: eventColor.text
+                                                                color: '#ffffff'
                                                             }}
                                                             title={`${event.summary}${isMultiDay ? ' (Événement sur plusieurs jours)' : ''}`}
                                                             onClick={(e) => {
                                                                 e.stopPropagation()
-                                                                // Sur mobile, ouvrir la liste des événements du jour
-                                                                if (window.innerWidth < 1024) {
-                                                                    handleDayClick(date)
-                                                                } else {
-                                                                    handleEventClick(event, date)
-                                                                }
+                                                                // Utiliser le modal moderne sur toutes les tailles
+                                                                handleEventClick(event, date)
                                                             }}
                                                             onMouseEnter={(e) => e.stopPropagation()}
                                                             onMouseLeave={(e) => e.stopPropagation()}
@@ -741,17 +750,13 @@ export default function Calendrier(){
                                                                 }`}
                                                                 style={{
                                                                     backgroundColor: eventColor.background,
-                                                                    color: eventColor.text
+                                                                    color: '#ffffff'
                                                                 }}
                                                                 title={`${event.summary}${isMultiDay ? ' (Événement sur plusieurs jours)' : ''}`}
                                                                 onClick={(e) => {
                                                                     e.stopPropagation()
-                                                                    // Sur mobile, ouvrir la liste des événements du jour
-                                                                    if (window.innerWidth < 1024) {
-                                                                        handleDayClick(date)
-                                                                    } else {
-                                                                        handleEventClick(event, date)
-                                                                    }
+                                                                    // Utiliser le modal moderne sur toutes les tailles
+                                                                    handleEventClick(event, date)
                                                                 }}
                                                                 onMouseEnter={(e) => e.stopPropagation()}
                                                                 onMouseLeave={(e) => e.stopPropagation()}
@@ -856,8 +861,8 @@ export default function Calendrier(){
                                                             isToday 
                                                                 ? 'bg-blue-500 text-white shadow-lg shadow-blue-400/25 scale-110' 
                                                                 : isWeekend
-                                                                ? 'text-gray-400 hover:bg-gray-700/50 hover:scale-105'
-                                                                : 'text-gray-300 hover:bg-gray-700/50 hover:scale-105'
+                                                                ? 'text-gray-400 hover:bg-gray-700/30 hover:scale-102'
+                                                                : 'text-gray-300 hover:bg-gray-700/30 hover:scale-102'
                                                         }`}
                                                         onClick={() => {
                                                             setCurrentDate(dayDate)
@@ -937,7 +942,7 @@ export default function Calendrier(){
                                                     return (
                                                         <div 
                                                             key={dayIndex} 
-                                                            className={`relative border-l border-gray-600/10 transition-all duration-200 cursor-pointer group hover:bg-gray-700/10 ${
+                                                            className={`relative border-l border-gray-600/10 transition-all duration-200 cursor-pointer group hover:bg-gray-700/5 ${
                                                                 isToday ? 'bg-blue-400/5' : ''
                                                             }`}
                                                             onClick={() => {
@@ -968,18 +973,14 @@ export default function Calendrier(){
                                                                             }`}
                                                                             style={{
                                                                                 backgroundColor: isEventStart ? eventColor.background : `${eventColor.background}60`,
-                                                                                color: eventColor.text,
+                                                                                color: '#ffffff',
                                                                                 borderLeftColor: eventColor.background
                                                                             }}
                                                                             title={`${event.summary}${event.location ? ` - ${event.location}` : ''}`}
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation()
-                                                                                // Sur mobile, ouvrir la liste des événements du jour
-                                                                                if (window.innerWidth < 1024) {
-                                                                                    handleDayClick(dayDate)
-                                                                                } else {
-                                                                                    handleEventClick(event, dayDate)
-                                                                                }
+                                                                                // Utiliser le modal moderne sur toutes les tailles
+                                                                                handleEventClick(event, dayDate)
                                                                             }}
                                                                         >
                                                                             <div className="truncate">
@@ -1084,7 +1085,7 @@ export default function Calendrier(){
                                                     
                                                     {/* Zone des événements */}
                                                     <div 
-                                                        className="flex-1 p-3 min-h-[90px] sm:min-h-[70px] cursor-pointer group hover:bg-gray-700/10 transition-all duration-200 relative"
+                                                        className="flex-1 p-3 min-h-[90px] sm:min-h-[70px] cursor-pointer group hover:bg-gray-700/5 transition-all duration-200 relative"
                                                         onClick={() => {
                                                             const clickDate = new Date(currentDate)
                                                             clickDate.setHours(hour, 0, 0, 0)
@@ -1123,17 +1124,13 @@ export default function Calendrier(){
                                                                         }`}
                                                                         style={{
                                                                             backgroundColor: isEventStart || isAllDay ? eventColor.background : `${eventColor.background}80`,
-                                                                            color: eventColor.text,
+                                                                            color: '#ffffff',
                                                                             borderLeftColor: eventColor.background
                                                                         }}
                                                                         onClick={(e) => {
                                                                             e.stopPropagation()
-                                                                            // Sur mobile, ouvrir la liste des événements du jour
-                                                                            if (window.innerWidth < 1024) {
-                                                                                handleDayClick(currentDate)
-                                                                            } else {
-                                                                                handleEventClick(event, currentDate)
-                                                                            }
+                                                                            // Utiliser le modal moderne sur toutes les tailles
+                                                                            handleEventClick(event, currentDate)
                                                                         }}
                                                                     >
                                                                         <div className="flex items-start justify-between">
@@ -1170,14 +1167,10 @@ export default function Calendrier(){
                                                                                     <button
                                                                                         onClick={(e) => {
                                                                                             e.stopPropagation()
-                                                                                            // Sur mobile, ouvrir la liste des événements du jour
-                                                                                            if (window.innerWidth < 1024) {
-                                                                                                handleDayClick(currentDate)
-                                                                                            } else {
-                                                                                                handleEventClick(event, currentDate)
-                                                                                            }
+                                                                                            // Utiliser le modal moderne sur toutes les tailles
+                                                                                            handleEventClick(event, currentDate)
                                                                                         }}
-                                                                                        className="w-5 h-5 rounded-full bg-black/10 hover:bg-black/20 flex items-center justify-center transition-colors duration-200"
+                                                                                        className="w-5 h-5 rounded-full bg-black/10 hover:bg-black/15 flex items-center justify-center transition-colors duration-200"
                                                                                     >
                                                                                         <FaEdit className="w-2.5 h-2.5" />
                                                                                     </button>
@@ -1242,7 +1235,7 @@ export default function Calendrier(){
                         {/* Navigation */}
                         <motion.button
                             onClick={() => navigateDate(-1)}
-                            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all duration-200"
+                            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white transition-all duration-200"
                             whileTap={{ scale: 0.9 }}
                         >
                             <FaChevronLeft className="w-4 h-4" />
@@ -1265,7 +1258,7 @@ export default function Calendrier(){
                         
                         <motion.button
                             onClick={() => navigateDate(1)}
-                            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-white transition-all duration-200"
+                            className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/15 flex items-center justify-center text-white transition-all duration-200"
                             whileTap={{ scale: 0.9 }}
                         >
                             <FaChevronRight className="w-4 h-4" />
@@ -1305,18 +1298,10 @@ export default function Calendrier(){
                 onAddEvent={handleAddEventFromList}
                 onEditEvent={handleEditEventFromList}
                 onEventClick={(event) => {
-                    // Modal mobile seulement sur téléphone (< 768px)
-                    if (window.innerWidth < 768) {
-                        setShowDayEvents(false)
-                        setSelectedEventForModal(event)
-                        setShowEventMobileModal(true)
-                    } else {
-                        // Sur desktop, utiliser l'éditeur classique
-                        setShowDayEvents(false)
-                        setSelectedEvent(event)
-                        setSelectedEventDate(selectedEventDate)
-                        setShowEditEvent(true)
-                    }
+                    // Utiliser le modal mobile moderne sur toutes les tailles
+                    setShowDayEvents(false)
+                    setSelectedEventForModal(event)  
+                    setShowEventMobileModal(true)
                 }}
                 getColor={getColor}
             />
@@ -1362,7 +1347,7 @@ export default function Calendrier(){
             {/* Notification */}
             <Notification 
                 notification={notification}
-                onClose={() => {}} 
+                onClose={closeNotification} 
             />
         </div>
     )

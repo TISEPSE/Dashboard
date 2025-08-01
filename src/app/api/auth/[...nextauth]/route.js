@@ -43,8 +43,8 @@ async function refreshAccessToken(token) {
 const authOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "dummy",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "dummy",
+      clientId: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
       authorization: {
         params: {
           scope: "openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.location.read https://www.googleapis.com/auth/fitness.heart_rate.read https://www.googleapis.com/auth/fitness.sleep.read https://www.googleapis.com/auth/fitness.oxygen_saturation.read https://www.googleapis.com/auth/fitness.body_temperature.read",
@@ -99,8 +99,11 @@ const authOptions = {
       }
     },
   },
-  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-key",
-  debug: false, // Désactive les logs de debug
+  secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
+  pages: {
+    error: '/auth/error', // Page d'erreur personnalisée
+  },
 }
 
 const handler = NextAuth(authOptions)

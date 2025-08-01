@@ -1,6 +1,6 @@
 import React from "react"
 import { useFavoritesContext } from "../../context/FavoritesContext"
-import { useToast } from "../../hook/useToast"
+import { useToast } from "../../hooks/useToast"
 import Toast from "../UI/Toast"
 
 // Fonction pour formater les prix avec précision (sans arrondi)

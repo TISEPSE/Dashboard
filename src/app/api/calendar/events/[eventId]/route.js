@@ -1,207 +1,111 @@
 import { NextResponse } from "next/server"
-import { google } from "googleapis"
-import { getServerSession } from "next-auth"
-import { authOptions } from "../../../auth/[...nextauth]/route"
+
+// Base de données en mémoire pour les événements (fallback simple)
+// Note: Cette approche partage les données avec la route parent
+// En production, utiliser une vraie base de données
+const getEventsList = () => {
+  // Accès aux événements via globalThis pour partager entre routes
+  if (!globalThis.eventsList) {
+    globalThis.eventsList = []
+  }
+  return globalThis.eventsList
+}
+
+export async function GET(request, { params }) {
+  try {
+    const { eventId } = params
+    const eventsList = getEventsList()
+    
+    const event = eventsList.find(event => event.id === eventId)
+    
+    if (!event) {
+      return NextResponse.json({ error: 'Événement non trouvé' }, { status: 404 })
+    }
+
+    return NextResponse.json({ event })
+
+  } catch (error) {
+    console.error('Erreur GET événement:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
+  }
+}
 
 export async function PUT(request, { params }) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.accessToken) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
-    }
-
     const { eventId } = params
-    const body = await request.json()
-    const { summary, description, start, end, location, colorId } = body
-
-    // Configuration de l'API Google Calendar
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET
-    )
-
-    oauth2Client.setCredentials({
-      access_token: session.accessToken
-    })
-
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
-
-    // Récupérer l'événement existant
-    const existingEvent = await calendar.events.get({
-      calendarId: 'primary',
-      eventId: eventId,
-    })
-
-    // Mettre à jour les champs fournis
-    const updatedEvent = {
-      ...existingEvent.data,
-      summary: summary || existingEvent.data.summary,
-      description: description || existingEvent.data.description,
-      location: location || existingEvent.data.location,
-    }
-
-    // Mettre à jour la couleur si fournie
-    if (colorId) {
-      updatedEvent.colorId = colorId.toString()
-    }
-
-    if (start) {
-      updatedEvent.start = {
-        dateTime: start,
-        timeZone: 'Europe/Paris',
+    const eventData = await request.json()
+    const eventsList = getEventsList()
+    
+    console.log('PUT Event - ID recherché:', eventId)
+    console.log('PUT Event - IDs disponibles:', eventsList.map(e => e.id))
+    console.log('PUT Event - Données reçues:', eventData)
+    
+    const eventIndex = eventsList.findIndex(event => event.id === eventId)
+    
+    if (eventIndex === -1) {
+      // Si l'événement n'existe pas, le créer
+      const newEvent = {
+        id: eventId,
+        ...eventData,
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
       }
+      eventsList.push(newEvent)
+      
+      console.log('PUT Event - Événement créé:', newEvent)
+      
+      return NextResponse.json({
+        event: newEvent,
+        message: "Événement créé avec succès"
+      })
     }
-
-    if (end) {
-      updatedEvent.end = {
-        dateTime: end,
-        timeZone: 'Europe/Paris',
-      }
+    
+    // Mettre à jour l'événement existant
+    eventsList[eventIndex] = {
+      ...eventsList[eventIndex],
+      ...eventData,
+      updated: new Date().toISOString()
     }
-
-    // Mettre à jour l'événement
-    const response = await calendar.events.update({
-      calendarId: 'primary',
-      eventId: eventId,
-      resource: updatedEvent,
-    })
-
+    
+    console.log('PUT Event - Événement mis à jour:', eventsList[eventIndex])
+    
     return NextResponse.json({
-      event: response.data,
-      message: "Événement mis à jour avec succès"
+      event: eventsList[eventIndex],
+      message: "Événement modifié avec succès"
     })
 
   } catch (error) {
-    console.error('Erreur mise à jour événement:', error)
-    
-    if (error.code === 401) {
-      return NextResponse.json({ 
-        error: "Token d'accès expiré",
-        needsReauth: true 
-      }, { status: 401 })
-    }
-
-    if (error.code === 404) {
-      return NextResponse.json({ 
-        error: "Événement non trouvé" 
-      }, { status: 404 })
-    }
-
-    return NextResponse.json({ 
-      error: "Erreur lors de la mise à jour de l'événement",
-      details: error.message 
-    }, { status: 500 })
+    console.error('Erreur PUT événement:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
 
 export async function DELETE(request, { params }) {
   try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.accessToken) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
+    const { eventId } = params
+    const eventsList = getEventsList()
+
+    if (!eventId) {
+      return NextResponse.json({ error: "ID d'événement requis" }, { status: 400 })
     }
 
-    const { eventId } = params
+    const initialLength = eventsList.length
+    const newEventsList = eventsList.filter(event => event.id !== eventId)
+    
+    if (newEventsList.length === initialLength) {
+      return NextResponse.json({ error: 'Événement non trouvé' }, { status: 404 })
+    }
 
-    // Configuration de l'API Google Calendar
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET
-    )
-
-    oauth2Client.setCredentials({
-      access_token: session.accessToken
-    })
-
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
-
-    // Supprimer l'événement
-    await calendar.events.delete({
-      calendarId: 'primary',
-      eventId: eventId,
-    })
+    // Mettre à jour la liste globale
+    globalThis.eventsList = newEventsList
 
     return NextResponse.json({
-      message: "Événement supprimé avec succès"
+      message: "Événement supprimé avec succès",
+      eventId
     })
 
   } catch (error) {
-    console.error('Erreur suppression événement:', error)
-    
-    if (error.code === 401) {
-      return NextResponse.json({ 
-        error: "Token d'accès expiré",
-        needsReauth: true 
-      }, { status: 401 })
-    }
-
-    if (error.code === 404 || error.message === 'Resource has been deleted') {
-      // L'événement a déjà été supprimé - considérer comme un succès
-      return NextResponse.json({
-        message: "Événement supprimé avec succès"
-      })
-    }
-
-    return NextResponse.json({ 
-      error: "Erreur lors de la suppression de l'événement",
-      details: error.message 
-    }, { status: 500 })
-  }
-}
-
-export async function GET(request, { params }) {
-  try {
-    const session = await getServerSession(authOptions)
-    
-    if (!session?.accessToken) {
-      return NextResponse.json({ error: "Non authentifié" }, { status: 401 })
-    }
-
-    const { eventId } = params
-
-    // Configuration de l'API Google Calendar
-    const oauth2Client = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET
-    )
-
-    oauth2Client.setCredentials({
-      access_token: session.accessToken
-    })
-
-    const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
-
-    // Récupérer l'événement
-    const response = await calendar.events.get({
-      calendarId: 'primary',
-      eventId: eventId,
-    })
-
-    return NextResponse.json({
-      event: response.data
-    })
-
-  } catch (error) {
-    console.error('Erreur récupération événement:', error)
-    
-    if (error.code === 401) {
-      return NextResponse.json({ 
-        error: "Token d'accès expiré",
-        needsReauth: true 
-      }, { status: 401 })
-    }
-
-    if (error.code === 404) {
-      return NextResponse.json({ 
-        error: "Événement non trouvé" 
-      }, { status: 404 })
-    }
-
-    return NextResponse.json({ 
-      error: "Erreur lors de la récupération de l'événement",
-      details: error.message 
-    }, { status: 500 })
+    console.error('Erreur DELETE événement:', error)
+    return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
