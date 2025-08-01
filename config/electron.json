@@ -1,0 +1,12 @@
+{
+  "window": {
+    "width": 1400,
+    "height": 900,
+    "minWidth": 800,
+    "minHeight": 600
+  },
+  "updater": {
+    "enabled": true,
+    "checkInterval": 3600000
+  }
+}

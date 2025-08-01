@@ -1,0 +1,7 @@
+{
+  "type": "sqlite",
+  "encryption": true,
+  "autoBackup": true,
+  "backupInterval": 86400000,
+  "maxBackups": 7
+}
