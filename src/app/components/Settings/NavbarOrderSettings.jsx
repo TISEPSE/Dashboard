@@ -253,11 +253,6 @@ const NavbarOrderSettings = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-white">Ordre de la navigation</h3>
-          {isMobile && (
-            <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded-lg">
-              Appuyez et glissez ⤴⤵
-            </span>
-          )}
         </div>
         <button
           onClick={handleReset}

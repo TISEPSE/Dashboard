@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaClock, FaEdit, FaPlus } from "react-icons/fa"
 import { useEffect } from "react"
 
-const DayEventsListModal = ({ isOpen, onClose, events, date, onAddEvent, onEditEvent, getColor }) => {
+const DayEventsListModal = ({ isOpen, onClose, events, date, onAddEvent, onEditEvent, onEventClick, getColor }) => {
   // Désactiver le scroll du body quand le modal est ouvert
   useEffect(() => {
     if (isOpen) {
@@ -109,7 +109,8 @@ const DayEventsListModal = ({ isOpen, onClose, events, date, onAddEvent, onEditE
                       initial={{ opacity: 0, y: 10 }}
                       animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: index * 0.05 }}
-                      className="bg-gradient-to-r from-gray-700/20 to-gray-800/20 rounded-xl p-5 border border-gray-600/20 hover:border-gray-500/30 transition-all duration-200 group"
+                      className="bg-gradient-to-r from-gray-700/20 to-gray-800/20 rounded-xl p-5 border border-gray-600/20 hover:border-gray-500/30 transition-all duration-200 group cursor-pointer"
+                      onClick={() => onEventClick && onEventClick(event)}
                     >
                       <div className="flex items-start gap-3">
                         {/* Color indicator */}
@@ -152,7 +153,10 @@ const DayEventsListModal = ({ isOpen, onClose, events, date, onAddEvent, onEditE
 
                         {/* Edit button */}
                         <button
-                          onClick={() => onEditEvent(event, date)}
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            onEditEvent(event, date)
+                          }}
                           className="p-3 lg:p-3 rounded-lg hover:bg-gray-600/30 transition-all duration-200 text-gray-400 hover:text-white flex items-center justify-center min-w-[44px] min-h-[44px] lg:min-w-[auto] lg:min-h-[auto]"
                         >
                           <FaEdit className="w-5 h-5 lg:w-4 lg:h-4" />
@@ -161,22 +165,20 @@ const DayEventsListModal = ({ isOpen, onClose, events, date, onAddEvent, onEditE
                     </motion.div>
                   )
                 })}
+                
+                {/* Bouton d'ajout intégré dans la liste des événements */}
+                <div className="pt-4">
+                  <button
+                    onClick={() => onAddEvent(date)}
+                    className="w-full bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-3 rounded-xl font-medium transition-all duration-200 flex items-center justify-center gap-2"
+                  >
+                    <FaPlus className="w-4 h-4" />
+                    Ajouter un événement
+                  </button>
+                </div>
               </div>
             )}
           </div>
-
-          {/* Footer */}
-          {events.length > 0 && (
-            <div className="bg-gray-800/30 border-t border-gray-600/20 p-6">
-              <button
-                onClick={() => onAddEvent(date)}
-                className="w-full bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-2.5 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2"
-              >
-                <FaPlus className="w-3 h-3" />
-                Ajouter un événement
-              </button>
-            </div>
-          )}
         </motion.div>
       </motion.div>
     </AnimatePresence>

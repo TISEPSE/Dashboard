@@ -9,6 +9,7 @@ import AddEventModal from "../../components/Calendar/AddEventModal"
 import EditEventModal from "../../components/Calendar/EditEventModal"
 import DayEventsListModal from "../../components/Calendar/DayEventsListModal"
 import BurgerMenu from "../../components/Calendar/BurgerMenu"
+import EventMobileModal from "../../components/Calendar/EventMobileModal"
 import GoogleSignInButton from "../../components/Auth/GoogleSignInButton"
 import { useCalendar } from "../../hooks/useCalendar"
 import { useSwipeNavigation } from "../../hooks/useSwipeNavigation"
@@ -25,6 +26,8 @@ export default function Calendrier(){
     const [showDayEvents, setShowDayEvents] = useState(false)
     const [selectedEventDate, setSelectedEventDate] = useState(null)
     const [selectedEvent, setSelectedEvent] = useState(null)
+    const [showEventMobileModal, setShowEventMobileModal] = useState(false)
+    const [selectedEventForModal, setSelectedEventForModal] = useState(null)
     const { data: session } = useSession()
     
     // Utiliser les hooks du calendrier et des couleurs
@@ -60,9 +63,35 @@ export default function Calendrier(){
 
     // Fonction pour ouvrir directement le modal d'édition d'un événement
     const handleEventClick = (event, date) => {
+        // Sur mobile, ouvrir le modal optimisé. Sur desktop, ouvrir l'éditeur
+        if (window.innerWidth < 768) {
+            setSelectedEventForModal(event)
+            setShowEventMobileModal(true)
+        } else {
+            setSelectedEvent(event)
+            setSelectedEventDate(date)
+            setShowEditEvent(true)
+        }
+    }
+    
+    const handleEditFromModal = (event) => {
         setSelectedEvent(event)
-        setSelectedEventDate(date)
         setShowEditEvent(true)
+    }
+    
+    const handleDeleteFromModal = async (eventId) => {
+        try {
+            await deleteEvent(eventId)
+        } catch (error) {
+            console.error('Erreur lors de la suppression:', error)
+        }
+    }
+
+    // Fonction pour retourner vers le modal de liste des événements
+    const handleBackToEventsList = () => {
+        setShowEventMobileModal(false)
+        setSelectedEventForModal(null)
+        setShowDayEvents(true)
     }
 
     // Fonction pour ouvrir le modal d'ajout depuis le modal de liste
@@ -1275,6 +1304,20 @@ export default function Calendrier(){
                 date={selectedEventDate}
                 onAddEvent={handleAddEventFromList}
                 onEditEvent={handleEditEventFromList}
+                onEventClick={(event) => {
+                    // Modal mobile seulement sur téléphone (< 768px)
+                    if (window.innerWidth < 768) {
+                        setShowDayEvents(false)
+                        setSelectedEventForModal(event)
+                        setShowEventMobileModal(true)
+                    } else {
+                        // Sur desktop, utiliser l'éditeur classique
+                        setShowDayEvents(false)
+                        setSelectedEvent(event)
+                        setSelectedEventDate(selectedEventDate)
+                        setShowEditEvent(true)
+                    }
+                }}
                 getColor={getColor}
             />
 
@@ -1300,6 +1343,20 @@ export default function Calendrier(){
                 onSave={updateEvent}
                 onDelete={deleteEvent}
                 event={selectedEvent}
+            />
+            
+            {/* Modal Événement Mobile Optimisé */}
+            <EventMobileModal
+                event={selectedEventForModal}
+                isOpen={showEventMobileModal}
+                onClose={() => {
+                    setShowEventMobileModal(false)
+                    setSelectedEventForModal(null)
+                }}
+                onBack={handleBackToEventsList}
+                onEdit={handleEditFromModal}
+                onDelete={handleDeleteFromModal}
+                getColor={getColor}
             />
 
             {/* Notification */}
