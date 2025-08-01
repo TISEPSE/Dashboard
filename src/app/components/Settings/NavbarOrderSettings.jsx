@@ -9,9 +9,15 @@ const NavbarOrderSettings = () => {
   const [draggedIndex, setDraggedIndex] = useState(null)
   const [dragOverIndex, setDragOverIndex] = useState(null)
   const [isMobile, setIsMobile] = useState(false)
-  const [touchStartY, setTouchStartY] = useState(null)
-  const [touchCurrentY, setTouchCurrentY] = useState(null)
-  const touchHandlersRef = useRef({})
+  const [isResetting, setIsResetting] = useState(false)
+  const [touchState, setTouchState] = useState({
+    isDragging: false,
+    startY: 0,
+    startX: 0,
+    currentY: 0,
+    currentX: 0,
+    threshold: 15
+  })
 
   // Détecter si on est sur mobile
   useEffect(() => {
@@ -23,83 +29,86 @@ const NavbarOrderSettings = () => {
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
 
-  // Gérer les event listeners tactiles avec { passive: false }
+  // Gestionnaires tactiles simplifiés
   useEffect(() => {
-    if (!isMobile) return
+    if (!isMobile || !touchState.isDragging) return
 
-    const handleTouchMoveGlobal = (e) => {
-      if (draggedIndex !== null) {
+    const handleTouchMove = (e) => {
+      // Vérifier si l'événement est cancelable avant d'essayer de l'annuler
+      if (e.cancelable) {
         e.preventDefault()
-        
-        const touch = e.touches[0]
-        const deltaY = Math.abs(touch.clientY - touchStartY)
-        
-        // Seuil de sensibilité pour éviter les activations accidentelles
-        if (deltaY < 10) return
-        
-        setTouchCurrentY(touch.clientY)
-        
-        // Calculer sur quel élément on survole avec throttling
-        if (Date.now() - (window.lastTouchCheck || 0) < 50) return
-        window.lastTouchCheck = Date.now()
-        
-        const elements = document.elementsFromPoint(touch.clientX, touch.clientY)
-        const dragItem = elements.find(el => el.dataset.dragIndex)
-        
-        if (dragItem) {
-          const hoverIndex = parseInt(dragItem.dataset.dragIndex)
-          if (hoverIndex !== draggedIndex) {
-            setDragOverIndex(hoverIndex)
-          }
-        } else {
-          setDragOverIndex(null)
-        }
       }
-    }
+      
+      const touch = e.touches[0]
+      if (!touch) return
+      
+      setTouchState(prev => ({
+        ...prev,
+        currentY: touch.clientY,
+        currentX: touch.clientX
+      }))
 
-    const handleTouchEndGlobal = () => {
-      if (draggedIndex !== null) {
-        // Rétablir le scroll de la page
-        document.body.style.overflow = ''
-        document.body.style.touchAction = ''
-        
-        // Si on a un drop valide, effectuer l'échange
-        if (dragOverIndex !== null && draggedIndex !== dragOverIndex) {
-          const newOrder = [...navbarOrder]
-          
-          // Échanger les positions directement
-          const temp = newOrder[draggedIndex]
-          newOrder[draggedIndex] = newOrder[dragOverIndex]
-          newOrder[dragOverIndex] = temp
-          
-          // Feedback tactile pour confirmer l'échange
-          if (navigator.vibrate) {
-            navigator.vibrate(100)
-          }
-          
-          saveNavbarOrder(newOrder)
+      // Déterminer l'élément survolé avec throttling pour éviter trop d'appels
+      const now = Date.now()
+      if (now - (window.lastTouchMoveCheck || 0) < 16) return // ~60fps
+      window.lastTouchMoveCheck = now
+
+      const elements = document.elementsFromPoint(touch.clientX, touch.clientY)
+      const targetItem = elements.find(el => el.dataset.dragIndex && el.dataset.dragIndex !== draggedIndex.toString())
+      
+      if (targetItem) {
+        const targetIndex = parseInt(targetItem.dataset.dragIndex)
+        if (targetIndex !== dragOverIndex) {
+          setDragOverIndex(targetIndex)
         }
-        
-        // Reset tous les états
-        setDraggedIndex(null)
+      } else {
         setDragOverIndex(null)
-        setTouchStartY(null)
-        setTouchCurrentY(null)
       }
     }
 
-    // Ajouter les listeners avec { passive: false }
-    document.addEventListener('touchmove', handleTouchMoveGlobal, { passive: false })
-    document.addEventListener('touchend', handleTouchEndGlobal)
-
-    return () => {
-      document.removeEventListener('touchmove', handleTouchMoveGlobal)
-      document.removeEventListener('touchend', handleTouchEndGlobal)
-      // S'assurer que les styles sont réinitialisés
+    const handleTouchEnd = () => {
+      if (dragOverIndex !== null && draggedIndex !== dragOverIndex) {
+        const newOrder = [...navbarOrder]
+        const temp = newOrder[draggedIndex]
+        newOrder[draggedIndex] = newOrder[dragOverIndex]
+        newOrder[dragOverIndex] = temp
+        
+        try {
+          navigator.vibrate?.(100)
+        } catch (error) {
+          // Ignore vibration errors
+        }
+        
+        saveNavbarOrder(newOrder)
+      }
+      
+      // Reset
+      setTouchState({
+        isDragging: false,
+        startY: 0,
+        startX: 0,
+        currentY: 0,
+        currentX: 0,
+        threshold: 15
+      })
+      setDraggedIndex(null)
+      setDragOverIndex(null)
       document.body.style.overflow = ''
       document.body.style.touchAction = ''
     }
-  }, [draggedIndex, dragOverIndex, navbarOrder, saveNavbarOrder, isMobile])
+
+    // Utiliser des options plus sûres pour les event listeners
+    const touchMoveOptions = { passive: false, capture: true }
+    const touchEndOptions = { passive: true, capture: true }
+    
+    document.addEventListener('touchmove', handleTouchMove, touchMoveOptions)
+    document.addEventListener('touchend', handleTouchEnd, touchEndOptions)
+
+    return () => {
+      document.removeEventListener('touchmove', handleTouchMove, touchMoveOptions)
+      document.removeEventListener('touchend', handleTouchEnd, touchEndOptions)
+    }
+  }, [isMobile, touchState.isDragging, draggedIndex, dragOverIndex, navbarOrder, saveNavbarOrder])
 
   const handleDragStart = (e, index) => {
     setDraggedIndex(index)
@@ -131,8 +140,10 @@ const NavbarOrderSettings = () => {
       newOrder[dropIndex] = temp
       
       // Feedback tactile pour confirmer l'échange
-      if (navigator.vibrate) {
-        navigator.vibrate(100)
+      try {
+        navigator.vibrate?.(100)
+      } catch (error) {
+        // Ignore vibration errors
       }
       
       saveNavbarOrder(newOrder)
@@ -147,22 +158,49 @@ const NavbarOrderSettings = () => {
     setDragOverIndex(null)
   }
 
-  // Handler tactile pour démarrer le drag uniquement
+  // Handler tactile pour démarrer le drag
   const handleTouchStart = (e, index) => {
     if (!isMobile) return
+    
     const touch = e.touches[0]
-    setTouchStartY(touch.clientY)
-    setTouchCurrentY(touch.clientY)
+    setTouchState({
+      isDragging: true,
+      startY: touch.clientY,
+      startX: touch.clientX,
+      currentY: touch.clientY,
+      currentX: touch.clientX,
+      threshold: 15
+    })
     setDraggedIndex(index)
     
-    // Feedback tactile
-    if (navigator.vibrate) {
-      navigator.vibrate(50)
+    try {
+      navigator.vibrate?.(50)
+    } catch (error) {
+      // Ignore vibration errors
     }
     
-    // Bloquer le scroll de la page pendant le drag
     document.body.style.overflow = 'hidden'
     document.body.style.touchAction = 'none'
+  }
+
+  // Handler pour la réinitialisation avec feedback visuel
+  const handleReset = async () => {
+    setIsResetting(true)
+    
+    // Feedback tactile si disponible
+    try {
+      navigator.vibrate?.(100)
+    } catch (error) {
+      // Ignore vibration errors
+    }
+    
+    // Appeler la fonction de réinitialisation
+    resetToDefault()
+    
+    // Maintenir le feedback visuel pendant 1.5 secondes
+    setTimeout(() => {
+      setIsResetting(false)
+    }, 1500)
   }
 
   // Mapping des icônes
@@ -212,13 +250,28 @@ const NavbarOrderSettings = () => {
 
   return (
     <div className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50">
-      <div className="flex justify-end mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-white">Ordre de la navigation</h3>
+          {isMobile && (
+            <span className="text-xs text-slate-400 bg-slate-800/50 px-2 py-1 rounded-lg">
+              Appuyez et glissez ⤴⤵
+            </span>
+          )}
+        </div>
         <button
-          onClick={resetToDefault}
-          className="flex items-center justify-center gap-2 px-4 py-2 bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 rounded-xl transition-all duration-200 text-sm shadow-lg border border-slate-600/30"
+          onClick={handleReset}
+          disabled={isResetting}
+          className={`flex items-center justify-center gap-2 px-4 py-2 rounded-xl transition-all duration-200 text-sm shadow-lg border ${
+            isResetting 
+              ? 'bg-green-600/50 border-green-500/30 text-green-200 cursor-not-allowed' 
+              : 'bg-slate-800/50 hover:bg-slate-700/60 text-slate-300 border-slate-600/30'
+          }`}
         >
-          <FaUndo className="w-3 h-3" />
-          <span className="whitespace-nowrap">Réinitialiser</span>
+          <FaUndo className={`w-3 h-3 ${isResetting ? 'animate-spin' : ''}`} />
+          <span className="whitespace-nowrap">
+            {isResetting ? 'Réinitialisé ✓' : 'Réinitialiser'}
+          </span>
         </button>
       </div>
 
@@ -235,18 +288,22 @@ const NavbarOrderSettings = () => {
             onDragEnd={handleDragEnd}
             className={`
               flex items-center gap-3 p-4 rounded-xl border
-              cursor-grab active:cursor-grabbing transition-all duration-200 ease-out
-              transform-gpu will-change-transform
+              ${isMobile ? 'cursor-auto' : 'cursor-grab active:cursor-grabbing'} 
+              transition-all duration-200 ease-out transform-gpu will-change-transform
               ${draggedIndex === index 
-                ? 'opacity-95 bg-slate-700/50 shadow-2xl scale-105 z-50 shadow-blue-500/20' 
+                ? `opacity-95 bg-slate-700/50 shadow-2xl scale-105 z-50 shadow-blue-500/20 ${isMobile ? 'ring-2 ring-blue-400/50' : ''}` 
                 : `bg-slate-800/50 border-slate-600/30 hover:bg-slate-700/50 hover:scale-102 ${hoverColorMapping[key]}`
               }
               ${dragOverIndex === index && draggedIndex !== index
-                ? 'bg-blue-500/10 border-blue-400/30 shadow-lg scale-102 animate-pulse'
+                ? `bg-blue-500/10 border-blue-400/30 shadow-lg scale-102 ${isMobile ? 'ring-2 ring-green-400/60 animate-pulse' : 'animate-pulse'}`
                 : ''
               }
               ${draggedIndex !== null && draggedIndex !== index && dragOverIndex !== index
                 ? 'opacity-60 scale-98'
+                : ''
+              }
+              ${isMobile && touchState.isDragging && draggedIndex === index
+                ? 'shadow-2xl shadow-blue-500/40 border-blue-400/60'
                 : ''
               }
             `}
@@ -257,8 +314,8 @@ const NavbarOrderSettings = () => {
             }}
           >
             <div 
-              className="cursor-grab pointer-events-none"
-              onTouchStart={(e) => handleTouchStart(e, index)}
+              className={`cursor-grab ${isMobile ? 'pointer-events-auto' : 'pointer-events-none'}`}
+              onTouchStart={isMobile ? (e) => handleTouchStart(e, index) : undefined}
             >
               <FaGripVertical className="text-slate-400" />
             </div>

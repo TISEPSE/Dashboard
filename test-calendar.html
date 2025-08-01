@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Calendrier Mobile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f0f23, #1a1a2e, #16213e);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .calendar-container {
+            touch-action: pan-y;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .burger-btn {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.2s ease;
+        }
+
+        .burger-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+            margin-top: 80px;
+        }
+
+        .day-cell {
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            border-radius: 12px;
+            padding: 12px;
+            min-height: 140px;
+            backdrop-filter: blur(10px);
+            transition: all 0.15s ease;
+            cursor: pointer;
+        }
+
+        .day-cell:hover {
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(148, 163, 184, 0.2);
+            border-color: rgba(148, 163, 184, 0.5);
+        }
+
+        .day-number {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .mobile-nav {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.05);
+        }
+
+        .current-date {
+            color: white;
+            font-size: 14px;
+            font-weight: 500;
+            min-width: 120px;
+            text-align: center;
+        }
+
+        .swipe-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 12px 20px;
+            display: none;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            z-index: 999;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-grid {
+                gap: 8px;
+            }
+            .day-cell {
+                min-height: 120px;
+                padding: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="burger-btn" onclick="alert('Menu burger cliqué!')">
+        ☰
+    </button>
+
+    <div class="swipe-indicator" id="swipeIndicator">
+        ← Glissez pour naviguer →
+    </div>
+
+    <div class="calendar-container" id="calendarContainer">
+        <div class="calendar-grid" id="calendarGrid">
+            <!-- Généré par JavaScript -->
+        </div>
+    </div>
+
+    <div class="mobile-nav">
+        <button class="nav-btn" onclick="navigate(-1)">←</button>
+        <div class="current-date" id="currentDate">Décembre 2024</div>
+        <button class="nav-btn" onclick="navigate(1)">→</button>
+        <button class="nav-btn" style="background: #3b82f6;" onclick="alert('Menu')">☰</button>
+    </div>
+
+    <script>
+        let currentDate = new Date();
+        let touchStartX = null;
+        let touchStartY = null;
+        let isSwiping = false;
+
+        function generateCalendar() {
+            const grid = document.getElementById('calendarGrid');
+            const year = currentDate.getFullYear();
+            const month = currentDate.getMonth();
+            
+            // Vider la grille
+            grid.innerHTML = '';
+            
+            // Générer les jours de la semaine
+            const days = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
+            days.forEach(day => {
+                const dayHeader = document.createElement('div');
+                dayHeader.style.textAlign = 'center';
+                dayHeader.style.fontWeight = 'bold';
+                dayHeader.style.color = '#94a3b8';
+                dayHeader.style.padding = '10px';
+                dayHeader.textContent = day;
+                grid.appendChild(dayHeader);
+            });
+            
+            // Calculer les jours du mois
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            const startDate = new Date(firstDay);
+            
+            // Ajuster pour commencer par lundi
+            const dayOfWeek = firstDay.getDay();
+            const mondayAdjustment = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+            startDate.setDate(startDate.getDate() - mondayAdjustment);
+            
+            // Générer 42 jours (6 semaines)
+            for (let i = 0; i < 42; i++) {
+                const cellDate = new Date(startDate);
+                cellDate.setDate(startDate.getDate() + i);
+                
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+                
+                const isCurrentMonth = cellDate.getMonth() === month;
+                const isToday = cellDate.toDateString() === new Date().toDateString();
+                
+                if (!isCurrentMonth) {
+                    dayCell.style.opacity = '0.4';
+                }
+                
+                if (isToday) {
+                    dayCell.style.background = 'rgba(59, 130, 246, 0.3)';
+                    dayCell.style.borderColor = 'rgba(59, 130, 246, 0.5)';
+                }
+                
+                dayCell.innerHTML = `
+                    <div class="day-number">${cellDate.getDate()}</div>
+                `;
+                
+                dayCell.onclick = () => {
+                    alert(`Jour cliqué: ${cellDate.toLocaleDateString('fr-FR')}`);
+                };
+                
+                grid.appendChild(dayCell);
+            }
+            
+            // Mettre à jour l'affichage de la date
+            document.getElementById('currentDate').textContent = 
+                currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+        }
+
+        function navigate(direction) {
+            currentDate.setMonth(currentDate.getMonth() + direction);
+            generateCalendar();
+        }
+
+        // Gestion du swipe
+        const container = document.getElementById('calendarContainer');
+        
+        container.addEventListener('touchstart', (e) => {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+            isSwiping = false;
+        });
+
+        container.addEventListener('touchmove', (e) => {
+            if (touchStartX === null || touchStartY === null) return;
+            
+            const touchEndX = e.touches[0].clientX;
+            const touchEndY = e.touches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+                isSwiping = true;
+                document.getElementById('swipeIndicator').style.display = 'flex';
+                e.preventDefault();
+            }
+        });
+
+        container.addEventListener('touchend', (e) => {
+            if (touchStartX === null || touchStartY === null) return;
+
+            const touchEndX = e.changedTouches[0].clientX;
+            const touchEndY = e.changedTouches[0].clientY;
+            const diffX = touchStartX - touchEndX;
+            const diffY = touchStartY - touchEndY;
+
+            document.getElementById('swipeIndicator').style.display = 'none';
+
+            if (Math.abs(diffX) > 50 && Math.abs(diffY) < 100) {
+                if (diffX > 0) {
+                    navigate(1); // Swipe gauche = mois suivant
+                } else {
+                    navigate(-1); // Swipe droite = mois précédent
+                }
+            }
+
+            touchStartX = null;
+            touchStartY = null;
+            isSwiping = false;
+        });
+
+        // Initialiser le calendrier
+        generateCalendar();
+    </script>
+</body>
+</html>

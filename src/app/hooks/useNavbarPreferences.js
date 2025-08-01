@@ -96,15 +96,24 @@ export function useNavbarPreferences() {
 
   // Réinitialiser aux valeurs par défaut
   const resetToDefault = () => {
-    // Mettre à jour l'état local immédiatement
+    // Mettre à jour l'état local immédiatement - préférences ET ordre
     setPreferences(DEFAULT_NAVBAR_PREFERENCES)
+    setNavbarOrder(DEFAULT_NAVBAR_ORDER)
     
     // Sauvegarder dans localStorage
-    savePreferences(DEFAULT_NAVBAR_PREFERENCES)
+    try {
+      localStorage.setItem('navbarPreferences', JSON.stringify(DEFAULT_NAVBAR_PREFERENCES))
+      localStorage.setItem('navbarOrder', JSON.stringify(DEFAULT_NAVBAR_ORDER))
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation:', error)
+    }
     
     // Déclencher un événement pour notifier les autres instances du hook
     const event = new CustomEvent('navbarPreferencesChanged', {
-      detail: { preferences: DEFAULT_NAVBAR_PREFERENCES }
+      detail: { 
+        preferences: DEFAULT_NAVBAR_PREFERENCES,
+        order: DEFAULT_NAVBAR_ORDER
+      }
     })
     window.dispatchEvent(event)
   }
