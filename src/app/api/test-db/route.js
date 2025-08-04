@@ -1,19 +1,18 @@
 import { NextResponse } from 'next/server'
-import { prisma } from '../../../../lib/prisma'
+import { getDatabaseAdapter } from '../../lib/database-adapter.js'
 
 export async function GET() {
   try {
+    const dbAdapter = getDatabaseAdapter()
     
-    // Test de connexion simple
-    await prisma.$connect()
-    
-    // Test de création d'une table si elle n'existe pas
-    const count = await prisma.cryptoFavorite.count()
+    // Test de récupération des favoris crypto (test de connexion)
+    const favorites = await dbAdapter.getCryptoFavorites()
     
     return NextResponse.json({ 
       success: true, 
       message: 'Database connection successful',
-      count: count 
+      favoritesCount: favorites.length,
+      isElectron: dbAdapter.isElectronApp()
     })
     
   } catch (error) {
@@ -21,9 +20,7 @@ export async function GET() {
     return NextResponse.json({ 
       success: false, 
       error: error.message,
-      code: error.code 
+      stack: error.stack 
     }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
   }
 }

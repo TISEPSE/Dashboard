@@ -4,7 +4,8 @@
     "allow": [
       "WebFetch(domain:www.schemecolor.com)",
       "Bash(curl:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": []
   },
