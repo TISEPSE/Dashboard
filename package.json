@@ -10,12 +10,14 @@
     "start": "next start",
     "lint": "next lint",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:3000 && electron .\"",
-    "electron:pack": "npm run build && electron-builder",
-    "electron:dist": "npm run build && electron-builder --publish=never",
-    "release": "npm run build && electron-builder --publish=always",
-    "release:draft": "npm run build && electron-builder --publish=onTagOrDraft",
+    "electron:build": "cross-env NODE_ENV=production ELECTRON_BUILD=true next build",
+    "electron:pack": "npm run electron:build && electron-builder",
+    "electron:dist": "npm run electron:build && electron-builder --publish=never",
+    "release": "npm run electron:build && electron-builder --publish=always",
+    "release:draft": "npm run electron:build && electron-builder --publish=onTagOrDraft",
     "db:init": "node scripts/init-sqlite.js",
-    "postinstall": "npm run db:init"
+    "postinstall": "npm run db:init && npx @electron/rebuild",
+    "rebuild": "npx @electron/rebuild"
   },
   "dependencies": {
     "axios": "^1.10.0",
@@ -35,9 +37,11 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",
     "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
     "daisyui": "^5.0.50",
     "electron": "^28.3.3",
     "electron-builder": "^24.9.1",
+    "@electron/rebuild": "^3.6.0",
     "electron-updater": "^6.1.7",
     "eslint": "^9",
     "eslint-config-next": "15.3.5",

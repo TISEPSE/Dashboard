@@ -256,6 +256,14 @@ class SQLiteManager {
     ];
   }
 
+  // Méthode pour fermer la base de données
+  close() {
+    if (this.db) {
+      this.db.close();
+      console.log('✅ Base de données SQLite fermée');
+    }
+  }
+
   // === MÉTHODES CRYPTO FAVORITES ===
   
   getCryptoFavorites() {
@@ -351,6 +359,16 @@ class SQLiteManager {
 
   addCalendarEvent(eventData) {
     try {
+      // Si l'événement a un googleId, vérifier s'il existe déjà
+      if (eventData.googleId) {
+        const existingStmt = this.db.prepare('SELECT id FROM calendar_events WHERE google_id = ?');
+        const existing = existingStmt.get(eventData.googleId);
+        if (existing) {
+          console.log('✅ [SQLITE] Événement Google existe déjà, mise à jour:', eventData.googleId);
+          return this.updateCalendarEvent(existing.id, eventData);
+        }
+      }
+      
       const id = eventData.id || this.generateId();
       const stmt = this.db.prepare(`
         INSERT OR REPLACE INTO calendar_events (
@@ -375,6 +393,7 @@ class SQLiteManager {
         eventData.userId || null
       );
       
+      console.log('✅ [SQLITE] Nouvel événement ajouté:', id, eventData.googleId ? '(Google)' : '(Local)');
       return { ...eventData, id };
     } catch (error) {
       console.error('Erreur ajout événement:', error);
@@ -384,12 +403,22 @@ class SQLiteManager {
 
   updateCalendarEvent(id, eventData) {
     try {
+      // Si on met à jour par google_id, chercher l'événement correspondant
+      let actualId = id;
+      if (eventData.googleId) {
+        const findStmt = this.db.prepare('SELECT id FROM calendar_events WHERE google_id = ?');
+        const existing = findStmt.get(eventData.googleId);
+        if (existing) {
+          actualId = existing.id;
+        }
+      }
+      
       const stmt = this.db.prepare(`
         UPDATE calendar_events SET
           summary = ?, description = ?, location = ?,
           start_datetime = ?, start_date = ?, end_datetime = ?, end_date = ?,
           color_id = ?, attendees = ?, updated_at = CURRENT_TIMESTAMP
-        WHERE id = ?
+        WHERE id = ? OR google_id = ?
       `);
       
       const result = stmt.run(
@@ -402,7 +431,8 @@ class SQLiteManager {
         eventData.end?.date || null,
         eventData.colorId || '1',
         eventData.attendees ? JSON.stringify(eventData.attendees) : null,
-        id
+        actualId,
+        eventData.googleId || null
       );
       
       return result.changes > 0;
@@ -419,6 +449,90 @@ class SQLiteManager {
       return result.changes > 0;
     } catch (error) {
       console.error('Erreur suppression événement:', error);
+      throw error;
+    }
+  }
+
+  // Synchronisation en lot des événements Google
+  syncGoogleEvents(googleEvents) {
+    try {
+      console.log('🔄 [SQLITE] Démarrage synchronisation en lot:', googleEvents.length, 'événements');
+      
+      // Démarrer une transaction pour les performances
+      const transaction = this.db.transaction((events) => {
+        let syncedCount = 0;
+        let updatedCount = 0;
+        
+        for (const event of events) {
+          try {
+            // Vérifier si l'événement existe déjà
+            const existingStmt = this.db.prepare('SELECT id FROM calendar_events WHERE google_id = ?');
+            const existing = existingStmt.get(event.id);
+            
+            if (existing) {
+              // Mettre à jour
+              const updateStmt = this.db.prepare(`
+                UPDATE calendar_events SET
+                  summary = ?, description = ?, location = ?,
+                  start_datetime = ?, start_date = ?, end_datetime = ?, end_date = ?,
+                  color_id = ?, attendees = ?, updated_at = CURRENT_TIMESTAMP
+                WHERE google_id = ?
+              `);
+              
+              updateStmt.run(
+                event.summary,
+                event.description ? this.encrypt(event.description) : null,
+                event.location ? this.encrypt(event.location) : null,
+                event.start?.dateTime || null,
+                event.start?.date || null,
+                event.end?.dateTime || null,
+                event.end?.date || null,
+                event.colorId || '1',
+                event.attendees ? JSON.stringify(event.attendees) : null,
+                event.id
+              );
+              updatedCount++;
+            } else {
+              // Insérer nouveau
+              const insertStmt = this.db.prepare(`
+                INSERT INTO calendar_events (
+                  id, google_id, summary, description, location,
+                  start_datetime, start_date, end_datetime, end_date,
+                  color_id, attendees, user_id
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+              `);
+              
+              const newId = this.generateId();
+              insertStmt.run(
+                newId,
+                event.id,
+                event.summary,
+                event.description ? this.encrypt(event.description) : null,
+                event.location ? this.encrypt(event.location) : null,
+                event.start?.dateTime || null,
+                event.start?.date || null,
+                event.end?.dateTime || null,
+                event.end?.date || null,
+                event.colorId || '1',
+                event.attendees ? JSON.stringify(event.attendees) : null,
+                'default_user'
+              );
+              syncedCount++;
+            }
+          } catch (eventError) {
+            console.error('❌ [SQLITE] Erreur sync événement:', event.id, eventError);
+          }
+        }
+        
+        return { syncedCount, updatedCount };
+      });
+      
+      const result = transaction(googleEvents);
+      console.log(`✅ [SQLITE] Synchronisation terminée: ${result.syncedCount} ajoutés, ${result.updatedCount} mis à jour`);
+      
+      return result;
+    } catch (error) {
+      console.error('❌ [SQLITE] Erreur synchronisation en lot:', error);
       throw error;
     }
   }
@@ -458,15 +572,25 @@ module.exports = {
     return instance;
   },
   
-  // Méthodes statiques pour l'interface
+  // Méthodes statiques pour l'interface - Crypto
   getCryptoFavorites: () => module.exports.getInstance().getCryptoFavorites(),
   addCryptoFavorite: (crypto) => module.exports.getInstance().addCryptoFavorite(crypto),
   removeCryptoFavorite: (id) => module.exports.getInstance().removeCryptoFavorite(id),
   
+  // Méthodes statiques pour l'interface - Calendar
   getCalendarEvents: (timeMin, timeMax) => module.exports.getInstance().getCalendarEvents(timeMin, timeMax),
   addCalendarEvent: (eventData) => module.exports.getInstance().addCalendarEvent(eventData),
   updateCalendarEvent: (id, eventData) => module.exports.getInstance().updateCalendarEvent(id, eventData),
   deleteCalendarEvent: (id) => module.exports.getInstance().deleteCalendarEvent(id),
+  syncGoogleEvents: (googleEvents) => module.exports.getInstance().syncGoogleEvents(googleEvents),
+  
+  // Méthodes statiques pour l'interface - Navbar
+  getNavbarPreferences: () => module.exports.getInstance().getNavbarPreferences(),
+  saveNavbarPreferences: (preferences) => module.exports.getInstance().saveNavbarPreferences(preferences),
+  getNavbarOrder: () => module.exports.getInstance().getNavbarOrder(),
+  saveNavbarOrder: (order) => module.exports.getInstance().saveNavbarOrder(order),
+  getDefaultNavbarPreferences: () => module.exports.getInstance().getDefaultNavbarPreferences(),
+  getDefaultNavbarOrder: () => module.exports.getInstance().getDefaultNavbarOrder(),
   
   close: () => {
     if (instance) {

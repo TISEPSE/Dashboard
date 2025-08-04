@@ -15,6 +15,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addCalendarEvent: (eventData) => ipcRenderer.invoke('db:add-calendar-event', eventData),
   updateCalendarEvent: (id, eventData) => ipcRenderer.invoke('db:update-calendar-event', id, eventData),
   deleteCalendarEvent: (id) => ipcRenderer.invoke('db:delete-calendar-event', id),
+  syncGoogleEvents: (googleEvents) => ipcRenderer.invoke('db:sync-google-events', googleEvents),
+  
+  // APIs Base de données - Navbar Preferences
+  getNavbarPreferences: () => ipcRenderer.invoke('db:get-navbar-preferences'),
+  saveNavbarPreferences: (preferences) => ipcRenderer.invoke('db:save-navbar-preferences', preferences),
+  getNavbarOrder: () => ipcRenderer.invoke('db:get-navbar-order'),
+  saveNavbarOrder: (order) => ipcRenderer.invoke('db:save-navbar-order', order),
   
   // APIs système
   platform: process.platform,

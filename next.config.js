@@ -7,6 +7,12 @@ const nextConfig = {
   typescript: {
     ignoreBuildErrors: true,
   },
+  // Configuration pour Electron
+  output: process.env.NODE_ENV === 'production' && process.env.ELECTRON_BUILD ? 'export' : undefined,
+  trailingSlash: true,
+  images: {
+    unoptimized: true,
+  },
   experimental: {
     serverActions: {
       allowedOrigins: ["localhost:3000"],

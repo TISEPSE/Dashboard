@@ -27,6 +27,15 @@ export default function Navbar({isOpen, setIsOpen}) {
   const filteredNavItems = getFilteredNavItems(allNavigationItems)
   const totalItems = filteredNavItems.length + 2 // +2 pour Paramètres et Profil
 
+  // Fonction pour vérifier si une route est active
+  const isActiveRoute = (href) => {
+    // Nettoyer les chemins pour la comparaison
+    const cleanPathname = pathname.replace(/\/$/, '') || '/';
+    const cleanHref = href.replace(/\/$/, '') || '/';
+    
+    return cleanPathname === cleanHref;
+  };
+
   // Fonction pour obtenir les classes actives selon la route
   const getActiveClasses = (href) => {
     switch(href) {
@@ -37,6 +46,8 @@ export default function Navbar({isOpen, setIsOpen}) {
       case '/Dashboard/Sante': return 'bg-red-400/10 text-red-400'
       case '/Dashboard/Finances': return 'bg-green-400/10 text-green-400'
       case '/Dashboard/Calendrier': return 'bg-purple-400/10 text-purple-400'
+      case '/Dashboard/Parametres': return 'bg-gray-400/10 text-gray-400'
+      case '/Dashboard/Profile': return 'bg-indigo-400/10 text-indigo-400'
       default: return 'bg-blue-600/30 text-blue-300'
     }
   }
@@ -58,39 +69,64 @@ export default function Navbar({isOpen, setIsOpen}) {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 ${totalItems <= 5 ? 'px-2 py-3 flex-1' : 'px-5 py-3 flex-shrink-0'} rounded-xl transition-all duration-200 ${
-                  pathname === item.href
-                    ? `${getActiveClasses(item.href)} scale-105`
+                className={`relative flex flex-col items-center gap-1 ${totalItems <= 5 ? 'px-2 py-3 flex-1' : 'px-5 py-3 flex-shrink-0'} rounded-xl transition-all duration-200 ${
+                  isActiveRoute(item.href)
+                    ? `${getActiveClasses(item.href)} scale-105 shadow-lg`
                     : "text-gray-400 hover:text-white active:scale-95"
                 }`}
               >
+                {/* Indicateur actif en haut */}
+                {pathname === item.href && (
+                  <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-transparent via-current to-transparent rounded-full opacity-80"></div>
+                )}
+                
                 <div className="text-lg">{item.icon}</div>
                 <span className="text-xs font-medium whitespace-nowrap">{item.label}</span>
+                
+                {/* Point indicateur en bas */}
+                {isActiveRoute(item.href) && (
+                  <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-current rounded-full opacity-60 animate-pulse"></div>
+                )}
               </Link>
             ))}
             
             {/* Paramètres */}
             <Link
               href="/Dashboard/Parametres"
-              className={`flex flex-col items-center gap-1 ${totalItems <= 5 ? 'px-2 py-3 flex-1' : 'px-5 py-3 flex-shrink-0'} rounded-xl transition-all duration-200 ${
-                pathname === "/Dashboard/Parametres"
-                  ? "bg-gray-400/10 text-gray-400 scale-105"
+              className={`relative flex flex-col items-center gap-1 ${totalItems <= 5 ? 'px-2 py-3 flex-1' : 'px-5 py-3 flex-shrink-0'} rounded-xl transition-all duration-200 ${
+                isActiveRoute("/Dashboard/Parametres")
+                  ? "bg-gray-400/10 text-gray-400 scale-105 shadow-lg"
                   : "text-gray-400 hover:text-white active:scale-95"
               }`}
             >
+              {/* Indicateur actif en haut */}
+              {pathname === "/Dashboard/Parametres" && (
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-transparent via-gray-400 to-transparent rounded-full opacity-80"></div>
+              )}
+              
               <FaCog className="text-lg" />
               <span className="text-xs font-medium whitespace-nowrap">Paramètres</span>
+              
+              {/* Point indicateur en bas */}
+              {isActiveRoute("/Dashboard/Parametres") && (
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-gray-400 rounded-full opacity-60 animate-pulse"></div>
+              )}
             </Link>
             
             {/* Profil */}
             <Link
               href="/Dashboard/Profile"
-              className={`flex flex-col items-center gap-1 ${totalItems <= 5 ? 'px-2 py-3 flex-1' : 'px-5 py-3 flex-shrink-0'} rounded-xl transition-all duration-200 ${
-                pathname === "/Dashboard/Profile"
-                  ? "bg-indigo-400/10 text-indigo-400 scale-105"
+              className={`relative flex flex-col items-center gap-1 ${totalItems <= 5 ? 'px-2 py-3 flex-1' : 'px-5 py-3 flex-shrink-0'} rounded-xl transition-all duration-200 ${
+                isActiveRoute("/Dashboard/Profile")
+                  ? "bg-indigo-400/10 text-indigo-400 scale-105 shadow-lg"
                   : "text-gray-400 hover:text-white active:scale-95"
               }`}
             >
+              {/* Indicateur actif en haut */}
+              {pathname === "/Dashboard/Profile" && (
+                <div className="absolute -top-1 left-1/2 transform -translate-x-1/2 w-8 h-1 bg-gradient-to-r from-transparent via-indigo-400 to-transparent rounded-full opacity-80"></div>
+              )}
+              
               {user?.image ? (
                 <img 
                   src={user.image} 
@@ -103,6 +139,11 @@ export default function Navbar({isOpen, setIsOpen}) {
               <span className="text-xs font-medium whitespace-nowrap">
                 Profil
               </span>
+              
+              {/* Point indicateur en bas */}
+              {isActiveRoute("/Dashboard/Profile") && (
+                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-indigo-400 rounded-full opacity-60 animate-pulse"></div>
+              )}
             </Link>
           </div>
         </div>
@@ -161,16 +202,26 @@ export default function Navbar({isOpen, setIsOpen}) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
-                        pathname === item.href
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                        isActiveRoute(item.href)
                           ? `${getActiveClasses(item.href)} shadow-lg border border-white/20`
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
+                      {/* Barre indicatrice à gauche */}
+                      {isActiveRoute(item.href) && (
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-current rounded-r-full opacity-80 animate-pulse"></div>
+                      )}
+                      
                       <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg">{item.icon}</div>
                       <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
                         {item.label}
                       </span>
+                      
+                      {/* Point indicateur à droite */}
+                      {isActiveRoute(item.href) && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-current rounded-full opacity-60"></div>
+                      )}
                     </Link>
                   ))}
                   
@@ -178,28 +229,43 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <div className="mt-auto">
                     <Link
                       href="/Dashboard/Parametres"
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
-                        pathname === "/Dashboard/Parametres"
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                        isActiveRoute("/Dashboard/Parametres")
                           ? "bg-gray-400/10 text-gray-400 shadow-lg border border-white/20"
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
+                      {/* Barre indicatrice à gauche */}
+                      {isActiveRoute("/Dashboard/Parametres") && (
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gray-400 rounded-r-full opacity-80 animate-pulse"></div>
+                      )}
+                      
                       <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg"><FaCog className="text-gray-400" /></div>
                       <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
                         Paramètres
                       </span>
+                      
+                      {/* Point indicateur à droite */}
+                      {isActiveRoute("/Dashboard/Parametres") && (
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full opacity-60"></div>
+                      )}
                     </Link>
                   </div>
                   
                   {/* Lien Profile avec photo/pseudo si connecté */}
                   <Link
                     href="/Dashboard/Profile"
-                    className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
-                      pathname === "/Dashboard/Profile"
+                    className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                      isActiveRoute("/Dashboard/Profile")
                         ? "bg-indigo-400/10 text-indigo-400 shadow-lg border border-white/20"
                         : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                     }`}
                   >
+                    {/* Barre indicatrice à gauche */}
+                    {isActiveRoute("/Dashboard/Profile") && (
+                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80 animate-pulse"></div>
+                    )}
+                    
                     {authenticated && user ? (
                       <>
                         <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]">
@@ -217,6 +283,11 @@ export default function Navbar({isOpen, setIsOpen}) {
                         </span>
                       </>
                     )}
+                    
+                    {/* Point indicateur à droite */}
+                    {isActiveRoute("/Dashboard/Profile") && (
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-indigo-400 rounded-full opacity-60"></div>
+                    )}
                   </Link>
                 </div>
 
@@ -228,6 +299,12 @@ export default function Navbar({isOpen, setIsOpen}) {
                         <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                         <span>En ligne</span>
                       </div>
+                    </div>
+                    
+                    {/* Légende indicateurs */}
+                    <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
+                      <div className="w-1 h-4 bg-blue-400 rounded-full opacity-60"></div>
+                      <span>Page active</span>
                     </div>
                   </div>
                 </>
@@ -241,12 +318,17 @@ export default function Navbar({isOpen, setIsOpen}) {
                     <Link
                       key={item.href}
                       href={item.href}
-                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                        pathname === item.href
+                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
+                        isActiveRoute(item.href)
                           ? `${getActiveClasses(item.href)} shadow-lg scale-105`
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
+                      {/* Barre indicatrice à gauche pour la version fermée */}
+                      {isActiveRoute(item.href) && (
+                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-current rounded-r-full opacity-80 animate-pulse"></div>
+                      )}
+                      
                       <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg">{item.icon}</div>
                     </Link>
                   ))}
@@ -255,12 +337,17 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <div className="mt-auto mb-2">
                     <Link
                       href="/Dashboard/Parametres"
-                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                        pathname === "/Dashboard/Parametres"
-                          ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
+                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
+                        isActiveRoute("/Dashboard/Parametres")
+                          ? "bg-gray-400/10 text-gray-400 shadow-lg scale-105"
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
+                      {/* Barre indicatrice à gauche */}
+                      {isActiveRoute("/Dashboard/Parametres") && (
+                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gray-400 rounded-r-full opacity-80 animate-pulse"></div>
+                      )}
+                      
                       <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaCog className="text-gray-400" /></div>
                     </Link>
                   </div>
@@ -271,19 +358,33 @@ export default function Navbar({isOpen, setIsOpen}) {
                   {authenticated && user ? (
                     <Link
                       href="/Dashboard/Profile"
-                      className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
+                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 ${
+                        isActiveRoute("/Dashboard/Profile")
+                          ? "border-indigo-400/80 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] scale-105 shadow-lg"
+                          : "border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
+                      }`}
                     >
+                      {/* Barre indicatrice à gauche */}
+                      {isActiveRoute("/Dashboard/Profile") && (
+                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80 animate-pulse"></div>
+                      )}
+                      
                       <FaUser className="text-lg text-white" />
                     </Link>
                   ) : (
                     <Link
                       href="/Dashboard/Profile"
-                      className={`w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                        pathname === "/Dashboard/Profile"
-                          ? "bg-blue-600/30 text-blue-300 shadow-lg scale-105"
+                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
+                        isActiveRoute("/Dashboard/Profile")
+                          ? "bg-indigo-400/10 text-indigo-400 shadow-lg scale-105"
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
+                      {/* Barre indicatrice à gauche */}
+                      {isActiveRoute("/Dashboard/Profile") && (
+                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80 animate-pulse"></div>
+                      )}
+                      
                       <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaUser className="text-indigo-400 text-lg" /></div>
                     </Link>
                   )}

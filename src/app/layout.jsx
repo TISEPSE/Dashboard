@@ -18,7 +18,7 @@ export default function RootLayout({ children }) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <html data-theme="dark" lang="fr">
+    <html lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorBoundary>
           <AuthProvider>
