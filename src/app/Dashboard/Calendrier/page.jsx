@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession } from "next-auth/react"
+import { useAuth } from "../../context/AuthContext"
 import { motion, AnimatePresence } from "framer-motion"
 import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi, FaBars } from "react-icons/fa"
 import LoaderPortal from "../../components/LoaderPortal"
@@ -28,7 +28,7 @@ export default function Calendrier(){
     const [selectedEvent, setSelectedEvent] = useState(null)
     const [showEventMobileModal, setShowEventMobileModal] = useState(false)
     const [selectedEventForModal, setSelectedEventForModal] = useState(null)
-    const { data: session } = useSession()
+    const { user, authenticated } = useAuth()
     
     // Utiliser les hooks du calendrier et des couleurs
     const { 

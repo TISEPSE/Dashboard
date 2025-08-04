@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '../context/AuthContext'
 import { getDatabaseAdapter } from '../lib/database-adapter'
 
 // Couleurs inspirées de Samsung Calendar (OneUI Design System)
@@ -35,7 +35,7 @@ export const useCalendar = () => {
   const [loadingEvents, setLoadingEvents] = useState(false)
   const [syncStatus, setSyncStatus] = useState('idle') // 'idle', 'syncing', 'success', 'error'
   const [notification, setNotification] = useState(null)
-  const { data: session } = useSession()
+  const { user, authenticated } = useAuth()
   const db = getDatabaseAdapter()
 
   // Fonction pour afficher une notification
@@ -51,7 +51,7 @@ export const useCalendar = () => {
 
   // Charger les événements depuis la base de données (SQLite local ou API)
   const loadEvents = useCallback(async (timeMin, timeMax) => {
-    console.log('🔄 [CLIENT] Chargement des événements...', { timeMin, timeMax, session: !!session })
+    console.log('🔄 [CLIENT] Chargement des événements...', { timeMin, timeMax, authenticated })
     setLoadingEvents(true)
     try {
       const events = await db.getCalendarEvents(timeMin, timeMax)
@@ -94,14 +94,14 @@ export const useCalendar = () => {
     } finally {
       setLoadingEvents(false)
     }
-  }, [db, showNotification, session])
+  }, [db, showNotification, user])
 
   // Ajouter un événement
   const addEvent = useCallback(async (eventData) => {
     try {
       const newEvent = await db.addCalendarEvent({
         ...eventData,
-        userId: session?.user?.id || 'anonymous'
+        userId: user?.id || 'anonymous'
       })
       
       // Mettre à jour l'état local
@@ -117,14 +117,14 @@ export const useCalendar = () => {
       showNotification('Erreur lors de l\'ajout de l\'événement', 'error')
       throw error
     }
-  }, [db, session, showNotification])
+  }, [db, user, showNotification])
 
   // Mettre à jour un événement
   const updateEvent = useCallback(async (eventId, eventData) => {
     try {
       const success = await db.updateCalendarEvent(eventId, {
         ...eventData,
-        userId: session?.user?.id || 'anonymous'
+        userId: user?.id || 'anonymous'
       })
       
       if (success) {
@@ -147,7 +147,7 @@ export const useCalendar = () => {
       showNotification('Erreur lors de la modification de l\'événement', 'error')
       throw error
     }
-  }, [db, session, showNotification])
+  }, [db, user, showNotification])
 
   // Supprimer un événement
   const deleteEvent = useCallback(async (eventId) => {
@@ -175,7 +175,7 @@ export const useCalendar = () => {
       return
     }
 
-    if (!session?.accessToken) {
+    if (!authenticated) {
       showNotification('Connexion Google requise pour la synchronisation', 'warning')
       return
     }
@@ -196,7 +196,7 @@ export const useCalendar = () => {
       setSyncStatus('error')
       showNotification('Erreur lors de la synchronisation', 'error')
     }
-  }, [db, session, showNotification])
+  }, [db, user, showNotification])
 
   // Obtenir la couleur d'un événement
   const getEventColor = useCallback((colorId) => {

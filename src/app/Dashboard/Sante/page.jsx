@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useSession, signIn } from "next-auth/react"
+import { useAuth } from "../../context/AuthContext"
 import { motion } from "framer-motion"
 import SwappyGrid from "../../components/SwappyGrid"
 import { 
@@ -55,7 +55,7 @@ ChartJS.register(
 )
 
 export default function SantePage() {
-  const { data: session, status } = useSession()
+  const { user, authenticated, signIn, loading: authLoading } = useAuth()
   const [isLoading, setIsLoading] = useState(true)
   const [fitData, setFitData] = useState({})
   const [loadingData, setLoadingData] = useState(false)
@@ -74,10 +74,10 @@ export default function SantePage() {
   }, [])
 
   useEffect(() => {
-    if (session?.accessToken) {
+    if (authenticated) {
       fetchFitData()
     }
-  }, [session, selectedPeriod])
+  }, [authenticated, selectedPeriod])
 
   const fetchFitData = async () => {
     setLoadingData(true)
@@ -273,11 +273,11 @@ export default function SantePage() {
     return <LoaderPortal />
   }
 
-  if (status === "loading") {
+  if (authLoading) {
     return <LoaderPortal />
   }
 
-  if (!session) {
+  if (!authenticated) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] p-4 md:p-6 lg:p-8">
         <div className="max-w-screen-xl mx-auto">

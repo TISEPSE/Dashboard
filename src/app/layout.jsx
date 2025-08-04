@@ -1,11 +1,12 @@
 "use client"
 import { useState } from "react"
-import { SessionProvider } from "next-auth/react"
+import { AuthProvider } from "./context/AuthContext"
 import Navbar from "./components/navbar"
 import PageTransition from "./components/PageTransition"
 import { CryptoProvider } from "./context/CryptoContext"
 import { FavoritesProvider } from "./context/FavoritesContext"
 import ErrorBoundary from "./components/ErrorBoundary"
+import SessionDebug from "./components/SessionDebug"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 // import { SpeedInsights } from "@vercel/speed-insights/next"
@@ -21,7 +22,7 @@ export default function RootLayout({ children }) {
     <html data-theme="dark" lang="fr">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
         <ErrorBoundary>
-          <SessionProvider>
+          <AuthProvider>
             <FavoritesProvider>
               <CryptoProvider>
                 <Navbar isOpen={isOpen} setIsOpen={setIsOpen} />
@@ -33,10 +34,11 @@ export default function RootLayout({ children }) {
                   <PageTransition>
                     {children}
                   </PageTransition>
+                  <SessionDebug />
                 </main>
               </CryptoProvider>
             </FavoritesProvider>
-          </SessionProvider>
+          </AuthProvider>
         </ErrorBoundary>
         {/* <SpeedInsights /> */}
       </body>

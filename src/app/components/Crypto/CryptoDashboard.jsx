@@ -13,7 +13,7 @@ import {
   CryptoRetryNotification,
 } from "../Crypto/CryptoState"
 import { useFavoritesContext } from "../../context/FavoritesContext"
-import { useSession } from "next-auth/react"
+import { useAuth } from "../../context/AuthContext"
 import Link from "next/link"
 
 const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
@@ -45,7 +45,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
   const { favorites, isFavorite, refreshFavorites } = useFavoritesContext()
   
   // Hook pour la session utilisateur
-  const { data: session, status } = useSession()
+  const { user, authenticated, loading: authLoading } = useAuth()
 
   // Récupération des données
   const {
@@ -294,37 +294,6 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
           <CryptoRetryNotification retryCount={retryCount} />
         )}
 
-        {/* Bannière pour utilisateurs non connectés dans les favoris */}
-        {filterType === 'favorites' && !session && status !== "loading" && (
-          <div className="mb-6 bg-gradient-to-br from-[#2a2d3e] to-[#252837] border border-gray-600/20 rounded-2xl p-6 shadow-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-gradient-to-r from-blue-600 to-blue-700 rounded-xl flex items-center justify-center shadow-lg">
-                  <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-white font-semibold text-lg">
-                    Connectez-vous pour gérer vos favoris
-                  </p>
-                  <p className="text-gray-300 text-sm mt-1">
-                    Sauvegardez et organisez vos cryptomonnaies préférées
-                  </p>
-                </div>
-              </div>
-              <Link 
-                href="/Dashboard/Profile"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl text-sm font-medium transition-all duration-300 ease-in-out shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 flex items-center gap-2"
-              >
-                <span>Se connecter</span>
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                </svg>
-              </Link>
-            </div>
-          </div>
-        )}
 
         {/* Message pour utilisateurs sans favoris */}
         {filterType === 'favorites' && filteredCryptos.length === 0 && !loading && session && (

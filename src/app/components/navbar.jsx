@@ -4,14 +4,13 @@ import {useState, useEffect} from "react"
 import Link from "next/link"
 import {usePathname} from "next/navigation"
 import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog, FaHome} from "react-icons/fa"
-import { useSession } from 'next-auth/react'
-import AuthButton from "./Auth/AuthButton"
+import { useAuth } from '../context/AuthContext'
 import { useNavbarPreferences } from '../hooks/useNavbarPreferences'
 
 export default function Navbar({isOpen, setIsOpen}) {
   const [hasMounted, setHasMounted] = useState(false)
   const pathname = usePathname()
-  const { data: session } = useSession()
+  const { user, authenticated } = useAuth()
   const { getFilteredNavItems, isLoaded } = useNavbarPreferences()
   
   // Calculer le nombre total d'éléments (filteredNavItems + Paramètres + Profil)
@@ -92,9 +91,9 @@ export default function Navbar({isOpen, setIsOpen}) {
                   : "text-gray-400 hover:text-white active:scale-95"
               }`}
             >
-              {session?.user?.image ? (
+              {user?.image ? (
                 <img 
-                  src={session.user.image} 
+                  src={user.image} 
                   alt="Profil"
                   className="w-5 h-5 rounded-full"
                 />
@@ -201,12 +200,12 @@ export default function Navbar({isOpen, setIsOpen}) {
                         : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                     }`}
                   >
-                    {session ? (
+                    {authenticated && user ? (
                       <>
                         <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]">
-                          {session.user.image ? (
+                          {user.image ? (
                             <img 
-                              src={session.user.image} 
+                              src={user.image} 
                               alt="Profil"
                               className="w-full h-full object-cover"
                             />
@@ -277,14 +276,14 @@ export default function Navbar({isOpen, setIsOpen}) {
                 
                 {/* Photo de profil en bas quand connecté */}
                 <div className="mb-4">
-                  {session ? (
+                  {authenticated && user ? (
                     <Link
                       href="/Dashboard/Profile"
                       className="w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
                     >
-                      {session.user.image ? (
+                      {user.image ? (
                         <img 
-                          src={session.user.image} 
+                          src={user.image} 
                           alt="Profil"
                           className="w-full h-full object-cover rounded-lg"
                         />

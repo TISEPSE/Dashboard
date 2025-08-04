@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useSession } from 'next-auth/react'
+import { useAuth } from '../context/AuthContext'
 import { EVENT_COLORS, fetchGoogleColors, convertGoogleColors } from '../services/localCalendar'
 
 export const useColors = () => {
@@ -7,11 +7,11 @@ export const useColors = () => {
   const [googleColors, setGoogleColors] = useState(null)
   const [loading, setLoading] = useState(false)
   const [isGoogleConnected, setIsGoogleConnected] = useState(false)
-  const { data: session } = useSession()
+  const { user, authenticated } = useAuth()
 
   // Récupérer les couleurs Google quand l'utilisateur est connecté
   const loadGoogleColors = useCallback(async () => {
-    if (!session?.accessToken) {
+    if (!authenticated) {
       setIsGoogleConnected(false)
       setColors(EVENT_COLORS)
       return
@@ -19,7 +19,7 @@ export const useColors = () => {
 
     setLoading(true)
     try {
-      const googleColorData = await fetchGoogleColors(session.accessToken)
+      const googleColorData = await fetchGoogleColors(user.accessToken)
       
       if (googleColorData && googleColorData.event) {
         setGoogleColors(googleColorData)
@@ -46,9 +46,9 @@ export const useColors = () => {
     } finally {
       setLoading(false)
     }
-  }, [session?.accessToken])
+  }, [user?.accessToken])
 
-  // Charger les couleurs quand la session change
+  // Charger les couleurs quand la user change
   useEffect(() => {
     loadGoogleColors()
   }, [loadGoogleColors])
