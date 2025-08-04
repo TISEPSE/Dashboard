@@ -53,15 +53,7 @@ export default function AuthButton({ setIsOpen }) {
         >
           <div className="flex items-center gap-3 py-3 px-4 w-full h-full">
             <div className="w-8 h-8 rounded-full flex-shrink-0 transition-transform duration-300 group-hover:scale-110 overflow-hidden bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] flex items-center justify-center">
-              {session.user.image ? (
-                <img 
-                  src={session.user.image} 
-                  alt={session.user.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-base">👤</span>
-              )}
+              <span className="text-base">👤</span>
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-sm font-medium text-white truncate group-hover:translate-x-0.5 transition-transform duration-300">{session.user.name}</div>

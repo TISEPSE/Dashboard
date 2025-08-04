@@ -1,12 +1,29 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../auth/[...nextauth]/route'
+import { cookies } from 'next/headers'
 
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions)
+    // Récupérer le token d'accès depuis le cookie de session
+    let accessToken = null
+    try {
+      const cookieStore = await cookies()
+      const sessionCookie = cookieStore.get('auth-session')
+      
+      if (sessionCookie?.value) {
+        const sessionData = JSON.parse(decodeURIComponent(sessionCookie.value))
+        
+        // Vérifier si le token n'est pas expiré
+        if (Date.now() < sessionData.expiresAt) {
+          accessToken = sessionData.accessToken
+        } else {
+          console.log('🔄 [GOOGLE FIT] Token expiré')
+        }
+      }
+    } catch (error) {
+      console.error('❌ [GOOGLE FIT] Erreur lecture session:', error)
+    }
     
-    if (!session || !session.accessToken) {
+    if (!accessToken) {
       return NextResponse.json(
         { error: 'Pas d\'authentification ou de token d\'accès' },
         { status: 401 }
@@ -81,7 +98,7 @@ export async function POST(request) {
     const response = await fetch(fitApiUrl, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -130,9 +147,27 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const session = await getServerSession(authOptions)
+    // Récupérer le token d'accès depuis le cookie de session
+    let accessToken = null
+    try {
+      const cookieStore = await cookies()
+      const sessionCookie = cookieStore.get('auth-session')
+      
+      if (sessionCookie?.value) {
+        const sessionData = JSON.parse(decodeURIComponent(sessionCookie.value))
+        
+        // Vérifier si le token n'est pas expiré
+        if (Date.now() < sessionData.expiresAt) {
+          accessToken = sessionData.accessToken
+        } else {
+          console.log('🔄 [GOOGLE FIT] Token expiré')
+        }
+      }
+    } catch (error) {
+      console.error('❌ [GOOGLE FIT] Erreur lecture session:', error)
+    }
     
-    if (!session || !session.accessToken) {
+    if (!accessToken) {
       return NextResponse.json(
         { error: 'Pas d\'authentification ou de token d\'accès' },
         { status: 401 }
@@ -241,7 +276,7 @@ export async function GET(request) {
     const response = await fetch(fitApiUrl, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify(requestBody)

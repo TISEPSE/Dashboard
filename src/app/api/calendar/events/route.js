@@ -82,7 +82,7 @@ export async function GET(request) {
     // Récupérer le token d'accès depuis le cookie de session
     let accessToken = null
     try {
-      const cookieStore = cookies()
+      const cookieStore = await cookies()
       const sessionCookie = cookieStore.get('auth-session')
       
       if (sessionCookie?.value) {

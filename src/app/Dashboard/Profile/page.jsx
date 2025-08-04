@@ -61,15 +61,7 @@ export default function Profile(){
                         <div className="flex flex-col items-center gap-6">
                             <div className="flex items-center gap-4 bg-[#2a2d3e] px-6 py-4 rounded-lg border border-gray-600/30">
                                 <div className="w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] overflow-hidden">
-                                    {user.image ? (
-                                        <img 
-                                            src={user.image} 
-                                            alt={user.name}
-                                            className="w-full h-full object-cover"
-                                        />
-                                    ) : (
-                                        <span className="text-2xl">👤</span>
-                                    )}
+                                    <FaUser className="w-8 h-8 text-white" />
                                 </div>
                                 <div>
                                     <h2 className="text-xl font-semibold text-white">{user.name}</h2>

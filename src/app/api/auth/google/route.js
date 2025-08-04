@@ -11,7 +11,7 @@ export async function GET(request) {
     googleAuthUrl.searchParams.set('client_id', process.env.GOOGLE_CLIENT_ID)
     googleAuthUrl.searchParams.set('redirect_uri', `${process.env.NEXTAUTH_URL}/api/auth/google`)
     googleAuthUrl.searchParams.set('response_type', 'code')
-    googleAuthUrl.searchParams.set('scope', 'openid email profile https://www.googleapis.com/auth/calendar')
+    googleAuthUrl.searchParams.set('scope', 'openid email profile https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/fitness.activity.read https://www.googleapis.com/auth/fitness.body.read https://www.googleapis.com/auth/fitness.heart_rate.read https://www.googleapis.com/auth/fitness.sleep.read https://www.googleapis.com/auth/fitness.body.write https://www.googleapis.com/auth/fitness.activity.write')
     googleAuthUrl.searchParams.set('access_type', 'offline')
     googleAuthUrl.searchParams.set('prompt', 'consent')
     
