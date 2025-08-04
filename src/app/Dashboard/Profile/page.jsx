@@ -68,7 +68,7 @@ export default function Profile(){
                                             className="w-full h-full object-cover"
                                         />
                                     ) : (
-                                        <FaUser className="w-7 h-7 text-white" />
+                                        <span className="text-2xl">👤</span>
                                     )}
                                 </div>
                                 <div>

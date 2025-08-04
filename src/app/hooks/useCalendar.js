@@ -76,9 +76,7 @@ export const useCalendar = () => {
         
         console.log(`📊 [CLIENT] Google: ${googleEvents}, Local: ${localEvents}`)
         
-        if (googleEvents > 0) {
-          showNotification(`${googleEvents} événements Google synchronisés`, 'success')
-        }
+        // Notification supprimée - synchronisation silencieuse
       }
     } catch (error) {
       console.error('❌ [CLIENT] Erreur lors du chargement des événements:', error)
@@ -190,7 +188,7 @@ export const useCalendar = () => {
       // Dans une version future, on pourrait les stocker dans le state
       
       setSyncStatus('success')
-      showNotification('Synchronisation réussie', 'success')
+      // Notification supprimée - synchronisation silencieuse
     } catch (error) {
       console.error('Erreur synchronisation:', error)
       setSyncStatus('error')

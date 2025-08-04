@@ -126,14 +126,16 @@ export default function EventMobileModal({
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-6 py-4 bg-slate-900/60 backdrop-blur-md border-b border-slate-700/40 flex-shrink-0 md:rounded-t-3xl">
-                            {/* Bouton retour à gauche - toujours visible */}
-                            <button
-                                onClick={onBack || onClose}
-                                className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
-                            >
-                                <FaArrowLeft className="w-4 h-4" />
-                            </button>
+                        <div className="flex items-center justify-between px-3 md:px-4 py-4 bg-slate-900/60 backdrop-blur-md border-b border-slate-700/40 flex-shrink-0 md:rounded-t-3xl">
+                            {/* Bouton retour à gauche - plus vers l'extérieur */}
+                            <div className="flex-1 flex justify-start">
+                                <button
+                                    onClick={onBack || onClose}
+                                    className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
+                                >
+                                    <FaArrowLeft className="w-4 h-4" />
+                                </button>
+                            </div>
 
                             {/* Titre centré avec pastille */}
                             <div className="flex items-center gap-3">
@@ -146,8 +148,8 @@ export default function EventMobileModal({
                                 </h2>
                             </div>
 
-                            {/* Desktop: boutons d'action à droite */}
-                            <div className="hidden md:flex items-center gap-2">
+                            {/* Desktop: boutons d'action à droite - plus vers l'extérieur */}
+                            <div className="hidden md:flex items-center gap-2 flex-1 justify-end">
                                 <button
                                     onClick={() => onEdit && onEdit(event)}
                                     className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
@@ -170,13 +172,15 @@ export default function EventMobileModal({
                                 </button>
                             </div>
 
-                            {/* Mobile: bouton fermer à droite */}
-                            <button
-                                onClick={onClose}
-                                className="md:hidden w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
-                            >
-                                <FaTimes className="w-4 h-4" />
-                            </button>
+                            {/* Mobile: bouton fermer à droite - plus vers l'extérieur */}
+                            <div className="md:hidden flex-1 flex justify-end">
+                                <button
+                                    onClick={onClose}
+                                    className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
+                                >
+                                    <FaTimes className="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
 
                         {/* Contenu principal */}
@@ -185,7 +189,7 @@ export default function EventMobileModal({
                             <div className="space-y-6">
                                 {/* Titre principal sans pastille */}
                                 <div className="mb-6">
-                                    <h1 className="text-2xl md:text-3xl font-bold text-white">{event.summary}</h1>
+                                    <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-white text-center">{event.summary}</h1>
                                 </div>
 
                                 {/* Informations principales - pleine largeur */}
@@ -197,12 +201,12 @@ export default function EventMobileModal({
                                             <div className="flex-1">
                                                 <h3 className="text-white font-semibold text-lg mb-3">Date et heure</h3>
                                                 <div className="flex flex-wrap items-center gap-4">
-                                                    <p className="text-slate-300 text-base">
+                                                    <p className="text-white text-sm sm:text-base">
                                                         {isAllDay ? 'Toute la journée' : `${startDateTime.time} - ${endDateTime.time}`}
                                                     </p>
-                                                    <p className="text-slate-400 text-sm">{startDateTime.shortDate}</p>
+                                                    <p className="text-white text-xs sm:text-sm opacity-80">{startDateTime.shortDate}</p>
                                                     {isMultiDay() && (
-                                                        <p className="text-slate-400 text-sm">jusqu'au {endDateTime.shortDate}</p>
+                                                        <p className="text-white text-xs sm:text-sm opacity-80">jusqu'au {endDateTime.shortDate}</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -215,7 +219,7 @@ export default function EventMobileModal({
                                             <FaMapMarkerAlt className="w-7 h-7 text-green-400 flex-shrink-0" />
                                             <div className="flex-1">
                                                 <h3 className="text-white font-semibold text-lg mb-3">Lieu</h3>
-                                                <p className="text-slate-300 text-base break-words">
+                                                <p className="text-white text-sm sm:text-base break-words">
                                                     {event.location || "Pas de lieu spécifié"}
                                                 </p>
                                             </div>
@@ -238,7 +242,7 @@ export default function EventMobileModal({
                                                                     <div className="w-6 h-6 rounded-full bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center text-white text-xs font-bold">
                                                                         {attendee.email ? attendee.email.charAt(0).toUpperCase() : '?'}
                                                                     </div>
-                                                                    <span className="text-slate-300 text-sm">
+                                                                    <span className="text-white text-xs sm:text-sm">
                                                                         {attendee.email ? attendee.email.split('@')[0] : 'Invité'}
                                                                     </span>
                                                                     {attendee.responseStatus === 'accepted' && (
@@ -248,7 +252,7 @@ export default function EventMobileModal({
                                                             ))}
                                                             {event.attendees.length > 8 && (
                                                                 <div className="flex items-center gap-2 bg-slate-600/40 rounded-lg px-3 py-2">
-                                                                    <span className="text-slate-300 text-sm">
+                                                                    <span className="text-white text-xs sm:text-sm">
                                                                         +{event.attendees.length - 8} autres
                                                                     </span>
                                                                 </div>
@@ -258,7 +262,7 @@ export default function EventMobileModal({
                                                 ) : (
                                                     <>
                                                         <h3 className="text-white font-semibold text-lg mb-3">Participants</h3>
-                                                        <p className="text-slate-400 text-base">Pas de participants</p>
+                                                        <p className="text-white text-sm sm:text-base opacity-70">Pas de participants</p>
                                                     </>
                                                 )}
                                             </div>
@@ -272,7 +276,7 @@ export default function EventMobileModal({
                                         <FaAlignLeft className="w-7 h-7 text-purple-400 flex-shrink-0" />
                                         <div className="flex-1">
                                             <h3 className="text-white font-semibold text-lg mb-3">Description</h3>
-                                            <p className="text-slate-300 leading-relaxed text-lg">
+                                            <p className="text-white leading-relaxed text-sm sm:text-base">
                                                 {description || "Pas de description"}
                                             </p>
                                         </div>

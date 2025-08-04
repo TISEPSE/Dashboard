@@ -7,6 +7,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [authenticated, setAuthenticated] = useState(false)
+  const [accessToken, setAccessToken] = useState(null)
+  const [refreshToken, setRefreshToken] = useState(null)
 
   // Charger la session au démarrage
   useEffect(() => {
@@ -28,6 +30,8 @@ export function AuthProvider({ children }) {
       if (!sessionCookie) {
         setUser(null)
         setAuthenticated(false)
+        setAccessToken(null)
+        setRefreshToken(null)
         setLoading(false)
         return
       }
@@ -41,20 +45,28 @@ export function AuthProvider({ children }) {
           document.cookie = 'auth-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
           setUser(null)
           setAuthenticated(false)
+          setAccessToken(null)
+          setRefreshToken(null)
         } else {
           // Session valide
           setUser(sessionData.user)
           setAuthenticated(true)
+          setAccessToken(sessionData.accessToken)
+          setRefreshToken(sessionData.refreshToken)
         }
       } catch (parseError) {
         console.error('❌ Erreur parsing session:', parseError)
         setUser(null)
         setAuthenticated(false)
+        setAccessToken(null)
+        setRefreshToken(null)
       }
     } catch (error) {
       console.error('❌ Erreur vérification session:', error)
       setUser(null)
       setAuthenticated(false)
+      setAccessToken(null)
+      setRefreshToken(null)
     } finally {
       setLoading(false)
     }
@@ -70,6 +82,8 @@ export function AuthProvider({ children }) {
       document.cookie = 'auth-session=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;'
       setUser(null)
       setAuthenticated(false)
+      setAccessToken(null)
+      setRefreshToken(null)
       window.location.reload()
     } catch (error) {
       console.error('❌ Erreur déconnexion:', error)
@@ -80,6 +94,8 @@ export function AuthProvider({ children }) {
     user,
     loading,
     authenticated,
+    accessToken,
+    refreshToken,
     signIn,
     signOut,
     checkSession

@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../auth/[...nextauth]/route'
 import { google } from 'googleapis'
+import { cookies } from 'next/headers'
 
 // Base de données en mémoire pour les événements locaux (fallback)
 const getEventsList = () => {
@@ -12,15 +11,13 @@ const getEventsList = () => {
 }
 
 // Fonction pour récupérer les événements Google Calendar
-async function getGoogleCalendarEvents(session, timeMin, timeMax) {
+async function getGoogleCalendarEvents(accessToken, timeMin, timeMax) {
   console.log('🔍 [SERVER] Session Google Calendar:', { 
-    hasToken: !!session?.accessToken, 
-    hasError: !!session?.error,
-    error: session?.error
+    hasToken: !!accessToken
   })
   
-  if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
-    console.log('❌ [SERVER] Pas de session Google Calendar valide')
+  if (!accessToken) {
+    console.log('❌ [SERVER] Pas de token d\'accès Google Calendar')
     return []
   }
 
@@ -31,7 +28,7 @@ async function getGoogleCalendarEvents(session, timeMin, timeMax) {
     )
     
     oauth2Client.setCredentials({
-      access_token: session.accessToken
+      access_token: accessToken
     })
     
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
@@ -82,11 +79,28 @@ export async function GET(request) {
     const timeMin = url.searchParams.get('timeMin')
     const timeMax = url.searchParams.get('timeMax')
     
-    // Récupérer la session pour Google Calendar
-    const session = await getServerSession(authOptions)
+    // Récupérer le token d'accès depuis le cookie de session
+    let accessToken = null
+    try {
+      const cookieStore = cookies()
+      const sessionCookie = cookieStore.get('auth-session')
+      
+      if (sessionCookie?.value) {
+        const sessionData = JSON.parse(decodeURIComponent(sessionCookie.value))
+        
+        // Vérifier si le token n'est pas expiré
+        if (Date.now() < sessionData.expiresAt) {
+          accessToken = sessionData.accessToken
+        } else {
+          console.log('🔄 [SERVER] Token expiré, pas d\'événements Google')
+        }
+      }
+    } catch (error) {
+      console.error('❌ [SERVER] Erreur lecture session:', error)
+    }
     
     // Récupérer les événements Google Calendar
-    const googleEvents = await getGoogleCalendarEvents(session, timeMin, timeMax)
+    const googleEvents = await getGoogleCalendarEvents(accessToken, timeMin, timeMax)
     
     // Récupérer les événements locaux
     const localEvents = getEventsList()

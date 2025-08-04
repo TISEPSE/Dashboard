@@ -3,7 +3,7 @@
 import {useState, useEffect} from "react"
 import Link from "next/link"
 import {usePathname} from "next/navigation"
-import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog, FaHome} from "react-icons/fa"
+import {FaBars, FaTimes, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaCog, FaHome} from "react-icons/fa"
 import { useAuth } from '../context/AuthContext'
 import { useNavbarPreferences } from '../hooks/useNavbarPreferences'
 
@@ -98,7 +98,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                   className="w-5 h-5 rounded-full"
                 />
               ) : (
-                <FaUser className="text-lg" />
+                <span className="text-lg">👤</span>
               )}
               <span className="text-xs font-medium whitespace-nowrap">
                 Profil
@@ -210,7 +210,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                               className="w-full h-full object-cover"
                             />
                           ) : (
-                            <FaUser className="w-3 h-3 text-white" />
+                            <span className="text-xs">👤</span>
                           )}
                         </div>
                         <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1 truncate">
@@ -288,7 +288,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           className="w-full h-full object-cover rounded-lg"
                         />
                       ) : (
-                        <FaUser className="w-5 h-5 text-white" />
+                        <span className="text-lg">👤</span>
                       )}
                     </Link>
                   ) : (
@@ -300,7 +300,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                       }`}
                     >
-                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaUser className="text-indigo-400" /></div>
+                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><span className="text-indigo-400 text-lg">👤</span></div>
                     </Link>
                   )}
                 </div>
