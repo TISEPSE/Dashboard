@@ -43,6 +43,96 @@ class DatabaseAdapter {
     }
   }
 
+  // === MÉTHODES NAVBAR PREFERENCES ===
+  
+  async getNavbarPreferences() {
+    const cacheKey = 'navbar_preferences';
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
+    try {
+      let preferences;
+      
+      if (this.isElectron) {
+        // Mode Electron - SQLite local chiffré
+        preferences = await window.electronAPI.getNavbarPreferences();
+      } else {
+        // Mode Web - Stockage local chiffré
+        preferences = this.getLocalNavbarPreferences();
+      }
+      
+      this.setCache(cacheKey, preferences);
+      return preferences;
+    } catch (error) {
+      console.error('Erreur récupération préférences navbar:', error);
+      return this.getDefaultNavbarPreferences();
+    }
+  }
+
+  async saveNavbarPreferences(preferences) {
+    try {
+      let result;
+      
+      if (this.isElectron) {
+        // Mode Electron - SQLite local chiffré
+        result = await window.electronAPI.saveNavbarPreferences(preferences);
+      } else {
+        // Mode Web - Stockage local chiffré
+        result = this.saveLocalNavbarPreferences(preferences);
+      }
+      
+      this.clearCache('navbar_preferences');
+      return result;
+    } catch (error) {
+      console.error('Erreur sauvegarde préférences navbar:', error);
+      throw error;
+    }
+  }
+
+  async getNavbarOrder() {
+    const cacheKey = 'navbar_order';
+    const cached = this.getCached(cacheKey);
+    if (cached) return cached;
+
+    try {
+      let order;
+      
+      if (this.isElectron) {
+        // Mode Electron - SQLite local chiffré
+        order = await window.electronAPI.getNavbarOrder();
+      } else {
+        // Mode Web - Stockage local chiffré
+        order = this.getLocalNavbarOrder();
+      }
+      
+      this.setCache(cacheKey, order);
+      return order;
+    } catch (error) {
+      console.error('Erreur récupération ordre navbar:', error);
+      return this.getDefaultNavbarOrder();
+    }
+  }
+
+  async saveNavbarOrder(order) {
+    try {
+      let result;
+      
+      if (this.isElectron) {
+        // Mode Electron - SQLite local chiffré
+        result = await window.electronAPI.saveNavbarOrder(order);
+      } else {
+        // Mode Web - Stockage local chiffré
+        result = this.saveLocalNavbarOrder(order);
+      }
+      
+      this.clearCache('navbar_order');
+      return result;
+    } catch (error) {
+      console.error('Erreur sauvegarde ordre navbar:', error);
+      throw error;
+    }
+  }
+
   // === MÉTHODES CRYPTO FAVORITES ===
   
   async getCryptoFavorites() {
@@ -308,6 +398,96 @@ class DatabaseAdapter {
   }
 
   // === MÉTHODES STOCKAGE LOCAL CHIFFRÉ (MODE WEB) ===
+
+  // === MÉTHODES NAVBAR LOCALES ===
+
+  getDefaultNavbarPreferences() {
+    return {
+      home: true,
+      crypto: true,
+      message: true,
+      meteo: true,
+      sante: true,
+      finances: true,
+      calendrier: true,
+      profile: true,
+      parametres: true
+    };
+  }
+
+  getDefaultNavbarOrder() {
+    return [
+      'home',
+      'crypto', 
+      'message',
+      'meteo',
+      'sante',
+      'finances',
+      'calendrier'
+    ];
+  }
+
+  // Récupérer les préférences navbar locales
+  getLocalNavbarPreferences() {
+    try {
+      console.log('🔍 [LOCAL-STORAGE] Récupération des préférences navbar...');
+      const encrypted = localStorage.getItem('dashboard_navbar_preferences');
+      if (!encrypted) {
+        console.log('📭 [LOCAL-STORAGE] Aucune préférence navbar trouvée, utilisation des valeurs par défaut');
+        return this.getDefaultNavbarPreferences();
+      }
+      const preferences = this.decryptData(encrypted);
+      console.log('✅ [LOCAL-STORAGE] Préférences navbar récupérées:', preferences);
+      return { ...this.getDefaultNavbarPreferences(), ...preferences };
+    } catch (error) {
+      console.error('❌ [LOCAL-STORAGE] Erreur récupération préférences navbar:', error);
+      return this.getDefaultNavbarPreferences();
+    }
+  }
+
+  // Sauvegarder les préférences navbar locales
+  saveLocalNavbarPreferences(preferences) {
+    try {
+      const encrypted = this.encryptData(preferences);
+      localStorage.setItem('dashboard_navbar_preferences', encrypted);
+      console.log('✅ [LOCAL-STORAGE] Préférences navbar sauvegardées:', preferences);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ [LOCAL-STORAGE] Erreur sauvegarde préférences navbar:', error);
+      throw error;
+    }
+  }
+
+  // Récupérer l'ordre navbar local
+  getLocalNavbarOrder() {
+    try {
+      console.log('🔍 [LOCAL-STORAGE] Récupération de l\'ordre navbar...');
+      const encrypted = localStorage.getItem('dashboard_navbar_order');
+      if (!encrypted) {
+        console.log('📭 [LOCAL-STORAGE] Aucun ordre navbar trouvé, utilisation des valeurs par défaut');
+        return this.getDefaultNavbarOrder();
+      }
+      const order = this.decryptData(encrypted);
+      console.log('✅ [LOCAL-STORAGE] Ordre navbar récupéré:', order);
+      return order;
+    } catch (error) {
+      console.error('❌ [LOCAL-STORAGE] Erreur récupération ordre navbar:', error);
+      return this.getDefaultNavbarOrder();
+    }
+  }
+
+  // Sauvegarder l'ordre navbar local
+  saveLocalNavbarOrder(order) {
+    try {
+      const encrypted = this.encryptData(order);
+      localStorage.setItem('dashboard_navbar_order', encrypted);
+      console.log('✅ [LOCAL-STORAGE] Ordre navbar sauvegardé:', order);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ [LOCAL-STORAGE] Erreur sauvegarde ordre navbar:', error);
+      throw error;
+    }
+  }
   
   // Clé de chiffrement pour le stockage local
   getEncryptionKey() {

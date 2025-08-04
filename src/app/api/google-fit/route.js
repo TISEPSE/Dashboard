@@ -257,7 +257,184 @@ export async function GET(request) {
         )
     }
 
-    // Ajuster la durée des buckets selon la période
+    // Pour les données de poids/taille/graisse corporelle, utiliser une approche différente
+    // car elles sont souvent saisies ponctuellement et pas quotidiennement
+    if (['weight', 'height', 'body_fat'].includes(dataType)) {
+      console.log(`🔍 [${dataType.toUpperCase()}] Requête directe pour période ${days} jours`)
+      console.log(`🔍 [${dataType.toUpperCase()}] Période: ${startTime.toISOString()} -> ${endTime.toISOString()}`)
+      
+      // Essayer plusieurs data sources pour maximiser les chances de récupérer les données
+      const possibleDataSources = [
+        `derived:${aggregateBy.dataTypeName}:com.google.android.gms:merge_${dataType}`,
+        `derived:${aggregateBy.dataTypeName}:com.google.android.gms:merged`,
+        `raw:${aggregateBy.dataTypeName}:com.google.android.apps.fitness:user_input`,
+        aggregateBy.dataTypeName
+      ]
+      
+      let directData = null
+      let usedDataSource = null
+      
+      // Essayer chaque data source
+      for (const dataSourceId of possibleDataSources) {
+        try {
+          console.log(`🔄 [${dataType.toUpperCase()}] Essai avec dataSource: ${dataSourceId}`)
+          const fitApiUrl = `https://www.googleapis.com/fitness/v1/users/me/dataSources/${encodeURIComponent(dataSourceId)}/datasets/${startTimeMillis * 1000000}-${endTimeMillis * 1000000}`
+          
+          const response = await fetch(fitApiUrl, {
+            method: 'GET',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (response.ok) {
+            const data = await response.json()
+            console.log(`✅ [${dataType.toUpperCase()}] Succès avec ${dataSourceId}:`, JSON.stringify(data, null, 2))
+            
+            if (data.point && data.point.length > 0) {
+              directData = data
+              usedDataSource = dataSourceId
+              break
+            } else {
+              console.log(`⚠️ [${dataType.toUpperCase()}] Pas de données dans ${dataSourceId}`)
+            }
+          } else {
+            console.log(`❌ [${dataType.toUpperCase()}] Erreur ${response.status} avec ${dataSourceId}`)
+          }
+        } catch (error) {
+          console.log(`❌ [${dataType.toUpperCase()}] Exception avec ${dataSourceId}:`, error.message)
+        }
+      }
+      
+      if (!directData || !directData.point || directData.point.length === 0) {
+        console.log(`❌ [${dataType.toUpperCase()}] Aucune donnée trouvée dans aucune source`)
+        
+        // Fallback: essayer l'agrégation normale avec des buckets très larges
+        console.log(`🔄 [${dataType.toUpperCase()}] Fallback vers agrégation avec bucket large`)
+        const bucketDuration = days * 86400000 // Un seul bucket pour toute la période
+        
+        const requestBody = {
+          aggregateBy: [aggregateBy],
+          bucketByTime: { durationMillis: bucketDuration },
+          startTimeMillis: startTimeMillis.toString(),
+          endTimeMillis: endTimeMillis.toString()
+        }
+
+        const response = await fetch('https://www.googleapis.com/fitness/v1/users/me/dataset:aggregate', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        })
+
+        if (response.ok) {
+          const aggregatedData = await response.json()
+          console.log(`📊 [${dataType.toUpperCase()}] Données agrégées:`, JSON.stringify(aggregatedData, null, 2))
+          
+          if (aggregatedData.bucket && aggregatedData.bucket[0] && aggregatedData.bucket[0].dataset && aggregatedData.bucket[0].dataset[0].point) {
+            const points = aggregatedData.bucket[0].dataset[0].point
+            const lastValidPoint = points.filter(p => p.value && p.value[0] && p.value[0].fpVal > 0).pop()
+            
+            if (lastValidPoint) {
+              const value = Math.round((lastValidPoint.value[0].fpVal || 0) * 100) / 100
+              console.log(`✅ [${dataType.toUpperCase()}] Valeur trouvée via agrégation: ${value}`)
+              
+              return NextResponse.json({
+                success: true,
+                data: [{
+                  date: endTime.toISOString().split('T')[0],
+                  value: value,
+                  type: dataType
+                }],
+                stats: {
+                  total: value,
+                  average: value,
+                  max: value,
+                  min: value,
+                  daysWithData: 1
+                },
+                period: {
+                  startDate: startTime.toISOString().split('T')[0],
+                  endDate: endTime.toISOString().split('T')[0],
+                  days
+                },
+                dataType
+              })
+            }
+          }
+        }
+        
+        // Si vraiment aucune donnée n'est trouvée
+        return NextResponse.json({
+          success: true,
+          data: [],
+          stats: {
+            total: 0,
+            average: 0,
+            max: 0,
+            min: 0,
+            daysWithData: 0
+          },
+          period: {
+            startDate: startTime.toISOString().split('T')[0],
+            endDate: endTime.toISOString().split('T')[0],
+            days
+          },
+          dataType
+        })
+      }
+      
+      console.log(`✅ [${dataType.toUpperCase()}] Utilisation des données de: ${usedDataSource}`)
+      
+      // Traitement des données directes
+      const processedData = directData.point?.map(point => {
+        const date = new Date(parseInt(point.startTimeNanos) / 1000000).toISOString().split('T')[0]
+        let value = 0
+        
+        if (point.value && point.value[0]) {
+          value = Math.round((point.value[0].fpVal || 0) * 100) / 100
+        }
+        
+        console.log(`📊 [${dataType.toUpperCase()}] Point traité: ${date} = ${value}`)
+        
+        return {
+          date,
+          value,
+          type: dataType
+        }
+      }).filter(item => item.value > 0) || []
+
+      console.log(`📈 [${dataType.toUpperCase()}] ${processedData.length} points de données valides`)
+
+      // Calculer les statistiques pour les données directes
+      const values = processedData.map(d => d.value).filter(v => v > 0)
+      const stats = {
+        total: values.length > 0 ? values[values.length - 1] : 0, // Dernière valeur
+        average: values.length > 0 ? Math.round(values.reduce((sum, val) => sum + val, 0) / values.length * 100) / 100 : 0,
+        max: values.length > 0 ? Math.max(...values) : 0,
+        min: values.length > 0 ? Math.min(...values) : 0,
+        daysWithData: values.length
+      }
+
+      console.log(`📊 [${dataType.toUpperCase()}] Statistiques finales:`, stats)
+
+      return NextResponse.json({
+        success: true,
+        data: processedData,
+        stats,
+        period: {
+          startDate: startTime.toISOString().split('T')[0],
+          endDate: endTime.toISOString().split('T')[0],
+          days
+        },
+        dataType
+      })
+    }
+
+    // Pour les autres types de données, utiliser l'agrégation normale
     let bucketDuration = 86400000 // 1 jour par défaut
     if (days > 30) {
       bucketDuration = 86400000 * 7 // 1 semaine pour les longues périodes
@@ -320,13 +497,17 @@ export async function GET(request) {
               // Convertir les mètres en kilomètres
               value = Math.round((points[0].value[0].fpVal || 0) / 1000 * 100) / 100
             } else if (dataType === 'weight') {
-              // Prendre la dernière valeur de poids (pas d'agrégation)
-              const lastPoint = points[points.length - 1]
-              value = Math.round((lastPoint.value[0].fpVal || 0) * 100) / 100
+              // Pour le poids, prendre la première valeur valide du bucket (éviter duplications)
+              const validPoints = points.filter(p => p.value[0].fpVal > 0)
+              if (validPoints.length > 0) {
+                value = Math.round((validPoints[0].value[0].fpVal || 0) * 100) / 100
+              }
             } else if (dataType === 'height') {
-              // Prendre la dernière valeur de taille (en mètres)
-              const lastPoint = points[points.length - 1]
-              value = Math.round((lastPoint.value[0].fpVal || 0) * 100) / 100
+              // Pour la taille, prendre la première valeur valide du bucket (éviter duplications)
+              const validPoints = points.filter(p => p.value[0].fpVal > 0)
+              if (validPoints.length > 0) {
+                value = Math.round((validPoints[0].value[0].fpVal || 0) * 100) / 100
+              }
             } else if (dataType === 'heart_rate') {
               // Moyenne des valeurs de fréquence cardiaque
               const heartRateValues = points.map(p => p.value[0].fpVal || 0).filter(v => v > 0)
@@ -360,12 +541,19 @@ export async function GET(request) {
     // Calculer les statistiques
     const values = processedData.map(d => d.value).filter(v => v > 0)
     const isCurrentValueType = ['weight', 'height', 'body_fat'].includes(dataType)
+    
+    // Pour les données de poids/taille, éliminer les doublons avant les statistiques
+    let uniqueValues = values
+    if (isCurrentValueType) {
+      uniqueValues = [...new Set(values)] // Éliminer les doublons
+    }
+    
     const stats = {
-      total: isCurrentValueType ? (values.length > 0 ? values[values.length - 1] : 0) : values.reduce((sum, val) => sum + val, 0),
-      average: values.length > 0 ? (isCurrentValueType ? Math.round(values.reduce((sum, val) => sum + val, 0) / values.length * 100) / 100 : Math.round(values.reduce((sum, val) => sum + val, 0) / values.length)) : 0,
-      max: values.length > 0 ? Math.max(...values) : 0,
-      min: values.length > 0 ? Math.min(...values) : 0,
-      daysWithData: values.length
+      total: isCurrentValueType ? (uniqueValues.length > 0 ? uniqueValues[uniqueValues.length - 1] : 0) : values.reduce((sum, val) => sum + val, 0),
+      average: uniqueValues.length > 0 ? (isCurrentValueType ? Math.round(uniqueValues.reduce((sum, val) => sum + val, 0) / uniqueValues.length * 100) / 100 : Math.round(values.reduce((sum, val) => sum + val, 0) / values.length)) : 0,
+      max: uniqueValues.length > 0 ? Math.max(...uniqueValues) : 0,
+      min: uniqueValues.length > 0 ? Math.min(...uniqueValues) : 0,
+      daysWithData: uniqueValues.length
     }
 
     return NextResponse.json({

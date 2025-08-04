@@ -371,12 +371,27 @@ export default function SantePage() {
         )}
 
         {/* Grille des statistiques */}
-        <SwappyGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" enabled={true}>
+        {loadingData ? (
+          /* Skeleton Screen */
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-pulse">
+            {Array.from({ length: 12 }, (_, i) => (
+              <div key={i} className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gray-600/30 rounded-xl"></div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-600/30 rounded w-16 mb-2"></div>
+                    <div className="h-3 bg-gray-600/20 rounded w-20"></div>
+                  </div>
+                </div>
+                <div className="h-8 bg-gray-600/30 rounded w-24 mb-2"></div>
+                <div className="h-4 bg-gray-600/20 rounded w-32"></div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <SwappyGrid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8" enabled={true}>
           {/* Pas */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(16,185,129,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('steps', fitData.steps)}
           >
@@ -401,13 +416,10 @@ export default function SantePage() {
                 `Moyenne: ${fitData.steps?.stats?.average?.toLocaleString() || '---'}/jour`
               }
             </div>
-          </motion.div>
+          </div>
 
           {/* Calories */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(249,115,22,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('calories', fitData.calories)}
           >
@@ -432,13 +444,10 @@ export default function SantePage() {
                 `Moyenne: ${fitData.calories?.stats?.average?.toLocaleString() || '---'}/jour`
               }
             </div>
-          </motion.div>
+          </div>
 
           {/* Distance */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('distance', fitData.distance)}
           >
@@ -463,13 +472,10 @@ export default function SantePage() {
                 `Moyenne: ${fitData.distance?.stats?.average?.toFixed(1) || '---'} km/jour`
               }
             </div>
-          </motion.div>
+          </div>
 
           {/* Poids */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(147,51,234,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('weight', fitData.weight)}
           >
@@ -507,13 +513,10 @@ export default function SantePage() {
                   (fitData.weight.data[fitData.weight.data.length - 1]?.value - fitData.weight.data[0]?.value)?.toFixed(1) : '---'} kg`
               }
             </div>
-          </motion.div>
+          </div>
 
           {/* Taille */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.5 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(34,197,94,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('height', fitData.height)}
           >
@@ -548,13 +551,10 @@ export default function SantePage() {
                 ? (fitData.weight.stats.average / Math.pow(fitData.height.stats.average, 2)).toFixed(1)
                 : '---'}
             </div>
-          </motion.div>
+          </div>
 
           {/* Fréquence cardiaque */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(239,68,68,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('heart_rate', fitData.heart_rate)}
           >
@@ -579,13 +579,10 @@ export default function SantePage() {
                 `${fitData.heart_rate.stats.daysWithData} jour${fitData.heart_rate.stats.daysWithData > 1 ? 's' : ''}` : 
                 'Aucune donnée'}
             </div>
-          </motion.div>
+          </div>
 
           {/* Sommeil */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.7 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(99,102,241,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('sleep', fitData.sleep)}
           >
@@ -610,13 +607,10 @@ export default function SantePage() {
                 `${fitData.sleep.stats.daysWithData} jour${fitData.sleep.stats.daysWithData > 1 ? 's' : ''}` : 
                 'Aucune donnée'}
             </div>
-          </motion.div>
+          </div>
 
           {/* Minutes actives */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(245,158,11,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('active_minutes', fitData.active_minutes)}
           >
@@ -641,13 +635,10 @@ export default function SantePage() {
                 `${fitData.active_minutes.stats.daysWithData} jour${fitData.active_minutes.stats.daysWithData > 1 ? 's' : ''}` : 
                 'Aucune donnée'}
             </div>
-          </motion.div>
+          </div>
 
           {/* Points cardio */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.9 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(236,72,153,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('heart_points', fitData.heart_points)}
           >
@@ -672,13 +663,10 @@ export default function SantePage() {
                 `${fitData.heart_points.stats.daysWithData} jour${fitData.heart_points.stats.daysWithData > 1 ? 's' : ''}` : 
                 'Aucune donnée'}
             </div>
-          </motion.div>
+          </div>
 
           {/* Graisse corporelle */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.0 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('body_fat', fitData.body_fat)}
           >
@@ -703,13 +691,10 @@ export default function SantePage() {
                 `${fitData.body_fat.stats.daysWithData} jour${fitData.body_fat.stats.daysWithData > 1 ? 's' : ''}` : 
                 'Aucune donnée'}
             </div>
-          </motion.div>
+          </div>
 
           {/* Saturation en oxygène */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 1.1 }}
+          <div
             className="bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-2xl p-6 shadow-2xl border border-slate-700/50 backdrop-blur-xl h-40 cursor-pointer hover:from-[#1e293b]/80 hover:to-[#0f172a]/80 hover:scale-105 hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-200 relative group"
             onClick={() => openMetricModal('oxygen_saturation', fitData.oxygen_saturation)}
           >
@@ -734,8 +719,9 @@ export default function SantePage() {
                 `${fitData.oxygen_saturation.stats.daysWithData} jour${fitData.oxygen_saturation.stats.daysWithData > 1 ? 's' : ''}` : 
                 'Aucune donnée'}
             </div>
-          </motion.div>
+          </div>
         </SwappyGrid>
+        )}
 
         {/* Graphique de tendance (placeholder pour l'instant) */}
         <motion.div

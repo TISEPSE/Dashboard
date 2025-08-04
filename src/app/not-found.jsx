@@ -9,56 +9,41 @@ export default function NotFound() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] flex flex-col justify-center items-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: -20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="text-center"
-      >
-        {/* Icône d'erreur */}
-        <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
-          transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-          className="mb-8"
-        >
-          <div className="w-24 h-24 mx-auto bg-gradient-to-r from-red-500 to-red-600 rounded-full flex items-center justify-center shadow-2xl">
-            <FaExclamationTriangle className="w-12 h-12 text-white" />
-          </div>
-        </motion.div>
+    <div className="min-h-screen bg-gradient-to-br from-[#0f0f23] via-[#1a1a2e] to-[#16213e] flex flex-col justify-center items-center p-6 relative">
+      <div className="text-center flex-1 flex flex-col justify-center">
+        {/* Logo centré dans son cercle */}
+        <div className="w-20 h-20 mx-auto bg-gradient-to-r from-orange-500 to-orange-600 rounded-full flex items-center justify-center shadow-2xl mb-8">
+          <span className="text-3xl">⚠️</span>
+        </div>
 
-        {/* Titre */}
-        <motion.h1
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-4xl sm:text-5xl font-bold text-white mb-4"
-        >
-          404
-        </motion.h1>
+        {/* Titre principal */}
+        <h1 className="text-2xl font-bold text-white mb-4">
+          Erreur d'affichage
+        </h1>
 
         {/* Description */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="text-lg text-slate-400 mb-8 max-w-md"
-        >
-          Oups, cette page n'existe pas ou une erreur s'est produite.
-        </motion.p>
+        <p className="text-slate-400 mb-8 max-w-md">
+          Une erreur s'est produite lors du chargement de cette page.
+        </p>
 
-        {/* Bouton reload */}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.8 }}
+        {/* Bouton principal */}
+        <button
           onClick={handleReload}
-          className="flex items-center justify-center gap-3 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-6 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white px-8 py-3 rounded-xl font-medium transition-all duration-200 shadow-lg hover:shadow-xl transform hover:scale-105 mx-auto"
         >
-          <FaRedo className="w-5 h-5" />
-          <span>Recharger la page</span>
-        </motion.button>
-      </motion.div>
+          Recharger la page
+        </button>
+      </div>
+
+      {/* Petit texte en bas */}
+      <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 text-center">
+        <p className="text-slate-500 text-sm">
+          Cela peut être dû à une incompatibilité avec votre navigateur.
+        </p>
+        <p className="text-slate-500 text-sm mt-1">
+          Si le problème persiste, essayez avec un navigateur plus récent.
+        </p>
+      </div>
     </div>
   )
 }

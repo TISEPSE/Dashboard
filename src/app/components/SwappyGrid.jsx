@@ -10,6 +10,7 @@ export default function SwappyGrid({ children, className = "", enabled = true })
   const [items, setItems] = useState([])
   const [hasSwapped, setHasSwapped] = useState(false)
   const [swappingItems, setSwappingItems] = useState([])
+  const [initialLoad, setInitialLoad] = useState(true)
 
   useEffect(() => {
     if (!enabled || !containerRef.current) return
@@ -18,18 +19,24 @@ export default function SwappyGrid({ children, className = "", enabled = true })
     setItems(childrenArray.map((child, index) => ({ 
       id: `item-${index}`,
       content: child,
-      // Animation accélérée dès le départ
-      processedContent: React.cloneElement(child, { 
-        key: `optimized-${index}`,
+      // Animations UNIQUEMENT au tout premier chargement
+      processedContent: initialLoad ? React.cloneElement(child, { 
+        key: `initial-${index}`,
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
         transition: { 
-          delay: hasSwapped ? 0 : (child.props.transition?.delay || 0) * 0.3, // Délai réduit
-          duration: 0.2 // Animation rapide toujours
+          delay: (child.props.transition?.delay || 0) * 0.3,
+          duration: 0.2
         }
-      })
+      }) : child
     })))
-  }, [children, enabled, hasSwapped])
+
+    // Marquer que le chargement initial est terminé après le premier rendu
+    if (initialLoad) {
+      const timer = setTimeout(() => setInitialLoad(false), 1000)
+      return () => clearTimeout(timer)
+    }
+  }, [children, enabled, initialLoad])
 
   const handleDragStart = (e, index) => {
     setDraggedIndex(index)

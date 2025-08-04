@@ -1,54 +1,42 @@
 "use client"
 
 import { useState, useEffect } from "react"
-
-const DEFAULT_NAVBAR_PREFERENCES = {
-  home: true,
-  crypto: true,
-  message: true,
-  meteo: true,
-  sante: true,
-  finances: true,
-  calendrier: true,
-  profile: true,
-  parametres: true
-}
-
-const DEFAULT_NAVBAR_ORDER = [
-  'home',
-  'crypto', 
-  'message',
-  'meteo',
-  'sante',
-  'finances',
-  'calendrier'
-]
+import { getDatabaseAdapter } from '../lib/database-adapter'
 
 export function useNavbarPreferences() {
-  const [preferences, setPreferences] = useState(DEFAULT_NAVBAR_PREFERENCES)
-  const [navbarOrder, setNavbarOrder] = useState(DEFAULT_NAVBAR_ORDER)
+  const db = getDatabaseAdapter()
+  const [preferences, setPreferences] = useState({})
+  const [navbarOrder, setNavbarOrder] = useState([])
   const [isLoaded, setIsLoaded] = useState(false)
   const [updateTrigger, setUpdateTrigger] = useState(0)
 
-  // Charger les préférences depuis le localStorage au montage et à chaque mise à jour
+  // Charger les préférences depuis l'adaptateur de base de données
   useEffect(() => {
-    try {
-      const savedPreferences = localStorage.getItem('navbarPreferences')
-      if (savedPreferences) {
-        const parsed = JSON.parse(savedPreferences)
-        setPreferences({ ...DEFAULT_NAVBAR_PREFERENCES, ...parsed })
+    const loadPreferences = async () => {
+      try {
+        console.log('🔍 [NAVBAR-PREFS] Chargement des préférences...')
+        
+        const [loadedPreferences, loadedOrder] = await Promise.all([
+          db.getNavbarPreferences(),
+          db.getNavbarOrder()
+        ])
+        
+        console.log('✅ [NAVBAR-PREFS] Préférences chargées:', loadedPreferences)
+        console.log('✅ [NAVBAR-PREFS] Ordre chargé:', loadedOrder)
+        
+        setPreferences(loadedPreferences)
+        setNavbarOrder(loadedOrder)
+      } catch (error) {
+        console.error('❌ [NAVBAR-PREFS] Erreur lors du chargement:', error)
+        // Utiliser les valeurs par défaut en cas d'erreur
+        setPreferences(db.getDefaultNavbarPreferences())
+        setNavbarOrder(db.getDefaultNavbarOrder())
+      } finally {
+        setIsLoaded(true)
       }
-      
-      const savedOrder = localStorage.getItem('navbarOrder')
-      if (savedOrder) {
-        const parsedOrder = JSON.parse(savedOrder)
-        setNavbarOrder(parsedOrder)
-      }
-    } catch (error) {
-      console.error('Erreur lors du chargement des préférences navbar:', error)
-    } finally {
-      setIsLoaded(true)
     }
+
+    loadPreferences()
   }, [updateTrigger])
 
   // Écouter les changements depuis d'autres instances du hook
@@ -64,73 +52,89 @@ export function useNavbarPreferences() {
     }
   }, [])
 
-  // Sauvegarder les préférences dans le localStorage
-  const savePreferences = (newPreferences) => {
-    try {
-      setPreferences(newPreferences)
-      localStorage.setItem('navbarPreferences', JSON.stringify(newPreferences))
-    } catch (error) {
-      console.error('Erreur lors de la sauvegarde des préférences navbar:', error)
-    }
-  }
-
   // Toggle une préférence spécifique
-  const togglePreference = (key) => {
+  const togglePreference = async (key) => {
     const newPreferences = {
       ...preferences,
       [key]: !preferences[key]
     }
     
-    // Mettre à jour l'état local immédiatement
-    setPreferences(newPreferences)
-    
-    // Sauvegarder dans localStorage
-    savePreferences(newPreferences)
-    
-    // Déclencher un événement pour notifier les autres instances du hook
-    const event = new CustomEvent('navbarPreferencesChanged', {
-      detail: { preferences: newPreferences }
-    })
-    window.dispatchEvent(event)
+    try {
+      console.log('🔄 [NAVBAR-PREFS] Toggle préférence:', key, '→', newPreferences[key])
+      
+      // Mettre à jour l'état local immédiatement
+      setPreferences(newPreferences)
+      
+      // Sauvegarder via l'adaptateur
+      await db.saveNavbarPreferences(newPreferences)
+      
+      // Déclencher un événement pour notifier les autres instances du hook
+      const event = new CustomEvent('navbarPreferencesChanged', {
+        detail: { preferences: newPreferences }
+      })
+      window.dispatchEvent(event)
+    } catch (error) {
+      console.error('❌ [NAVBAR-PREFS] Erreur toggle préférence:', error)
+      // Restaurer l'état précédent en cas d'erreur
+      setPreferences(preferences)
+    }
   }
 
   // Réinitialiser aux valeurs par défaut
-  const resetToDefault = () => {
-    // Mettre à jour l'état local immédiatement - préférences ET ordre
-    setPreferences(DEFAULT_NAVBAR_PREFERENCES)
-    setNavbarOrder(DEFAULT_NAVBAR_ORDER)
-    
-    // Sauvegarder dans localStorage
+  const resetToDefault = async () => {
     try {
-      localStorage.setItem('navbarPreferences', JSON.stringify(DEFAULT_NAVBAR_PREFERENCES))
-      localStorage.setItem('navbarOrder', JSON.stringify(DEFAULT_NAVBAR_ORDER))
+      console.log('🔄 [NAVBAR-PREFS] Réinitialisation aux valeurs par défaut...')
+      
+      const defaultPreferences = db.getDefaultNavbarPreferences()
+      const defaultOrder = db.getDefaultNavbarOrder()
+      
+      // Mettre à jour l'état local immédiatement
+      setPreferences(defaultPreferences)
+      setNavbarOrder(defaultOrder)
+      
+      // Sauvegarder via l'adaptateur
+      await Promise.all([
+        db.saveNavbarPreferences(defaultPreferences),
+        db.saveNavbarOrder(defaultOrder)
+      ])
+      
+      // Déclencher un événement pour notifier les autres instances du hook
+      const event = new CustomEvent('navbarPreferencesChanged', {
+        detail: { 
+          preferences: defaultPreferences,
+          order: defaultOrder
+        }
+      })
+      window.dispatchEvent(event)
+      
+      console.log('✅ [NAVBAR-PREFS] Réinitialisation terminée')
     } catch (error) {
-      console.error('Erreur lors de la réinitialisation:', error)
+      console.error('❌ [NAVBAR-PREFS] Erreur lors de la réinitialisation:', error)
     }
-    
-    // Déclencher un événement pour notifier les autres instances du hook
-    const event = new CustomEvent('navbarPreferencesChanged', {
-      detail: { 
-        preferences: DEFAULT_NAVBAR_PREFERENCES,
-        order: DEFAULT_NAVBAR_ORDER
-      }
-    })
-    window.dispatchEvent(event)
   }
 
   // Sauvegarder l'ordre de la navbar
-  const saveNavbarOrder = (newOrder) => {
+  const saveNavbarOrder = async (newOrder) => {
     try {
+      console.log('🔄 [NAVBAR-PREFS] Sauvegarde nouvel ordre:', newOrder)
+      
+      // Mettre à jour l'état local immédiatement
       setNavbarOrder(newOrder)
-      localStorage.setItem('navbarOrder', JSON.stringify(newOrder))
+      
+      // Sauvegarder via l'adaptateur
+      await db.saveNavbarOrder(newOrder)
       
       // Déclencher un événement pour notifier les autres instances du hook
       const event = new CustomEvent('navbarPreferencesChanged', {
         detail: { order: newOrder }
       })
       window.dispatchEvent(event)
+      
+      console.log('✅ [NAVBAR-PREFS] Ordre sauvegardé avec succès')
     } catch (error) {
-      console.error('Erreur lors de la sauvegarde de l\'ordre navbar:', error)
+      console.error('❌ [NAVBAR-PREFS] Erreur sauvegarde ordre:', error)
+      // Restaurer l'état précédent en cas d'erreur
+      setNavbarOrder(navbarOrder)
     }
   }
 

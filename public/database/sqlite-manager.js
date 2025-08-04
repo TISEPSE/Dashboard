@@ -130,6 +130,132 @@ class SQLiteManager {
     }
   }
 
+  // === MÉTHODES NAVBAR PREFERENCES ===
+  
+  getNavbarPreferences() {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT value FROM user_settings 
+        WHERE key = ? AND user_id = ?
+      `);
+      const result = stmt.get('navbar_preferences', 'default_user');
+      
+      if (result) {
+        const decrypted = this.decrypt(result.value);
+        return JSON.parse(decrypted);
+      }
+      
+      // Retourner les valeurs par défaut si aucune préférence trouvée
+      return {
+        home: true,
+        crypto: true,
+        message: true,
+        meteo: true,
+        sante: true,
+        finances: true,
+        calendrier: true,
+        profile: true,
+        parametres: true
+      };
+    } catch (error) {
+      console.error('Erreur récupération préférences navbar:', error);
+      return this.getDefaultNavbarPreferences();
+    }
+  }
+
+  saveNavbarPreferences(preferences) {
+    try {
+      const encrypted = this.encrypt(JSON.stringify(preferences));
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO user_settings (id, user_id, key, value, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+      
+      const id = this.generateId();
+      stmt.run(id, 'default_user', 'navbar_preferences', encrypted);
+      
+      console.log('✅ [SQLITE] Préférences navbar sauvegardées:', preferences);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ [SQLITE] Erreur sauvegarde préférences navbar:', error);
+      throw error;
+    }
+  }
+
+  getNavbarOrder() {
+    try {
+      const stmt = this.db.prepare(`
+        SELECT value FROM user_settings 
+        WHERE key = ? AND user_id = ?
+      `);
+      const result = stmt.get('navbar_order', 'default_user');
+      
+      if (result) {
+        const decrypted = this.decrypt(result.value);
+        return JSON.parse(decrypted);
+      }
+      
+      // Retourner l'ordre par défaut si aucun ordre trouvé
+      return [
+        'home',
+        'crypto', 
+        'message',
+        'meteo',
+        'sante',
+        'finances',
+        'calendrier'
+      ];
+    } catch (error) {
+      console.error('Erreur récupération ordre navbar:', error);
+      return this.getDefaultNavbarOrder();
+    }
+  }
+
+  saveNavbarOrder(order) {
+    try {
+      const encrypted = this.encrypt(JSON.stringify(order));
+      const stmt = this.db.prepare(`
+        INSERT OR REPLACE INTO user_settings (id, user_id, key, value, updated_at)
+        VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP)
+      `);
+      
+      const id = this.generateId();
+      stmt.run(id, 'default_user', 'navbar_order', encrypted);
+      
+      console.log('✅ [SQLITE] Ordre navbar sauvegardé:', order);
+      return { success: true };
+    } catch (error) {
+      console.error('❌ [SQLITE] Erreur sauvegarde ordre navbar:', error);
+      throw error;
+    }
+  }
+
+  getDefaultNavbarPreferences() {
+    return {
+      home: true,
+      crypto: true,
+      message: true,
+      meteo: true,
+      sante: true,
+      finances: true,
+      calendrier: true,
+      profile: true,
+      parametres: true
+    };
+  }
+
+  getDefaultNavbarOrder() {
+    return [
+      'home',
+      'crypto', 
+      'message',
+      'meteo',
+      'sante',
+      'finances',
+      'calendrier'
+    ];
+  }
+
   // === MÉTHODES CRYPTO FAVORITES ===
   
   getCryptoFavorites() {
