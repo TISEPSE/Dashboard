@@ -6,6 +6,7 @@ class DatabaseAdapter {
     this.cache = new Map();
     this.cacheExpiry = 5 * 60 * 1000; // 5 minutes
     this.isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    this.accessToken = null; // Token d'accès Google pour Electron
     this.setupOfflineDetection();
   }
 
@@ -55,24 +56,49 @@ class DatabaseAdapter {
   // Vérifier si une connexion Google est possible
   async canConnectToGoogle() {
     if (!this.isOnline) {
+      console.log('📴 [CONNECTIVITY] Mode hors ligne détecté');
       return false;
     }
     
     try {
       // Test de connectivité rapide vers Google
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 secondes timeout
+      const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 secondes timeout pour Electron
+      
+      console.log('🔍 [CONNECTIVITY] Test de connexion Google Calendar...');
+      const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+      
+      // En mode Electron, ajouter un header spécial pour identification
+      if (this.isElectron) {
+        headers['x-electron-app'] = 'true'
+        headers['User-Agent'] = 'Dashboard-Electron/1.0'
+      }
       
       const response = await fetch('/api/calendar/google/ping', {
         method: 'GET',
         credentials: 'include',
-        signal: controller.signal
+        signal: controller.signal,
+        headers
       });
       
       clearTimeout(timeoutId);
-      return response.ok;
+      
+      if (response.ok) {
+        console.log('✅ [CONNECTIVITY] Google Calendar accessible');
+        return true;
+      } else {
+        console.warn(`⚠️ [CONNECTIVITY] Google Calendar inaccessible (${response.status})`);
+        return false;
+      }
     } catch (error) {
-      console.warn('⚠️ [CONNECTIVITY] Impossible de joindre Google Calendar:', error.message);
+      if (error.name === 'AbortError') {
+        console.warn('⏰ [CONNECTIVITY] Timeout lors du test de connexion Google');
+      } else {
+        console.warn('⚠️ [CONNECTIVITY] Erreur test connexion Google:', error.message);
+      }
       return false;
     }
   }
@@ -81,6 +107,12 @@ class DatabaseAdapter {
   
   isElectronApp() {
     return this.isElectron;
+  }
+
+  // Définir le token d'accès Google pour Electron
+  setAccessToken(token) {
+    this.accessToken = token;
+    console.log('🔑 [ADAPTER] Token d\'accès Google défini:', !!token);
   }
 
   // === MÉTHODES CACHE ===
@@ -255,7 +287,8 @@ class DatabaseAdapter {
       
       if (this.isElectron) {
         // Mode Electron - SQLite local chiffré
-        result = await window.electronAPI.removeCryptoFavorite(symbol);
+        const removed = await window.electronAPI.removeCryptoFavorite(symbol);
+        result = { success: removed, removedSymbol: symbol };
       } else {
         // Mode Web - Stockage local chiffré
         result = this.removeLocalCryptoFavorite(symbol);
@@ -324,47 +357,64 @@ class DatabaseAdapter {
   async getHybridCalendarEvents(timeMin, timeMax) {
     console.log('🔄 [HYBRID] Démarrage récupération hybride');
     
+    // 1. Toujours récupérer les événements SQLite d'abord (garantie)
+    let sqliteEvents = [];
     try {
-      // 1. Essayer de récupérer depuis Google Calendar API
-      const googleEvents = await this.fetchGoogleCalendarEvents(timeMin, timeMax);
+      const rawEvents = await window.electronAPI.getCalendarEvents(timeMin, timeMax);
+      console.log('📊 [HYBRID] Événements SQLite bruts récupérés:', rawEvents?.length || 0);
+      console.log('🔍 [HYBRID] Premier événement brut (si existe):', rawEvents?.[0]);
       
-      if (googleEvents && googleEvents.length > 0) {
-        console.log('✅ [HYBRID] Événements Google récupérés:', googleEvents.length);
-        
-        // 2. Synchroniser avec SQLite
-        await this.syncEventsToSQLite(googleEvents, timeMin, timeMax);
-        
-        // 3. Récupérer tous les événements (Google + locaux) depuis SQLite
-        const allEvents = await window.electronAPI.getCalendarEvents(timeMin, timeMax);
-        console.log('📊 [HYBRID] Total événements (Google + locaux):', allEvents.length);
-        
-        return allEvents;
-      } else {
-        console.log('⚠️ [HYBRID] Aucun événement Google, fallback vers SQLite uniquement');
-        // Fallback: récupérer uniquement depuis SQLite
-        return await window.electronAPI.getCalendarEvents(timeMin, timeMax);
-      }
-    } catch (error) {
-      console.error('❌ [HYBRID] Erreur récupération Google, fallback vers SQLite:', error);
-      // Fallback complet vers SQLite en cas d'erreur Google API
-      try {
-        return await window.electronAPI.getCalendarEvents(timeMin, timeMax);
-      } catch (sqliteError) {
-        console.error('❌ [HYBRID] Erreur SQLite fallback:', sqliteError);
-        return [];
-      }
+      sqliteEvents = rawEvents || [];
+    } catch (sqliteError) {
+      console.error('❌ [HYBRID] Erreur SQLite:', sqliteError);
+      sqliteEvents = [];
     }
+    
+    // 2. Synchronisation Google en mode Electron (RÉACTIVÉE)
+    if (this.isOnline) {
+      // Test de connectivité Google avant de tenter la synchronisation
+      const canConnectGoogle = await this.canConnectToGoogle();
+      
+      if (canConnectGoogle) {
+        try {
+          console.log('🌐 [HYBRID] Tentative de synchronisation Google Calendar...');
+          const googleEvents = await this.fetchGoogleCalendarEvents(timeMin, timeMax, this.accessToken);
+          
+          if (googleEvents && googleEvents.length > 0) {
+            console.log('✅ [HYBRID] Événements Google récupérés:', googleEvents.length);
+            
+            // Synchroniser avec SQLite en arrière-plan
+            await this.syncEventsToSQLite(googleEvents, timeMin, timeMax);
+            
+            // Récupérer les événements mis à jour depuis SQLite
+            try {
+              const updatedEvents = await window.electronAPI.getCalendarEvents(timeMin, timeMax);
+              console.log('📊 [HYBRID] Total événements après sync:', updatedEvents.length);
+              return updatedEvents;
+            } catch (refreshError) {
+              console.warn('⚠️ [HYBRID] Erreur rafraîchissement post-sync, utilisation cache SQLite');
+              return sqliteEvents;
+            }
+          } else {
+            console.log('📭 [HYBRID] Aucun événement Google récupéré');
+          }
+        } catch (googleError) {
+          console.warn('⚠️ [HYBRID] Échec récupération Google:', googleError.message);
+        }
+      } else {
+        console.log('🔐 [HYBRID] Google Calendar inaccessible - utilisation SQLite uniquement');
+      }
+    } else {
+      console.log('📴 [HYBRID] Mode hors ligne - utilisation SQLite uniquement');
+    }
+    
+    // 3. Retourner les événements SQLite (avec ou sans sync Google)
+    return sqliteEvents;
   }
 
   // Récupérer les événements depuis Google Calendar API (pour Electron)
-  async fetchGoogleCalendarEvents(timeMin, timeMax) {
+  async fetchGoogleCalendarEvents(timeMin, timeMax, accessToken = null) {
     try {
-      // Vérifier la connectivité d'abord
-      if (!await this.canConnectToGoogle()) {
-        console.warn('📴 [GOOGLE-API] Mode hors ligne ou Google indisponible');
-        return [];
-      }
-      
       console.log('🌐 [GOOGLE-API] Tentative de récupération depuis Google...');
       
       // Construire l'URL avec les paramètres
@@ -375,22 +425,46 @@ class DatabaseAdapter {
       const url = `/api/calendar/google/events?${params}`;
       console.log('🔗 [GOOGLE-API] URL:', url);
       
-      // Timeout pour éviter les blocages
+      // Timeout étendu pour permettre l'authentification Google en Electron
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 secondes
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 secondes
+      
+      const headers = {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json'
+      }
+      
+      // En mode Electron, ajouter un header spécial pour identification
+      if (this.isElectron) {
+        headers['x-electron-app'] = 'true'
+        headers['User-Agent'] = 'Dashboard-Electron/1.0'
+        
+        // En mode Electron, utiliser le token fourni en paramètre
+        if (accessToken) {
+          console.log('🔑 [GOOGLE-API] Utilisation du token d\'accès fourni');
+          headers['x-access-token'] = accessToken;
+        } else {
+          console.warn('⚠️ [GOOGLE-API] Aucun token d\'accès fourni pour Electron');
+        }
+      }
       
       const response = await fetch(url, {
         method: 'GET',
         credentials: 'include',
-        signal: controller.signal
+        signal: controller.signal,
+        headers
       });
       
       clearTimeout(timeoutId);
       console.log('📡 [GOOGLE-API] Réponse:', { status: response.status, ok: response.ok });
       
       if (!response.ok) {
-        if (response.status === 401) {
-          console.warn('🔐 [GOOGLE-API] Non authentifié, utilisation SQLite uniquement');
+        if (response.status === 401 || response.status === 403) {
+          console.warn('🔐 [GOOGLE-API] Non authentifié/autorisé, utilisation SQLite uniquement');
+          return [];
+        }
+        if (response.status >= 500) {
+          console.warn('🔧 [GOOGLE-API] Erreur serveur, utilisation SQLite uniquement');
           return [];
         }
         throw new Error(`Erreur Google API: ${response.status}`);
@@ -398,18 +472,29 @@ class DatabaseAdapter {
       
       const data = await response.json();
       
-      if (data.needsReauth) {
-        console.warn('🔐 [GOOGLE-API] Ré-authentification requise, utilisation SQLite uniquement');
+      if (data.error || data.needsReauth) {
+        console.warn('🔐 [GOOGLE-API] Authentification requise, utilisation SQLite uniquement');
         return [];
       }
       
       const events = data.events || [];
       console.log('✅ [GOOGLE-API] Événements récupérés:', events.length);
       
-      return events;
+      // Valider les événements reçus
+      const validEvents = events.filter(event => {
+        return event && event.id && event.summary && (event.start || event.end);
+      });
+      
+      if (validEvents.length !== events.length) {
+        console.warn('⚠️ [GOOGLE-API] Certains événements ignorés (données invalides)');
+      }
+      
+      return validEvents;
     } catch (error) {
       if (error.name === 'AbortError') {
         console.warn('⏰ [GOOGLE-API] Timeout - utilisation SQLite uniquement');
+      } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
+        console.warn('🔌 [GOOGLE-API] Problème de réseau - utilisation SQLite uniquement');
       } else {
         console.error('❌ [GOOGLE-API] Erreur:', error.message);
       }
@@ -419,11 +504,23 @@ class DatabaseAdapter {
 
   // Synchroniser les événements Google avec SQLite
   async syncEventsToSQLite(googleEvents, timeMin, timeMax) {
+    if (!googleEvents || googleEvents.length === 0) {
+      console.log('📭 [SYNC] Aucun événement Google à synchroniser');
+      return { syncedCount: 0, updatedCount: 0 };
+    }
+
     try {
       console.log('🔄 [SYNC] Synchronisation de', googleEvents.length, 'événements vers SQLite (mode batch)');
       
+      // Formater les événements pour SQLite
+      const formattedEvents = googleEvents.map(event => ({
+        ...event,
+        googleId: event.id, // Mappage important pour éviter les conflits
+        source: 'google'
+      }));
+      
       // Utiliser la synchronisation en lot pour de meilleures performances
-      const result = await window.electronAPI.syncGoogleEvents(googleEvents);
+      const result = await window.electronAPI.syncGoogleEvents(formattedEvents);
       
       console.log(`✅ [SYNC] Synchronisation batch terminée:`, result);
       return result;
@@ -483,9 +580,15 @@ class DatabaseAdapter {
       
       if (localEvent.googleId) {
         // Mettre à jour un événement existant
+        const headers = { 'Content-Type': 'application/json' }
+        if (this.isElectron) {
+          headers['x-electron-app'] = 'true'
+          headers['User-Agent'] = 'Dashboard-Electron/1.0'
+        }
+        
         const response = await fetch(`/api/calendar/google/events/${localEvent.googleId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(googleEventData),
           credentials: 'include'
         });
@@ -503,9 +606,15 @@ class DatabaseAdapter {
         return updatedEvent;
       } else {
         // Créer un nouvel événement
+        const headers = { 'Content-Type': 'application/json' }
+        if (this.isElectron) {
+          headers['x-electron-app'] = 'true'
+          headers['User-Agent'] = 'Dashboard-Electron/1.0'
+        }
+        
         const response = await fetch('/api/calendar/google/create', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           body: JSON.stringify(googleEventData),
           credentials: 'include'
         });
@@ -544,14 +653,18 @@ class DatabaseAdapter {
         // Mode Electron - Ajouter à SQLite d'abord
         result = await window.electronAPI.addCalendarEvent(formattedEvent);
         
-        // Si c'est un événement local (pas de googleId), essayer de le synchroniser avec Google
-        if (!formattedEvent.googleId && !formattedEvent.source) {
+        // Synchronisation vers Google Calendar (RÉACTIVÉE)
+        if (!formattedEvent.googleId && !formattedEvent.source && this.isOnline) {
           try {
+            console.log('🔄 [SYNC-UP] Tentative de synchronisation avec Google Calendar...');
             await this.syncLocalEventToGoogle(result);
+            console.log('✅ [SYNC-UP] Synchronisation réussie');
           } catch (syncError) {
-            console.warn('⚠️ [SYNC-UP] Impossible de synchroniser avec Google:', syncError.message);
-            // L'événement reste local uniquement
+            console.warn('⚠️ [SYNC-UP] Synchronisation échouée, événement restera local:', syncError.message);
+            // L'événement reste local uniquement - ce n'est pas une erreur critique
           }
+        } else if (!this.isOnline) {
+          console.log('📴 [SYNC-UP] Mode hors ligne, événement enregistré localement uniquement');
         }
       } else {
         // Mode Web - API REST
@@ -689,10 +802,16 @@ class DatabaseAdapter {
   
   formatEvent(event) {
     // Convertir l'événement vers le format Google Calendar standard
-    if (!event) return null;
+    if (!event) {
+      console.warn('⚠️ [FORMAT] Événement null reçu');
+      return null;
+    }
+    
+    console.log('🔍 [FORMAT] Formatage événement:', event);
     
     // Si l'événement a déjà le bon format (depuis API), le retourner tel quel
     if (event.start && (event.start.dateTime || event.start.date)) {
+      console.log('✅ [FORMAT] Événement déjà au bon format (API)');
       return {
         id: event.id,
         googleId: event.googleId,
@@ -710,7 +829,8 @@ class DatabaseAdapter {
     }
     
     // Sinon, convertir depuis le format SQLite
-    return {
+    console.log('🔄 [FORMAT] Conversion depuis format SQLite');
+    const formatted = {
       id: event.id,
       summary: event.summary,
       description: event.description || '',
@@ -724,11 +844,20 @@ class DatabaseAdapter {
         dateTime: event.end_datetime || undefined,
         date: event.end_date || undefined
       },
-      attendees: event.attendees || [],
+      attendees: event.attendees ? (typeof event.attendees === 'string' ? JSON.parse(event.attendees) : event.attendees) : [],
       created: event.created_at,
       updated: event.updated_at,
       source: 'local'
     };
+    
+    // Validation que l'événement formaté a les champs requis
+    if (!formatted.start.dateTime && !formatted.start.date) {
+      console.error('❌ [FORMAT] Événement sans date de début valide:', event);
+      return null;
+    }
+    
+    console.log('✅ [FORMAT] Événement formaté:', formatted);
+    return formatted;
   }
 
   formatEventForStorage(event) {

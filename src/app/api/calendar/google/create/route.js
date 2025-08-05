@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]/route'
 import { google } from 'googleapis'
 
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions)
+    // Vérifier l'authentification via le cookie custom
+    const authCookie = request.cookies.get('auth-session')
+    let sessionData = null
     
-    if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
+    if (authCookie) {
+      try {
+        sessionData = JSON.parse(decodeURIComponent(authCookie.value))
+      } catch (parseError) {
+        console.error('❌ [CREATE-API] Erreur parsing session:', parseError)
+      }
+    }
+    
+    if (!sessionData || !sessionData.accessToken || Date.now() > sessionData.expiresAt) {
       return NextResponse.json({ 
         error: "Session expirée - reconnectez-vous", 
         needsReauth: true
@@ -23,7 +31,7 @@ export async function POST(request) {
     )
     
     oauth2Client.setCredentials({
-      access_token: session.accessToken
+      access_token: sessionData.accessToken
     })
     
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })

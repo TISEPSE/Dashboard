@@ -296,7 +296,7 @@ const CryptoDashboard = ({isNavOpen, setIsNavOpen}) => {
 
 
         {/* Message pour utilisateurs sans favoris */}
-        {filterType === 'favorites' && filteredCryptos.length === 0 && !loading && session && (
+        {filterType === 'favorites' && filteredCryptos.length === 0 && !loading && authenticated && (
           <div className="flex flex-col items-center justify-center py-16 px-6">
             <div className="bg-gradient-to-r from-[#2a2d3e] to-[#252837] border border-gray-600/20 rounded-2xl p-8 max-w-md mx-auto text-center shadow-xl">
               <div className="w-16 h-16 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center mx-auto mb-6">

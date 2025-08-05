@@ -1,15 +1,59 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../../auth/[...nextauth]/route'
 import { google } from 'googleapis'
 
 export async function GET(request) {
   try {
-    const session = await getServerSession(authOptions)
+    // Détecter si la requête vient d'Electron
+    const userAgent = request.headers.get('user-agent') || ''
+    const isElectron = userAgent.includes('Electron') || request.headers.get('x-electron-app') === 'true'
+    const electronToken = request.headers.get('x-access-token')
     
-    if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
+    console.log('🔍 [GOOGLE-EVENTS-API] Requête reçue:', { 
+      isElectron, 
+      hasElectronToken: !!electronToken,
+      userAgent: userAgent.substring(0, 100)
+    })
+    
+    let accessToken = null
+    
+    if (isElectron && electronToken) {
+      // En mode Electron avec token personnalisé
+      console.log('🔑 [GOOGLE-EVENTS-API] Utilisation du token Electron')
+      accessToken = electronToken
+    } else {
+      // Mode standard avec session custom
+      const authCookie = request.cookies.get('auth-session')
+      let sessionData = null
+      
+      if (authCookie) {
+        try {
+          sessionData = JSON.parse(decodeURIComponent(authCookie.value))
+          console.log('🔍 [GOOGLE-EVENTS-API] Session custom:', { 
+            hasSession: !!sessionData, 
+            hasAccessToken: !!sessionData?.accessToken,
+            user: sessionData?.user?.email,
+            isExpired: sessionData?.expiresAt ? Date.now() > sessionData.expiresAt : true
+          })
+        } catch (parseError) {
+          console.error('❌ [GOOGLE-EVENTS-API] Erreur parsing session:', parseError)
+        }
+      }
+      
+      if (!sessionData || !sessionData.accessToken || Date.now() > sessionData.expiresAt) {
+        return NextResponse.json({ 
+          error: "Session expirée - reconnectez-vous", 
+          needsReauth: true,
+          events: []
+        }, { status: 401 })
+      }
+      
+      accessToken = sessionData.accessToken
+    }
+    
+    if (!accessToken) {
+      console.warn('⚠️ [GOOGLE-EVENTS-API] Aucun token d\'accès disponible')
       return NextResponse.json({ 
-        error: "Session expirée - reconnectez-vous", 
+        error: "Token d'accès manquant", 
         needsReauth: true,
         events: []
       }, { status: 401 })
@@ -22,7 +66,7 @@ export async function GET(request) {
     )
     
     oauth2Client.setCredentials({
-      access_token: session.accessToken
+      access_token: accessToken
     })
     
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })

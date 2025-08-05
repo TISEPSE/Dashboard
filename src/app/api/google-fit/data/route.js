@@ -1,13 +1,21 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth'
-import { authOptions } from '../../auth/[...nextauth]/route'
 
 // API pour soumettre des données vers Google Fit
 export async function POST(request) {
   try {
-    const session = await getServerSession(authOptions)
+    // Vérifier l'authentification via le cookie custom
+    const authCookie = request.cookies.get('auth-session')
+    let sessionData = null
     
-    if (!session || !session.accessToken) {
+    if (authCookie) {
+      try {
+        sessionData = JSON.parse(decodeURIComponent(authCookie.value))
+      } catch (parseError) {
+        console.error('❌ [GOOGLE-FIT-API] Erreur parsing session:', parseError)
+      }
+    }
+    
+    if (!sessionData || !sessionData.accessToken || Date.now() > sessionData.expiresAt) {
       return NextResponse.json(
         { error: 'Pas d\'authentification ou de token d\'accès' },
         { status: 401 }
@@ -82,7 +90,7 @@ export async function POST(request) {
     const response = await fetch(fitApiUrl, {
       method: 'PATCH',
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${sessionData.accessToken}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({

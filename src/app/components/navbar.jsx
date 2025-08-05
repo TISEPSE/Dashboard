@@ -151,27 +151,32 @@ export default function Navbar({isOpen, setIsOpen}) {
 
       {/* Navigation Desktop */}
       <div
-        className={`hidden md:flex fixed top-0 left-0 h-screen z-[60] bg-gradient-to-br from-[#2a2d3e] to-[#212332] text-white flex-col overflow-hidden transition-all duration-300 ease-in-out shadow-2xl border-r border-gray-600/30 ${
-          isOpen ? "w-64" : "w-16 min-w-[64px]"
+        className={`hidden md:flex fixed top-0 left-0 h-screen z-[60] bg-gradient-to-br from-[#2a2d3e] to-[#212332] text-white flex-col shadow-2xl border-r border-gray-600/30 transition-all duration-300 ease-in-out ${
+          isOpen ? "w-64" : "w-16"
         }`}
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        style={{ 
+          scrollbarWidth: 'none', 
+          msOverflowStyle: 'none'
+        }}
       >
         {/* En-tête */}
         <div
-          className={`flex items-center ${isOpen ? "justify-between p-6" : "justify-center p-4"} text-xl font-bold bg-gradient-to-b from-[#2a2d3e]/20 via-[#2a2d3e]/10 to-transparent border-b border-gray-600/30 transition-all duration-300 ease-in-out`}
+          className={`flex items-center text-xl font-bold bg-gradient-to-b from-[#2a2d3e]/20 via-[#2a2d3e]/10 to-transparent border-b border-gray-600/30 transition-all duration-300 ${
+            isOpen ? "justify-between p-6" : "justify-center p-4"
+          }`}
           style={{minHeight: "72px"}}
         >
           <div className="flex items-center gap-2 overflow-hidden">
             <div className="relative">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg flex items-center justify-center shadow-lg">
+              <div className="w-10 h-10 flex items-center justify-center">
                 <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
               </div>
             </div>
             {isOpen && (
-              <div className="transition-opacity duration-300 ease-in-out">
-                <Link href="/" className="whitespace-nowrap">
+              <div className="transition-opacity duration-300">
+                <Link href="/">
                   <span className="bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">
                     Dashboard
                   </span>
@@ -182,27 +187,29 @@ export default function Navbar({isOpen, setIsOpen}) {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-xl cursor-pointer flex-shrink-0 transition-all duration-300 ease-in-out hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95"
+            className="text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-xl cursor-pointer flex-shrink-0 shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
             aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
           >
-            <div className="transition-transform duration-300 ease-in-out">
-              {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-            </div>
+            {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
         </div>
 
         {/* Contenu navigation */}
         <div className="flex-1 overflow-hidden">
-          <nav className="flex flex-col gap-4 px-6 py-4 h-full overflow-auto" style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
+          <nav 
+            className="flex flex-col gap-4 px-6 py-4 h-full overflow-y-auto" 
+            style={{ 
+              scrollbarWidth: 'none', 
+              msOverflowStyle: 'none'
+            }}
+          >
             {isOpen && (
-              <>
-                {/* Affichage direct des liens avec icônes et textes */}
-                <div className="flex flex-col gap-2 flex-1">
-                  {filteredNavItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+              <div className="flex flex-col gap-2 flex-1">
+                {/* Navigation items */}
+                {filteredNavItems.map((item) => (
+                  <Link key={item.href} href={item.href}>
+                    <div
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                         isActiveRoute(item.href)
                           ? `${getActiveClasses(item.href)} shadow-lg border border-white/20`
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
@@ -210,11 +217,13 @@ export default function Navbar({isOpen, setIsOpen}) {
                     >
                       {/* Barre indicatrice à gauche */}
                       {isActiveRoute(item.href) && (
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-current rounded-r-full opacity-80 animate-pulse"></div>
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-current rounded-r-full opacity-80"></div>
                       )}
                       
-                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg">{item.icon}</div>
-                      <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
+                      <div className="text-lg min-w-[24px] flex justify-center">
+                        {item.icon}
+                      </div>
+                      <span className="font-medium">
                         {item.label}
                       </span>
                       
@@ -222,14 +231,15 @@ export default function Navbar({isOpen, setIsOpen}) {
                       {isActiveRoute(item.href) && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-current rounded-full opacity-60"></div>
                       )}
-                    </Link>
-                  ))}
-                  
-                  {/* Lien Paramètres placé en bas */}
-                  <div className="mt-auto">
-                    <Link
-                      href="/Dashboard/Parametres"
-                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                    </div>
+                  </Link>
+                ))}
+                
+                {/* Paramètres */}
+                <div className="mt-auto">
+                  <Link href="/Dashboard/Parametres">
+                    <div
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                         isActiveRoute("/Dashboard/Parametres")
                           ? "bg-gray-400/10 text-gray-400 shadow-lg border border-white/20"
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
@@ -237,11 +247,13 @@ export default function Navbar({isOpen, setIsOpen}) {
                     >
                       {/* Barre indicatrice à gauche */}
                       {isActiveRoute("/Dashboard/Parametres") && (
-                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gray-400 rounded-r-full opacity-80 animate-pulse"></div>
+                        <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gray-400 rounded-r-full opacity-80"></div>
                       )}
                       
-                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg"><FaCog className="text-gray-400" /></div>
-                      <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
+                      <div className="text-lg min-w-[24px] flex justify-center">
+                        <FaCog className="text-gray-400" />
+                      </div>
+                      <span className="font-medium">
                         Paramètres
                       </span>
                       
@@ -249,13 +261,14 @@ export default function Navbar({isOpen, setIsOpen}) {
                       {isActiveRoute("/Dashboard/Parametres") && (
                         <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-gray-400 rounded-full opacity-60"></div>
                       )}
-                    </Link>
-                  </div>
-                  
-                  {/* Lien Profile avec photo/pseudo si connecté */}
-                  <Link
-                    href="/Dashboard/Profile"
-                    className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-300 ease-in-out group ${
+                    </div>
+                  </Link>
+                </div>
+                
+                {/* Profile */}
+                <Link href="/Dashboard/Profile">
+                  <div
+                    className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
                       isActiveRoute("/Dashboard/Profile")
                         ? "bg-indigo-400/10 text-indigo-400 shadow-lg border border-white/20"
                         : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
@@ -263,22 +276,24 @@ export default function Navbar({isOpen, setIsOpen}) {
                   >
                     {/* Barre indicatrice à gauche */}
                     {isActiveRoute("/Dashboard/Profile") && (
-                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80 animate-pulse"></div>
+                      <div className="absolute left-0 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80"></div>
                     )}
                     
                     {authenticated && user ? (
                       <>
-                        <div className="w-6 h-6 rounded-full overflow-hidden transition-transform duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]">
+                        <div className="w-6 h-6 rounded-full min-w-[24px] flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]">
                           <FaUser className="text-xs text-white" />
                         </div>
-                        <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1 truncate">
+                        <span className="font-medium truncate">
                           Profil
                         </span>
                       </>
                     ) : (
                       <>
-                        <div className="text-lg transition-all duration-300 ease-in-out group-hover:scale-110 min-w-[24px] flex justify-center group-hover:drop-shadow-lg"><FaUser className="text-indigo-400" /></div>
-                        <span className="font-medium transition-transform duration-300 ease-in-out group-hover:translate-x-1">
+                        <div className="text-lg min-w-[24px] flex justify-center">
+                          <FaUser className="text-indigo-400" />
+                        </div>
+                        <span className="font-medium">
                           Profil
                         </span>
                       </>
@@ -288,104 +303,131 @@ export default function Navbar({isOpen, setIsOpen}) {
                     {isActiveRoute("/Dashboard/Profile") && (
                       <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-indigo-400 rounded-full opacity-60"></div>
                     )}
-                  </Link>
-                </div>
-
-                  {/* Section infos */}
-                  <div className="mt-auto pt-4 border-t border-gray-600/30">
-                    <div className="flex items-center justify-between text-sm text-gray-400">
-                      <span>v1.0.0</span>
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
-                        <span>En ligne</span>
-                      </div>
-                    </div>
-                    
-                    {/* Légende indicateurs */}
-                    <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
-                      <div className="w-1 h-4 bg-blue-400 rounded-full opacity-60"></div>
-                      <span>Page active</span>
+                  </div>
+                </Link>
+                
+                {/* Section infos */}
+                <div className="mt-auto pt-4 border-t border-gray-600/30">
+                  <div className="flex items-center justify-between text-sm text-gray-400">
+                    <span>v1.0.0</span>
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                      <span>En ligne</span>
                     </div>
                   </div>
-                </>
-              )}
+                  
+                  <div className="mt-2 text-xs text-gray-500 flex items-center gap-2">
+                    <div className="w-1 h-4 bg-blue-400 rounded-full opacity-60"></div>
+                    <span>Page active</span>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {!isOpen && (
-              /* Version fermée - icônes uniquement */
               <div className="flex flex-col gap-2 items-center py-4 h-full">
                 <div className="flex flex-col gap-2 items-center flex-1">
                   {filteredNavItems.map((item) => (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                        isActiveRoute(item.href)
-                          ? `${getActiveClasses(item.href)} shadow-lg scale-105`
-                          : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
-                      }`}
-                    >
-                      {/* Barre indicatrice à gauche pour la version fermée */}
-                      {isActiveRoute(item.href) && (
-                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-current rounded-r-full opacity-80 animate-pulse"></div>
-                      )}
-                      
-                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg">{item.icon}</div>
+                    <Link key={item.href} href={item.href}>
+                      <div
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
+                          isActiveRoute(item.href)
+                            ? `${getActiveClasses(item.href)} shadow-lg ring-2 ring-current ring-opacity-50`
+                            : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
+                        }`}
+                      >
+                        {/* Barre indicatrice à gauche */}
+                        {isActiveRoute(item.href) && (
+                          <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-2 h-10 bg-current rounded-r-full opacity-90 shadow-lg"></div>
+                        )}
+                        
+                        {/* Point indicateur en haut à droite */}
+                        {isActiveRoute(item.href) && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-current rounded-full opacity-80 shadow-sm animate-pulse"></div>
+                        )}
+                        
+                        <div className="text-lg">
+                          {item.icon}
+                        </div>
+                      </div>
                     </Link>
                   ))}
                   
                   {/* Paramètres en bas */}
                   <div className="mt-auto mb-2">
-                    <Link
-                      href="/Dashboard/Parametres"
-                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                        isActiveRoute("/Dashboard/Parametres")
-                          ? "bg-gray-400/10 text-gray-400 shadow-lg scale-105"
-                          : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
-                      }`}
-                    >
-                      {/* Barre indicatrice à gauche */}
-                      {isActiveRoute("/Dashboard/Parametres") && (
-                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-gray-400 rounded-r-full opacity-80 animate-pulse"></div>
-                      )}
-                      
-                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaCog className="text-gray-400" /></div>
+                    <Link href="/Dashboard/Parametres">
+                      <div
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
+                          isActiveRoute("/Dashboard/Parametres")
+                            ? "bg-gray-400/10 text-gray-400 shadow-lg ring-2 ring-gray-400 ring-opacity-50"
+                            : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
+                        }`}
+                      >
+                        {/* Barre indicatrice à gauche */}
+                        {isActiveRoute("/Dashboard/Parametres") && (
+                          <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-2 h-10 bg-gray-400 rounded-r-full opacity-90 shadow-lg"></div>
+                        )}
+                        
+                        {/* Point indicateur en haut à droite */}
+                        {isActiveRoute("/Dashboard/Parametres") && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-gray-400 rounded-full opacity-80 shadow-sm animate-pulse"></div>
+                        )}
+                        
+                        <div className="text-lg">
+                          <FaCog className="text-gray-400" />
+                        </div>
+                      </div>
                     </Link>
                   </div>
                 </div>
                 
-                {/* Photo de profil en bas quand connecté */}
+                {/* Photo de profil en bas */}
                 <div className="mb-4">
                   {authenticated && user ? (
-                    <Link
-                      href="/Dashboard/Profile"
-                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg overflow-hidden border-2 ${
-                        isActiveRoute("/Dashboard/Profile")
-                          ? "border-indigo-400/80 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] scale-105 shadow-lg"
-                          : "border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
-                      }`}
-                    >
-                      {/* Barre indicatrice à gauche */}
-                      {isActiveRoute("/Dashboard/Profile") && (
-                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80 animate-pulse"></div>
-                      )}
-                      
-                      <FaUser className="text-lg text-white" />
+                    <Link href="/Dashboard/Profile">
+                      <div
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 overflow-hidden border-2 ${
+                          isActiveRoute("/Dashboard/Profile")
+                            ? "border-indigo-400/80 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] shadow-lg ring-2 ring-indigo-400 ring-opacity-50"
+                            : "border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
+                        }`}
+                      >
+                        {/* Barre indicatrice à gauche */}
+                        {isActiveRoute("/Dashboard/Profile") && (
+                          <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-2 h-10 bg-indigo-400 rounded-r-full opacity-90 shadow-lg"></div>
+                        )}
+                        
+                        {/* Point indicateur en haut à droite */}
+                        {isActiveRoute("/Dashboard/Profile") && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full opacity-80 shadow-sm animate-pulse"></div>
+                        )}
+                        
+                        <FaUser className="text-lg text-white" />
+                      </div>
                     </Link>
                   ) : (
-                    <Link
-                      href="/Dashboard/Profile"
-                      className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-300 ease-in-out transform hover:scale-110 hover:shadow-lg ${
-                        isActiveRoute("/Dashboard/Profile")
-                          ? "bg-indigo-400/10 text-indigo-400 shadow-lg scale-105"
-                          : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
-                      }`}
-                    >
-                      {/* Barre indicatrice à gauche */}
-                      {isActiveRoute("/Dashboard/Profile") && (
-                        <div className="absolute -left-1 top-1/2 transform -translate-y-1/2 w-1 h-8 bg-indigo-400 rounded-r-full opacity-80 animate-pulse"></div>
-                      )}
-                      
-                      <div className="text-lg transition-all duration-300 ease-in-out group-hover:drop-shadow-lg"><FaUser className="text-indigo-400 text-lg" /></div>
+                    <Link href="/Dashboard/Profile">
+                      <div
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
+                          isActiveRoute("/Dashboard/Profile")
+                            ? "bg-indigo-400/10 text-indigo-400 shadow-lg ring-2 ring-indigo-400 ring-opacity-50"
+                            : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
+                        }`}
+                      >
+                        {/* Barre indicatrice à gauche */}
+                        {isActiveRoute("/Dashboard/Profile") && (
+                          <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-2 h-10 bg-indigo-400 rounded-r-full opacity-90 shadow-lg"></div>
+                        )}
+                        
+                        {/* Point indicateur en haut à droite */}
+                        {isActiveRoute("/Dashboard/Profile") && (
+                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full opacity-80 shadow-sm animate-pulse"></div>
+                        )}
+                        
+                        <div className="text-lg">
+                          <FaUser className="text-indigo-400 text-lg" />
+                        </div>
+                      </div>
                     </Link>
                   )}
                 </div>

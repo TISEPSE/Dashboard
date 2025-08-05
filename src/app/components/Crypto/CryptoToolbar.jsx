@@ -129,13 +129,6 @@ const CryptoToolbar = ({
 
           </div>
 
-          {/* Status */}
-          <div className="flex items-center gap-2 bg-gradient-to-r from-[#2a2d3e] to-[#252837] px-4 py-2 rounded-lg border border-gray-600/30">
-            <div className={`w-2 h-2 rounded-full ${loading ? "bg-yellow-400 animate-pulse" : isRetrying ? "bg-orange-400 animate-pulse" : "bg-green-400"}`}></div>
-            <span className="text-sm font-medium text-gray-300">
-              {loading ? "Chargement..." : isRetrying ? `Retry ${retryCount}` : "En ligne"}
-            </span>
-          </div>
         </div>
 
         {/* Mobile - Nouveau design avec slider horizontal */}

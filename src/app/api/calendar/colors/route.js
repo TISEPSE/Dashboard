@@ -1,21 +1,28 @@
 import { NextResponse } from 'next/server'
-import { getServerSession } from 'next-auth/next'
-import { authOptions } from '../../auth/[...nextauth]/route'
 import { google } from 'googleapis'
 
 export async function GET(request) {
   try {
-    const session = await getServerSession(authOptions)
+    // Vérifier l'authentification via le cookie custom
+    const authCookie = request.cookies.get('auth-session')
+    let sessionData = null
     
+    if (authCookie) {
+      try {
+        sessionData = JSON.parse(decodeURIComponent(authCookie.value))
+      } catch (parseError) {
+        console.error('❌ [COLORS-API] Erreur parsing session:', parseError)
+      }
+    }
     
-    if (!session?.accessToken || session?.error === "RefreshAccessTokenError") {
+    if (!sessionData || !sessionData.accessToken || Date.now() > sessionData.expiresAt) {
       return NextResponse.json({ error: "Session expirée - reconnectez-vous", needsReauth: true }, { status: 401 })
     }
 
     
     const response = await fetch('https://www.googleapis.com/calendar/v3/colors', {
       headers: {
-        'Authorization': `Bearer ${session.accessToken}`,
+        'Authorization': `Bearer ${sessionData.accessToken}`,
         'Content-Type': 'application/json'
       }
     })
@@ -46,7 +53,7 @@ export async function GET(request) {
       )
       
       oauth2Client.setCredentials({
-        access_token: session.accessToken
+        access_token: sessionData.accessToken
       })
       
       const calendar = google.calendar({ version: 'v3', auth: oauth2Client })

@@ -35,8 +35,15 @@ export const useCalendar = () => {
   const [loadingEvents, setLoadingEvents] = useState(false)
   const [syncStatus, setSyncStatus] = useState('idle') // 'idle', 'syncing', 'success', 'error'
   const [notification, setNotification] = useState(null)
-  const { user, authenticated } = useAuth()
+  const { user, authenticated, accessToken } = useAuth()
   const db = getDatabaseAdapter()
+
+  // Mettre à jour le token d'accès dans l'adaptateur quand il change
+  useEffect(() => {
+    if (db.isElectronApp() && accessToken) {
+      db.setAccessToken(accessToken)
+    }
+  }, [accessToken, db])
 
   // Fonction pour afficher une notification
   const showNotification = useCallback((message, type = 'success') => {
@@ -51,48 +58,88 @@ export const useCalendar = () => {
 
   // Charger les événements depuis la base de données (SQLite local ou API)
   const loadEvents = useCallback(async (timeMin, timeMax) => {
-    console.log('🔄 [CLIENT] Chargement des événements...', { timeMin, timeMax, authenticated })
+    console.log('🔄 [CLIENT] Chargement des événements...', { timeMin, timeMax, authenticated, isElectron: db.isElectronApp() })
     setLoadingEvents(true)
+    
     try {
       const events = await db.getCalendarEvents(timeMin, timeMax)
-      console.log('📅 [CLIENT] Événements reçus:', events)
+      console.log('📅 [CLIENT] Événements reçus:', events?.length || 0)
+      
+      // Validation et nettoyage des événements
+      const validEvents = (events || []).filter(event => {
+        return event && event.id && event.summary && (event.start || event.end)
+      })
+      
+      if (validEvents.length !== (events?.length || 0)) {
+        console.warn('⚠️ [CLIENT] Certains événements ignorés (données invalides)')
+      }
       
       // Trier les événements par date
-      const sortedEvents = events.sort((a, b) => 
-        new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
-      )
+      const sortedEvents = validEvents.sort((a, b) => {
+        const dateA = new Date(a.start?.dateTime || a.start?.date)
+        const dateB = new Date(b.start?.dateTime || b.start?.date)
+        return dateA - dateB
+      })
       
       setEvents(sortedEvents)
       console.log('✅ [CLIENT] Événements triés et mis à jour:', sortedEvents.length)
       
-      // Afficher un message informatif si aucun événement n'est trouvé
-      if (sortedEvents.length === 0) {
-        console.log('⚠️ [CLIENT] Aucun événement trouvé')
-        showNotification('Aucun événement trouvé. Connectez-vous à Google pour synchroniser vos événements.', 'info')
-      } else {
-        // Compter les événements par source
-        const googleEvents = sortedEvents.filter(e => e.source === 'google').length
-        const localEvents = sortedEvents.filter(e => e.source !== 'google').length
-        
+      // Statistiques en mode Electron
+      if (db.isElectronApp() && sortedEvents.length > 0) {
+        const googleEvents = sortedEvents.filter(e => e.source === 'google' || e.google_id).length
+        const localEvents = sortedEvents.length - googleEvents
         console.log(`📊 [CLIENT] Google: ${googleEvents}, Local: ${localEvents}`)
-        
-        // Notification supprimée - synchronisation silencieuse
       }
+      
+      // Notification silencieuse - pas de message si pas d'événements en mode Electron
+      if (sortedEvents.length === 0 && !db.isElectronApp()) {
+        showNotification('Aucun événement trouvé. Connectez-vous à Google pour synchroniser vos événements.', 'info')
+      }
+      
     } catch (error) {
       console.error('❌ [CLIENT] Erreur lors du chargement des événements:', error)
       
-      // Gérer spécifiquement les erreurs d'authentification
-      if (error.message?.includes('Session expirée') || error.message?.includes('needsReauth')) {
-        showNotification('Session Google expirée. Reconnectez-vous pour voir vos événements.', 'warning')
+      // Gestion d'erreur plus robuste
+      if (db.isElectronApp()) {
+        // En mode Electron, les erreurs sont moins critiques car on a SQLite comme fallback
+        console.log('📴 [CLIENT] Mode Electron - continuera avec les événements locaux')
+        // Ne pas afficher d'erreur intrusive, juste un warning en console
       } else {
-        showNotification('Erreur lors du chargement des événements', 'error')
+        // En mode web, afficher les erreurs appropriées
+        if (error.message?.includes('Session expirée') || error.message?.includes('needsReauth')) {
+          showNotification('Session Google expirée. Reconnectez-vous pour voir vos événements.', 'warning')
+        } else if (error.message?.includes('fetch')) {
+          showNotification('Problème de connexion. Vérifiez votre réseau.', 'warning')
+        } else {
+          showNotification('Erreur lors du chargement des événements', 'error')
+        }
       }
       
-      setEvents([])
+      // En cas d'erreur, conserver les événements existants ou vider si nécessaire
+      if (!db.isElectronApp()) {
+        setEvents([])
+      }
     } finally {
       setLoadingEvents(false)
     }
-  }, [db, showNotification, user])
+  }, [db, showNotification, user, authenticated])
+
+  // Écouter les événements de rechargement depuis le debug
+  useEffect(() => {
+    const handleCalendarRefresh = () => {
+      console.log('🔄 [CLIENT] Rechargement déclenché par debug')
+      // Recharger avec une plage très large pour inclure tous les événements
+      const now = new Date()
+      const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+      const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+      loadEvents(oneYearAgo.toISOString(), oneYearLater.toISOString())
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('calendar-refresh', handleCalendarRefresh)
+      return () => window.removeEventListener('calendar-refresh', handleCalendarRefresh)
+    }
+  }, [loadEvents])
 
   // Ajouter un événement
   const addEvent = useCallback(async (eventData) => {
@@ -102,16 +149,58 @@ export const useCalendar = () => {
         userId: user?.id || 'anonymous'
       })
       
-      // Mettre à jour l'état local
-      setEvents(prev => [...prev, newEvent].sort((a, b) => 
-        new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
-      ))
+      console.log('✅ [CLIENT] Événement ajouté:', newEvent)
+      
+      // Forcer le rechargement des événements depuis la base pour s'assurer que tout est synchronisé
+      if (db.isElectronApp()) {
+        try {
+          // En mode Electron, recharger depuis SQLite pour obtenir la version complète avec l'ID correct
+          const now = new Date()
+          const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
+          const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
+          
+          console.log('🔄 [CLIENT] Rechargement événements après ajout - plage étendue:', {
+            from: oneYearAgo.toISOString(),
+            to: oneYearLater.toISOString()
+          })
+          
+          // Vider le cache pour forcer le rechargement
+          db.clearCache('calendar_events')
+          
+          // Recharger les événements avec une plage plus large
+          const refreshedEvents = await db.getCalendarEvents(oneYearAgo.toISOString(), oneYearLater.toISOString())
+          
+          const validEvents = (refreshedEvents || []).filter(event => {
+            return event && event.id && event.summary && (event.start || event.end)
+          })
+          
+          const sortedEvents = validEvents.sort((a, b) => {
+            const dateA = new Date(a.start?.dateTime || a.start?.date)
+            const dateB = new Date(b.start?.dateTime || b.start?.date)
+            return dateA - dateB
+          })
+          
+          setEvents(sortedEvents)
+          console.log('🔄 [CLIENT] Événements rechargés après ajout:', sortedEvents.length)
+        } catch (refreshError) {
+          console.warn('⚠️ [CLIENT] Erreur rechargement, mise à jour état local uniquement:', refreshError)
+          // Fallback: mise à jour de l'état local uniquement
+          setEvents(prev => [...prev, newEvent].sort((a, b) => 
+            new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+          ))
+        }
+      } else {
+        // Mode web: mise à jour de l'état local
+        setEvents(prev => [...prev, newEvent].sort((a, b) => 
+          new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+        ))
+      }
       
       const contextMessage = db.isElectronApp() ? 'localement' : 'avec succès'
       showNotification(`Événement ajouté ${contextMessage}`, 'success')
       return newEvent
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de l\'événement:', error)
+      console.error('❌ [CLIENT] Erreur lors de l\'ajout de l\'événement:', error)
       showNotification('Erreur lors de l\'ajout de l\'événement', 'error')
       throw error
     }

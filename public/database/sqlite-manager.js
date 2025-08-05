@@ -298,13 +298,15 @@ class SQLiteManager {
     }
   }
 
-  removeCryptoFavorite(id) {
+  removeCryptoFavorite(symbol) {
     try {
-      const stmt = this.db.prepare('DELETE FROM crypto_favorites WHERE id = ?');
-      const result = stmt.run(id);
+      console.log('🗑️ [SQLITE] Suppression favori par symbol:', symbol);
+      const stmt = this.db.prepare('DELETE FROM crypto_favorites WHERE symbol = ?');
+      const result = stmt.run(symbol.toLowerCase());
+      console.log('🗑️ [SQLITE] Résultat suppression:', result.changes, 'lignes affectées');
       return result.changes > 0;
     } catch (error) {
-      console.error('Erreur suppression favori crypto:', error);
+      console.error('❌ [SQLITE] Erreur suppression favori crypto:', error);
       throw error;
     }
   }

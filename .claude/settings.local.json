@@ -4,7 +4,12 @@
     "allow": [
       "WebFetch(domain:www.schemecolor.com)",
       "Bash(npm run electron:build:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(npm run build:*)",
+      "Bash(timeout 10 npm run dev)",
+      "Bash(rm:*)",
+      "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\Dashboard\\src\\app\\components\\DebugCalendar.jsx\")",
+      "Bash(powershell Remove-Item:*)"
     ],
     "deny": []
   },

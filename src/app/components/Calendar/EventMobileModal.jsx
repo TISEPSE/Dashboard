@@ -16,7 +16,8 @@ import {
     FaChevronUp,
     FaAlignLeft,
     FaStar,
-    FaArrowLeft
+    FaArrowLeft,
+    FaExclamationTriangle
 } from "react-icons/fa"
 
 export default function EventMobileModal({ 
@@ -29,6 +30,7 @@ export default function EventMobileModal({
     getColor 
 }) {
     const [showFullDescription, setShowFullDescription] = useState(false)
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
     // Bloquer le scroll de l'arrière-plan quand le modal est ouvert
     useEffect(() => {
@@ -98,6 +100,20 @@ export default function EventMobileModal({
     const description = event.description || event.summary || ''
     const isLongDescription = description.length > 120
 
+    const handleDelete = async () => {
+        if (onDelete) {
+            try {
+                await onDelete(event.id)
+                setShowDeleteConfirm(false)
+                onClose()
+                // Forcer le rafraîchissement de la page
+                window.location.reload()
+            } catch (error) {
+                console.error('Erreur suppression événement:', error)
+            }
+        }
+    }
+
     return (
         <AnimatePresence>
             {isOpen && (
@@ -111,7 +127,7 @@ export default function EventMobileModal({
                         onClick={onClose}
                     />
 
-                    {/* Modal - Plein écran mobile, centré desktop */}
+                    {/* Modal - Plein écran mobile, centré dans l'espace disponible sur desktop */}
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0, y: 20 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -122,7 +138,7 @@ export default function EventMobileModal({
                             stiffness: 300,
                             duration: 0.3 
                         }}
-                        className="fixed inset-0 md:inset-6 md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-4xl md:h-[82vh] bg-gradient-to-br from-[#1e293b] to-[#0f172a] md:rounded-3xl shadow-2xl z-50 flex flex-col"
+                        className="fixed inset-0 md:fixed md:inset-0 md:ml-16 lg:ml-64 md:flex md:items-center md:justify-center bg-gradient-to-br from-[#1e293b] to-[#0f172a] md:rounded-3xl shadow-2xl z-50 flex flex-col md:w-auto md:h-auto md:max-w-4xl md:max-h-[85vh] md:mx-4"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
@@ -158,7 +174,7 @@ export default function EventMobileModal({
                                     Modifier
                                 </button>
                                 <button
-                                    onClick={() => onDelete && onDelete(event.id)}
+                                    onClick={() => setShowDeleteConfirm(true)}
                                     className="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
                                 >
                                     <FaTrash className="w-3 h-3" />
@@ -298,7 +314,7 @@ export default function EventMobileModal({
                             </button>
                             
                             <button
-                                onClick={() => onDelete && onDelete(event.id)}
+                                onClick={() => setShowDeleteConfirm(true)}
                                 className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2.5 px-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm"
                             >
                                 <FaTrash className="w-3.5 h-3.5" />
@@ -306,6 +322,77 @@ export default function EventMobileModal({
                             </button>
                         </div>
                     </motion.div>
+
+                    {/* Modal de confirmation de suppression */}
+                    <AnimatePresence>
+                        {showDeleteConfirm && (
+                            <>
+                                {/* Overlay supplémentaire */}
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="fixed inset-0 bg-black/80 backdrop-blur-sm z-60"
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                />
+
+                                {/* Modal de confirmation */}
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                                    exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                    transition={{ 
+                                        type: "spring", 
+                                        damping: 25,
+                                        stiffness: 300,
+                                        duration: 0.2 
+                                    }}
+                                    className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl shadow-2xl z-60 p-6 w-[90%] max-w-md mx-auto"
+                                    onClick={(e) => e.stopPropagation()}
+                                >
+                                    <div className="text-center">
+                                        {/* Icône d'avertissement */}
+                                        <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+                                            <FaExclamationTriangle className="w-6 h-6 text-red-600" />
+                                        </div>
+
+                                        {/* Titre */}
+                                        <h3 className="text-lg font-semibold text-white mb-2">
+                                            Confirmer la suppression
+                                        </h3>
+
+                                        {/* Message */}
+                                        <p className="text-slate-300 mb-6">
+                                            Êtes-vous sûr de vouloir supprimer cet événement ? Cette action est irréversible.
+                                        </p>
+
+                                        {/* Nom de l'événement */}
+                                        <div className="bg-slate-700/50 rounded-lg p-3 mb-6">
+                                            <p className="text-white font-medium text-sm">
+                                                "{event.summary}"
+                                            </p>
+                                        </div>
+
+                                        {/* Boutons */}
+                                        <div className="flex gap-3">
+                                            <button
+                                                onClick={() => setShowDeleteConfirm(false)}
+                                                className="flex-1 px-4 py-2.5 bg-slate-600 hover:bg-slate-500 text-white rounded-lg font-medium transition-all duration-200"
+                                            >
+                                                Annuler
+                                            </button>
+                                            <button
+                                                onClick={handleDelete}
+                                                className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-all duration-200"
+                                            >
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </>
+                        )}
+                    </AnimatePresence>
                 </>
             )}
         </AnimatePresence>

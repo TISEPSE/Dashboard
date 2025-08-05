@@ -1,18 +1,18 @@
-import { useSession, signIn, signOut } from 'next-auth/react'
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { FaUser } from 'react-icons/fa'
+import { useAuth } from '../../context/AuthContext'
 
 export default function AuthButton({ setIsOpen }) {
-  const { data: session, status } = useSession()
+  const { user, authenticated, loading, signIn, signOut } = useAuth()
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
 
   const handleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signIn('google')
+      signIn()
     } catch (error) {
       console.error('Erreur de connexion:', error)
     } finally {
@@ -31,7 +31,7 @@ export default function AuthButton({ setIsOpen }) {
     }
   }
 
-  if (status === 'loading') {
+  if (loading) {
     return (
       <div className="flex items-center gap-2 bg-[#2a2d3e] px-3 py-2 rounded-lg border border-gray-600/30">
         <div className="w-4 h-4 bg-blue-500 rounded-full animate-pulse"></div>
@@ -40,7 +40,7 @@ export default function AuthButton({ setIsOpen }) {
     )
   }
 
-  if (session) {
+  if (authenticated && user) {
     return (
       <div className="w-full">
         <Link
@@ -56,8 +56,8 @@ export default function AuthButton({ setIsOpen }) {
               <span className="text-base">👤</span>
             </div>
             <div className="min-w-0 flex-1">
-              <div className="text-sm font-medium text-white truncate group-hover:translate-x-0.5 transition-transform duration-300">{session.user.name}</div>
-              <div className="text-xs text-gray-400 truncate">{session.user.email}</div>
+              <div className="text-sm font-medium text-white truncate group-hover:translate-x-0.5 transition-transform duration-300">{user.name}</div>
+              <div className="text-xs text-gray-400 truncate">{user.email}</div>
             </div>
           </div>
         </Link>
