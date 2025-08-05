@@ -5,7 +5,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { FaBars, FaBitcoin, FaComments, FaCloudSun, FaHeartbeat, FaChartLine, FaCalendarAlt, FaUser, FaCog, FaHome } from "react-icons/fa"
 import { motion, AnimatePresence } from "framer-motion"
-import { useSession } from 'next-auth/react'
+import { useAuth } from '../context/AuthContext'
 import { useNavbarPreferences } from '../hooks/useNavbarPreferences'
 
 export default function MobileNavbar() {
@@ -16,7 +16,7 @@ export default function MobileNavbar() {
   const [lastTap, setLastTap] = useState(0)
   const [showHints, setShowHints] = useState(true)
   const pathname = usePathname()
-  const { data: session } = useSession()
+  const { user, authenticated } = useAuth()
   const { getFilteredNavItems, isLoaded } = useNavbarPreferences()
   
   // Cacher le bouton flottant sur la page calendrier car il a sa propre barre d'outils
@@ -346,7 +346,7 @@ export default function MobileNavbar() {
                         <div className="absolute inset-0 rounded-2xl border-2 border-blue-400/30 animate-pulse scale-110"></div>
                       )}
                       
-                      {item.isProfile && session ? (
+                      {item.isProfile && authenticated && user ? (
                         <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] ${
                           pathname === item.href 
                             ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
@@ -354,7 +354,7 @@ export default function MobileNavbar() {
                         }`}>
                           {session.user.image ? (
                             <img 
-                              src={session.user.image} 
+                              src={user.image} 
                               alt="Profil"
                               className="w-full h-full object-cover"
                             />
@@ -415,15 +415,15 @@ export default function MobileNavbar() {
                           <div className="absolute inset-0 rounded-xl border-2 border-blue-400/30 animate-pulse scale-110"></div>
                         )}
                         
-                        {item.isProfile && session ? (
+                        {item.isProfile && authenticated && user ? (
                           <div className={`w-8 h-8 rounded-full overflow-hidden transition-all duration-300 relative z-10 flex items-center justify-center bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] ${
                             pathname === item.href 
                               ? 'drop-shadow-[0_0_8px_rgba(59,130,246,0.6)] filter brightness-110' 
                               : 'group-hover:scale-110'
                           }`}>
-                            {session.user.image ? (
+                            {user.image ? (
                               <img 
-                                src={session.user.image} 
+                                src={user.image} 
                                 alt="Profil"
                                 className="w-full h-full object-cover"
                               />

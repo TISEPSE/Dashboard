@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 
 const GoogleSignInButton = ({ 
   children = "Se connecter avec Google",
@@ -14,10 +13,10 @@ const GoogleSignInButton = ({
   const handleSignIn = async () => {
     setIsLoading(true)
     try {
-      await signIn('google')
+      // Redirect to custom Google OAuth endpoint
+      window.location.href = '/api/auth/google'
     } catch (error) {
       console.error('Erreur de connexion:', error)
-    } finally {
       setIsLoading(false)
     }
   }

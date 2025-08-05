@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { signIn } from 'next-auth/react'
 
 const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000, needsAuth = false }) => {
   const [shouldRender, setShouldRender] = useState(false)
@@ -109,11 +108,10 @@ const Toast = ({ message, type = 'success', isVisible, onClose, duration = 3000,
                   onClick={async () => {
                     setIsConnecting(true)
                     try {
-                      await signIn('google')
-                      handleClose()
+                      // Redirect to custom Google OAuth endpoint
+                      window.location.href = '/api/auth/google'
                     } catch (error) {
                       console.error('Erreur de connexion:', error)
-                    } finally {
                       setIsConnecting(false)
                     }
                   }}

@@ -149,6 +149,33 @@ export default function Navbar({isOpen, setIsOpen}) {
         </div>
       </div>
 
+      {/* Styles CSS pour les animations */}
+      <style jsx>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        
+        @keyframes slideIn {
+          from { 
+            opacity: 0; 
+            transform: translateX(-20px); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateX(0); 
+          }
+        }
+        
+        .animate-fade-in {
+          animation: fadeIn 0.3s ease-out;
+        }
+        
+        .animate-slide-in {
+          animation: slideIn 0.4s ease-out;
+        }
+      `}</style>
+
       {/* Navigation Desktop */}
       <div
         className={`hidden md:flex fixed top-0 left-0 h-screen z-[60] bg-gradient-to-br from-[#2a2d3e] to-[#212332] text-white flex-col shadow-2xl border-r border-gray-600/30 transition-all duration-300 ease-in-out ${
@@ -187,8 +214,9 @@ export default function Navbar({isOpen, setIsOpen}) {
 
           <button
             onClick={() => setIsOpen(!isOpen)}
-            className="text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-xl cursor-pointer flex-shrink-0 shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200"
+            className="text-white bg-gradient-to-r from-blue-600 to-blue-700 p-3 rounded-xl cursor-pointer flex-shrink-0 shadow-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-200 relative overflow-hidden"
             aria-label={isOpen ? "Fermer la navbar" : "Ouvrir la navbar"}
+            style={{ backfaceVisibility: 'hidden', transform: 'translateZ(0)' }}
           >
             {isOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
           </button>
@@ -204,16 +232,20 @@ export default function Navbar({isOpen, setIsOpen}) {
             }}
           >
             {isOpen && (
-              <div className="flex flex-col gap-2 flex-1">
+              <div className="flex flex-col gap-2 flex-1 animate-fade-in">
                 {/* Navigation items */}
-                {filteredNavItems.map((item) => (
+                {filteredNavItems.map((item, index) => (
                   <Link key={item.href} href={item.href}>
                     <div
-                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group opacity-0 animate-slide-in ${
                         isActiveRoute(item.href)
                           ? `${getActiveClasses(item.href)} shadow-lg border border-white/20`
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
+                      style={{ 
+                        animationDelay: `${index * 50}ms`,
+                        animationFillMode: 'forwards'
+                      }}
                     >
                       {/* Barre indicatrice à gauche */}
                       {isActiveRoute(item.href) && (
@@ -239,11 +271,15 @@ export default function Navbar({isOpen, setIsOpen}) {
                 <div className="mt-auto">
                   <Link href="/Dashboard/Parametres">
                     <div
-                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                      className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group opacity-0 animate-slide-in ${
                         isActiveRoute("/Dashboard/Parametres")
                           ? "bg-gray-400/10 text-gray-400 shadow-lg border border-white/20"
                           : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                       }`}
+                      style={{ 
+                        animationDelay: `${filteredNavItems.length * 50 + 50}ms`,
+                        animationFillMode: 'forwards'
+                      }}
                     >
                       {/* Barre indicatrice à gauche */}
                       {isActiveRoute("/Dashboard/Parametres") && (
@@ -268,11 +304,15 @@ export default function Navbar({isOpen, setIsOpen}) {
                 {/* Profile */}
                 <Link href="/Dashboard/Profile">
                   <div
-                    className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group ${
+                    className={`relative flex items-center gap-3 px-4 py-3 rounded-lg transition-all duration-200 group opacity-0 animate-slide-in ${
                       isActiveRoute("/Dashboard/Profile")
                         ? "bg-indigo-400/10 text-indigo-400 shadow-lg border border-white/20"
                         : "text-gray-200 hover:bg-white/10 hover:text-blue-300"
                     }`}
+                    style={{ 
+                      animationDelay: `${filteredNavItems.length * 50 + 100}ms`,
+                      animationFillMode: 'forwards'
+                    }}
                   >
                     {/* Barre indicatrice à gauche */}
                     {isActiveRoute("/Dashboard/Profile") && (
@@ -325,16 +365,20 @@ export default function Navbar({isOpen, setIsOpen}) {
             )}
 
             {!isOpen && (
-              <div className="flex flex-col gap-2 items-center py-4 h-full">
+              <div className="flex flex-col gap-2 items-center py-4 h-full animate-fade-in">
                 <div className="flex flex-col gap-2 items-center flex-1">
-                  {filteredNavItems.map((item) => (
+                  {filteredNavItems.map((item, index) => (
                     <Link key={item.href} href={item.href}>
                       <div
-                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 opacity-0 animate-slide-in ${
                           isActiveRoute(item.href)
                             ? `${getActiveClasses(item.href)} shadow-lg ring-2 ring-current ring-opacity-50`
                             : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                         }`}
+                        style={{ 
+                          animationDelay: `${index * 40}ms`,
+                          animationFillMode: 'forwards'
+                        }}
                       >
                         {/* Barre indicatrice à gauche */}
                         {isActiveRoute(item.href) && (
@@ -357,11 +401,15 @@ export default function Navbar({isOpen, setIsOpen}) {
                   <div className="mt-auto mb-2">
                     <Link href="/Dashboard/Parametres">
                       <div
-                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 opacity-0 animate-slide-in ${
                           isActiveRoute("/Dashboard/Parametres")
                             ? "bg-gray-400/10 text-gray-400 shadow-lg ring-2 ring-gray-400 ring-opacity-50"
                             : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                         }`}
+                        style={{ 
+                          animationDelay: `${filteredNavItems.length * 40 + 40}ms`,
+                          animationFillMode: 'forwards'
+                        }}
                       >
                         {/* Barre indicatrice à gauche */}
                         {isActiveRoute("/Dashboard/Parametres") && (
@@ -386,11 +434,15 @@ export default function Navbar({isOpen, setIsOpen}) {
                   {authenticated && user ? (
                     <Link href="/Dashboard/Profile">
                       <div
-                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 overflow-hidden border-2 ${
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 overflow-hidden border-2 opacity-0 animate-slide-in ${
                           isActiveRoute("/Dashboard/Profile")
                             ? "border-indigo-400/80 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3] shadow-lg ring-2 ring-indigo-400 ring-opacity-50"
                             : "border-blue-500/50 bg-gradient-to-br from-[#3A6FF8] to-[#2952d3]"
                         }`}
+                        style={{ 
+                          animationDelay: `${filteredNavItems.length * 40 + 80}ms`,
+                          animationFillMode: 'forwards'
+                        }}
                       >
                         {/* Barre indicatrice à gauche */}
                         {isActiveRoute("/Dashboard/Profile") && (
@@ -408,11 +460,15 @@ export default function Navbar({isOpen, setIsOpen}) {
                   ) : (
                     <Link href="/Dashboard/Profile">
                       <div
-                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 ${
+                        className={`relative w-12 h-12 flex items-center justify-center rounded-xl transition-all duration-200 hover:scale-105 opacity-0 animate-slide-in ${
                           isActiveRoute("/Dashboard/Profile")
                             ? "bg-indigo-400/10 text-indigo-400 shadow-lg ring-2 ring-indigo-400 ring-opacity-50"
                             : "text-gray-300 hover:bg-white/10 hover:text-blue-300"
                         }`}
+                        style={{ 
+                          animationDelay: `${filteredNavItems.length * 40 + 80}ms`,
+                          animationFillMode: 'forwards'
+                        }}
                       >
                         {/* Barre indicatrice à gauche */}
                         {isActiveRoute("/Dashboard/Profile") && (
