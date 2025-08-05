@@ -1,0 +1,68 @@
+/* Optimisations GPU pour éviter les erreurs shader */
+
+/* Réduire l'utilisation des backdrop-blur sur les appareils moins puissants */
+@media (max-width: 768px) {
+  .backdrop-blur-sm,
+  .backdrop-blur-md,
+  .backdrop-blur-lg,
+  .backdrop-blur-xl {
+    backdrop-filter: none !important;
+    background-color: rgba(0, 0, 0, 0.8) !important;
+  }
+}
+
+/* Optimiser les animations pour éviter la surcharge GPU */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Forcer l'accélération matérielle uniquement sur les éléments critiques */
+.gpu-optimized {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Limiter les filtres CSS coûteux */
+@supports not (backdrop-filter: blur(10px)) {
+  .backdrop-blur-sm { background-color: rgba(0, 0, 0, 0.8) !important; }
+  .backdrop-blur-md { background-color: rgba(0, 0, 0, 0.85) !important; }
+  .backdrop-blur-lg { background-color: rgba(0, 0, 0, 0.9) !important; }
+  .backdrop-blur-xl { background-color: rgba(0, 0, 0, 0.95) !important; }
+}
+
+/* Optimisation pour les overlays de modals */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: none;
+}
+
+/* Alternative sans GPU pour les navigateurs qui ont des problèmes */
+.no-gpu .backdrop-blur-sm,
+.no-gpu .backdrop-blur-md,
+.no-gpu .backdrop-blur-lg,
+.no-gpu .backdrop-blur-xl {
+  backdrop-filter: none !important;
+  background-color: rgba(0, 0, 0, 0.9) !important;
+}
+
+/* Optimiser les transformations 3D */
+.transform-gpu {
+  transform: translate3d(0, 0, 0);
+}
+
+/* Réduire la complexité des ombres */
+@media (max-width: 768px) {
+  .shadow-lg,
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+  }
+}

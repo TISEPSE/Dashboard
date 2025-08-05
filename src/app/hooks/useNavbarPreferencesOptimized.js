@@ -16,61 +16,102 @@ export function useNavbarPreferences() {
   const loadingRef = useRef(false)
   const isMountedRef = useRef(true)
 
-  // Charger les préférences depuis l'adaptateur de base de données
+  // Vérifier si on peut utiliser le cache global
+  const canUseCache = () => {
+    return globalCache && (Date.now() - globalCacheTime) < CACHE_DURATION
+  }
+
+  // Charger les préférences avec cache global
   useEffect(() => {
     const loadPreferences = async () => {
+      if (loadingRef.current) return
+      loadingRef.current = true
+
       try {
-        
+        // Utiliser le cache global si disponible
+        if (canUseCache() && isMountedRef.current) {
+          setPreferences(globalCache.preferences)
+          setNavbarOrder(globalCache.navbarOrder)
+          setIsLoaded(true)
+          return
+        }
+
         const [loadedPreferences, loadedOrder] = await Promise.all([
           db.getNavbarPreferences(),
           db.getNavbarOrder()
         ])
         
-        
-        setPreferences(loadedPreferences)
-        setNavbarOrder(loadedOrder)
+        if (isMountedRef.current) {
+          // Mettre à jour le cache global
+          globalCache = {
+            preferences: loadedPreferences,
+            navbarOrder: loadedOrder
+          }
+          globalCacheTime = Date.now()
+
+          setPreferences(loadedPreferences)
+          setNavbarOrder(loadedOrder)
+          setIsLoaded(true)
+        }
       } catch (error) {
-        // Erreur lors du chargement
-        // Utiliser les valeurs par défaut en cas d'erreur
-        setPreferences(db.getDefaultNavbarPreferences())
-        setNavbarOrder(db.getDefaultNavbarOrder())
+        if (isMountedRef.current) {
+          // Utiliser les valeurs par défaut en cas d'erreur
+          const defaultPrefs = db.getDefaultNavbarPreferences()
+          const defaultOrder = db.getDefaultNavbarOrder()
+          
+          setPreferences(defaultPrefs)
+          setNavbarOrder(defaultOrder)
+          setIsLoaded(true)
+        }
       } finally {
-        setIsLoaded(true)
+        loadingRef.current = false
       }
     }
 
-    if (!loadingRef.current) {
-      loadingRef.current = true
-      loadPreferences().finally(() => {
-        loadingRef.current = false
-      })
+    loadPreferences()
+
+    // Cleanup
+    return () => {
+      isMountedRef.current = false
     }
-  }, [])
+  }, [db])
 
   // Écouter les changements depuis d'autres instances du hook
   useEffect(() => {
-    const handlePreferencesChange = () => {
-      setUpdateTrigger(prev => prev + 1)
+    const handlePreferencesChange = (event) => {
+      if (!isMountedRef.current) return
+      
+      const { preferences: newPrefs, order: newOrder } = event.detail
+      
+      if (newPrefs) {
+        setPreferences(newPrefs)
+        if (globalCache) globalCache.preferences = newPrefs
+      }
+      if (newOrder) {
+        setNavbarOrder(newOrder)
+        if (globalCache) globalCache.navbarOrder = newOrder
+      }
+      
+      globalCacheTime = Date.now()
     }
 
     window.addEventListener('navbarPreferencesChanged', handlePreferencesChange)
-    
     return () => {
       window.removeEventListener('navbarPreferencesChanged', handlePreferencesChange)
     }
   }, [])
 
   // Toggle une préférence spécifique
-  const togglePreference = async (key) => {
+  const togglePreference = useCallback(async (key) => {
     const newPreferences = {
       ...preferences,
       [key]: !preferences[key]
     }
     
     try {
-      
       // Mettre à jour l'état local immédiatement
       setPreferences(newPreferences)
+      if (globalCache) globalCache.preferences = newPreferences
       
       // Sauvegarder via l'adaptateur
       await db.saveNavbarPreferences(newPreferences)
@@ -81,22 +122,28 @@ export function useNavbarPreferences() {
       })
       window.dispatchEvent(event)
     } catch (error) {
-      // Erreur toggle préférence
       // Restaurer l'état précédent en cas d'erreur
       setPreferences(preferences)
+      if (globalCache) globalCache.preferences = preferences
     }
-  }
+  }, [preferences, db])
 
   // Réinitialiser aux valeurs par défaut
-  const resetToDefault = async () => {
+  const resetToDefault = useCallback(async () => {
     try {
-      
       const defaultPreferences = db.getDefaultNavbarPreferences()
       const defaultOrder = db.getDefaultNavbarOrder()
       
       // Mettre à jour l'état local immédiatement
       setPreferences(defaultPreferences)
       setNavbarOrder(defaultOrder)
+      
+      // Mettre à jour le cache global
+      globalCache = {
+        preferences: defaultPreferences,
+        navbarOrder: defaultOrder
+      }
+      globalCacheTime = Date.now()
       
       // Sauvegarder via l'adaptateur
       await Promise.all([
@@ -112,18 +159,17 @@ export function useNavbarPreferences() {
         }
       })
       window.dispatchEvent(event)
-      
     } catch (error) {
       // Erreur lors de la réinitialisation
     }
-  }
+  }, [db])
 
   // Sauvegarder l'ordre de la navbar
-  const saveNavbarOrder = async (newOrder) => {
+  const saveNavbarOrder = useCallback(async (newOrder) => {
     try {
-      
       // Mettre à jour l'état local immédiatement
       setNavbarOrder(newOrder)
+      if (globalCache) globalCache.navbarOrder = newOrder
       
       // Sauvegarder via l'adaptateur
       await db.saveNavbarOrder(newOrder)
@@ -133,16 +179,15 @@ export function useNavbarPreferences() {
         detail: { order: newOrder }
       })
       window.dispatchEvent(event)
-      
     } catch (error) {
-      // Erreur sauvegarde ordre
       // Restaurer l'état précédent en cas d'erreur
       setNavbarOrder(navbarOrder)
+      if (globalCache) globalCache.navbarOrder = navbarOrder
     }
-  }
+  }, [navbarOrder, db])
 
   // Obtenir les éléments de navigation filtrés et ordonnés selon les préférences
-  const getFilteredNavItems = (allNavItems) => {
+  const getFilteredNavItems = useCallback((allNavItems) => {
     // Créer un mapping href -> item pour un accès rapide
     const itemMap = {}
     allNavItems.forEach(item => {
@@ -167,10 +212,10 @@ export function useNavbarPreferences() {
     })
 
     return orderedItems
-  }
+  }, [navbarOrder, preferences])
 
   // Mapper un href vers une clé de préférence
-  const getPreferenceKey = (href) => {
+  const getPreferenceKey = useCallback((href) => {
     const mapping = {
       '/': 'home',
       '/Dashboard/Crypto': 'crypto',
@@ -183,7 +228,7 @@ export function useNavbarPreferences() {
       '/Dashboard/Parametres': 'parametres'
     }
     return mapping[href] || 'unknown'
-  }
+  }, [])
 
   return {
     preferences,

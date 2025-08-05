@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 
 export function useCryptoData(currency = 'usd', currentPage = 1, sortBy = 'market_cap', sortOrder = 'desc', favorites = [], searchQuery = '') {
   const [cryptos, setCryptos] = useState([])
@@ -10,6 +10,7 @@ export function useCryptoData(currency = 'usd', currentPage = 1, sortBy = 'marke
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [lastFetch, setLastFetch] = useState(null)
   const [cacheStatus, setCacheStatus] = useState('fresh')
+  const fetchingRef = useRef(false)
 
   // Configuration
   const itemsPerPage = 50
@@ -17,6 +18,10 @@ export function useCryptoData(currency = 'usd', currentPage = 1, sortBy = 'marke
   const isPaginationEnabled = true
 
   const fetchCryptoData = useCallback(async (isRetry = false) => {
+    // Éviter les appels simultanés
+    if (fetchingRef.current) return
+    fetchingRef.current = true
+    
     if (isRetry) {
       setIsRetrying(true)
     } else {
@@ -57,32 +62,32 @@ export function useCryptoData(currency = 'usd', currentPage = 1, sortBy = 'marke
       setCacheStatus('fresh')
       setRetryCount(0)
     } catch (err) {
-      console.error('Erreur lors de la récupération des données crypto:', err)
+      // Erreur lors de la récupération des données crypto
       setError(err.message)
       setRetryCount(prev => prev + 1)
     } finally {
       setLoading(false)
       setIsRetrying(false)
       setIsRefreshing(false)
+      fetchingRef.current = false
     }
   }, [currency, currentPage, sortBy, sortOrder, searchQuery])
 
-  const fetchFavorites = useCallback(() => {
+  // Mémoiser les favoris pour éviter les recalculs
+  const favoriteCryptosData = useMemo(() => {
     if (!favorites.length || !cryptos.length) {
-      setFavoriteCryptos([])
-      return
+      return []
     }
-
-    console.log('🔍 [CRYPTO-DATA] Filtrage des favoris:', { favorites, cryptosCount: cryptos.length })
-
-    // Filtrer les cryptos par leur symbol
-    const favoriteData = cryptos.filter(crypto => 
+    
+    return cryptos.filter(crypto => 
       favorites.includes(crypto.symbol.toLowerCase())
     )
-    
-    console.log('✅ [CRYPTO-DATA] Favoris trouvés:', favoriteData.length, favoriteData.map(c => c.symbol))
-    setFavoriteCryptos(favoriteData)
   }, [favorites, cryptos])
+  
+  // Mettre à jour l'état uniquement quand les données changent
+  useEffect(() => {
+    setFavoriteCryptos(favoriteCryptosData)
+  }, [favoriteCryptosData])
 
   const refetch = useCallback((isRetry = false) => {
     fetchCryptoData(isRetry)
@@ -93,10 +98,7 @@ export function useCryptoData(currency = 'usd', currentPage = 1, sortBy = 'marke
     fetchCryptoData()
   }, [fetchCryptoData])
 
-  // Charger les favoris quand ils changent ou quand les cryptos sont chargés
-  useEffect(() => {
-    fetchFavorites()
-  }, [fetchFavorites])
+  // Ancien useEffect pour fetchFavorites supprimé car remplacé par useMemo
 
   return {
     cryptos,
@@ -107,7 +109,7 @@ export function useCryptoData(currency = 'usd', currentPage = 1, sortBy = 'marke
     isRetrying,
     isRefreshing,
     refetch,
-    fetchFavorites,
+    // fetchFavorites supprimé car remplacé par useMemo,
     isPaginationEnabled,
     itemsPerPage,
     maxCryptos,

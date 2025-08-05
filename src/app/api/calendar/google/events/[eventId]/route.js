@@ -11,7 +11,6 @@ export async function PUT(request, { params }) {
       try {
         sessionData = JSON.parse(decodeURIComponent(authCookie.value))
       } catch (parseError) {
-        console.error('❌ [PUT-API] Erreur parsing session:', parseError)
       }
     }
     
@@ -48,7 +47,6 @@ export async function PUT(request, { params }) {
       attendees: eventData.attendees || []
     }
     
-    console.log('🔄 Mise à jour événement dans Google Calendar...', eventId, googleEvent.summary)
     
     // Mettre à jour l'événement dans Google Calendar
     const response = await calendar.events.update({
@@ -59,7 +57,6 @@ export async function PUT(request, { params }) {
     
     const updatedEvent = response.data
     
-    console.log('✅ Événement mis à jour dans Google Calendar:', updatedEvent.id)
     
     // Formater la réponse
     const formattedEvent = {
@@ -89,7 +86,6 @@ export async function PUT(request, { params }) {
     })
 
   } catch (error) {
-    console.error('❌ Erreur mise à jour événement Google Calendar:', error)
     
     // Gérer les erreurs d'authentification
     if (error.code === 401 || error.status === 401) {
@@ -122,7 +118,6 @@ export async function DELETE(request, { params }) {
       try {
         sessionData = JSON.parse(decodeURIComponent(authCookie.value))
       } catch (parseError) {
-        console.error('❌ [DELETE-API] Erreur parsing session:', parseError)
       }
     }
     
@@ -147,7 +142,6 @@ export async function DELETE(request, { params }) {
     
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
     
-    console.log('🗑️ Suppression événement dans Google Calendar...', eventId)
     
     // Supprimer l'événement dans Google Calendar
     await calendar.events.delete({
@@ -155,7 +149,6 @@ export async function DELETE(request, { params }) {
       eventId: eventId
     })
     
-    console.log('✅ Événement supprimé dans Google Calendar:', eventId)
     
     return NextResponse.json({
       message: "Événement supprimé dans Google Calendar avec succès",
@@ -163,7 +156,6 @@ export async function DELETE(request, { params }) {
     })
 
   } catch (error) {
-    console.error('❌ Erreur suppression événement Google Calendar:', error)
     
     // Gérer les erreurs d'authentification
     if (error.code === 401 || error.status === 401) {

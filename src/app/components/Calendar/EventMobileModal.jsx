@@ -109,13 +109,29 @@ export default function EventMobileModal({
                 // Forcer le rafraîchissement de la page
                 window.location.reload()
             } catch (error) {
-                console.error('Erreur suppression événement:', error)
+                // Erreur suppression événement
             }
         }
     }
 
     return (
-        <AnimatePresence>
+        <>
+            <style jsx>{`
+                .custom-scrollbar::-webkit-scrollbar {
+                    width: 6px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-track {
+                    background: transparent;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb {
+                    background-color: rgba(148, 163, 184, 0.3);
+                    border-radius: 3px;
+                }
+                .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+                    background-color: rgba(148, 163, 184, 0.5);
+                }
+            `}</style>
+            <AnimatePresence>
             {isOpen && (
                 <>
                     {/* Overlay */}
@@ -138,63 +154,63 @@ export default function EventMobileModal({
                             stiffness: 300,
                             duration: 0.3 
                         }}
-                        className="fixed inset-0 md:fixed md:inset-0 md:ml-16 lg:ml-64 md:flex md:items-center md:justify-center bg-gradient-to-br from-[#1e293b] to-[#0f172a] md:rounded-3xl shadow-2xl z-50 flex flex-col md:w-auto md:h-auto md:max-w-4xl md:max-h-[85vh] md:mx-4"
+                        className="fixed inset-4 md:inset-16 lg:inset-20 bg-gradient-to-br from-[#1e293b] to-[#0f172a] rounded-3xl shadow-2xl z-50 flex flex-col max-w-none md:max-w-4xl md:mx-auto md:my-auto"
                         onClick={(e) => e.stopPropagation()}
                     >
                         {/* Header */}
-                        <div className="flex items-center justify-between px-3 md:px-4 py-4 bg-slate-900/60 backdrop-blur-md border-b border-slate-700/40 flex-shrink-0 md:rounded-t-3xl">
-                            {/* Bouton retour à gauche - plus vers l'extérieur */}
-                            <div className="flex-1 flex justify-start">
+                        <div className="flex items-center justify-between px-6 py-5 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-md border-b border-slate-700/40 flex-shrink-0 rounded-t-3xl">
+                            {/* Bouton retour à gauche */}
+                            <div className="flex items-center">
                                 <button
                                     onClick={onBack || onClose}
-                                    className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
+                                    className="w-10 h-10 rounded-xl bg-slate-700/50 hover:bg-slate-600/70 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 mr-4"
                                 >
                                     <FaArrowLeft className="w-4 h-4" />
                                 </button>
                             </div>
 
                             {/* Titre centré avec pastille */}
-                            <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-3 flex-1 justify-center">
                                 <div 
-                                    className="w-3 h-3 rounded-full"
+                                    className="w-4 h-4 rounded-full shadow-lg"
                                     style={{ backgroundColor: eventColor.background }}
                                 />
-                                <h2 className="text-xl font-bold text-white">
+                                <h2 className="text-xl md:text-2xl font-bold text-white">
                                     Détails de l'événement
                                 </h2>
                             </div>
 
-                            {/* Desktop: boutons d'action à droite - plus vers l'extérieur */}
-                            <div className="hidden md:flex items-center gap-2 flex-1 justify-end">
+                            {/* Desktop: boutons d'action à droite */}
+                            <div className="hidden md:flex items-center gap-3">
                                 <button
                                     onClick={() => onEdit && onEdit(event)}
-                                    className="px-4 py-2 bg-blue-600/80 hover:bg-blue-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
+                                    className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-sm shadow-lg"
                                 >
-                                    <FaEdit className="w-3 h-3" />
+                                    <FaEdit className="w-4 h-4" />
                                     Modifier
                                 </button>
                                 <button
                                     onClick={() => setShowDeleteConfirm(true)}
-                                    className="px-4 py-2 bg-red-600/80 hover:bg-red-600 text-white rounded-lg font-medium transition-all duration-200 flex items-center gap-2 text-sm"
+                                    className="px-4 py-2.5 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white rounded-xl font-medium transition-all duration-200 flex items-center gap-2 text-sm shadow-lg"
                                 >
-                                    <FaTrash className="w-3 h-3" />
+                                    <FaTrash className="w-4 h-4" />
                                     Supprimer
                                 </button>
                                 <button
                                     onClick={onClose}
-                                    className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 ml-2"
+                                    className="w-10 h-10 rounded-xl bg-slate-700/50 hover:bg-slate-600/70 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200 ml-2"
                                 >
-                                    <FaTimes className="w-4 h-4" />
+                                    <FaTimes className="w-5 h-5" />
                                 </button>
                             </div>
 
-                            {/* Mobile: bouton fermer à droite - plus vers l'extérieur */}
-                            <div className="md:hidden flex-1 flex justify-end">
+                            {/* Mobile: bouton fermer à droite */}
+                            <div className="md:hidden flex items-center">
                                 <button
                                     onClick={onClose}
-                                    className="w-9 h-9 rounded-lg bg-slate-700/50 hover:bg-slate-600/60 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
+                                    className="w-10 h-10 rounded-xl bg-slate-700/50 hover:bg-slate-600/70 flex items-center justify-center text-slate-300 hover:text-white transition-all duration-200"
                                 >
-                                    <FaTimes className="w-4 h-4" />
+                                    <FaTimes className="w-5 h-5" />
                                 </button>
                             </div>
                         </div>
@@ -277,8 +293,8 @@ export default function EventMobileModal({
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <h3 className="text-white font-semibold text-lg mb-3">Participants</h3>
-                                                        <p className="text-white text-sm sm:text-base opacity-70">Pas de participants</p>
+                                                        <h3 className="text-white font-semibold text-xl mb-3">Participants</h3>
+                                                        <p className="text-slate-400 text-base italic">Pas de participants</p>
                                                     </>
                                                 )}
                                             </div>
@@ -286,15 +302,21 @@ export default function EventMobileModal({
                                     </div>
                                 </div>
 
-                                {/* Description - toujours affichée */}
-                                <div className="bg-slate-800/40 rounded-2xl p-6 border border-slate-700/30">
-                                    <div className="flex items-center gap-4">
-                                        <FaAlignLeft className="w-7 h-7 text-purple-400 flex-shrink-0" />
+                                {/* Description */}
+                                <div className="lg:col-span-2 bg-gradient-to-r from-slate-800/60 to-slate-700/40 rounded-2xl p-6 border border-slate-600/30 shadow-lg">
+                                    <div className="flex items-start gap-4">
+                                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
+                                            <FaAlignLeft className="w-6 h-6 text-white" />
+                                        </div>
                                         <div className="flex-1">
-                                            <h3 className="text-white font-semibold text-lg mb-3">Description</h3>
-                                            <p className="text-white leading-relaxed text-sm sm:text-base">
-                                                {description || "Pas de description"}
-                                            </p>
+                                            <h3 className="text-white font-semibold text-xl mb-4">Description</h3>
+                                            <div className="text-slate-200 leading-relaxed text-base">
+                                                {description ? (
+                                                    <p className="whitespace-pre-wrap">{description}</p>
+                                                ) : (
+                                                    <p className="text-slate-400 italic">Pas de description</p>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -303,21 +325,21 @@ export default function EventMobileModal({
 
                         </div>
 
-                        {/* Boutons d'action mobile uniquement - Fixés en bas */}
-                        <div className="md:hidden flex gap-2 px-4 py-3 bg-slate-900/40 border-t border-slate-700/40 backdrop-blur-md flex-shrink-0">
+                        {/* Boutons d'action mobile uniquement */}
+                        <div className="md:hidden flex gap-4 px-6 py-5 bg-gradient-to-r from-slate-900/80 to-slate-800/80 backdrop-blur-md border-t border-slate-600/40 flex-shrink-0 rounded-b-3xl">
                             <button
                                 onClick={() => onEdit && onEdit(event)}
-                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-2.5 px-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                                className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-3 shadow-lg transform hover:scale-105 active:scale-95"
                             >
-                                <FaEdit className="w-3.5 h-3.5" />
+                                <FaEdit className="w-4 h-4" />
                                 Modifier
                             </button>
                             
                             <button
                                 onClick={() => setShowDeleteConfirm(true)}
-                                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2.5 px-3 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 text-sm"
+                                className="flex-1 bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-3 px-4 rounded-xl font-semibold transition-all duration-200 flex items-center justify-center gap-3 shadow-lg transform hover:scale-105 active:scale-95"
                             >
-                                <FaTrash className="w-3.5 h-3.5" />
+                                <FaTrash className="w-4 h-4" />
                                 Supprimer
                             </button>
                         </div>
@@ -395,6 +417,7 @@ export default function EventMobileModal({
                     </AnimatePresence>
                 </>
             )}
-        </AnimatePresence>
+            </AnimatePresence>
+        </>
     )
 }

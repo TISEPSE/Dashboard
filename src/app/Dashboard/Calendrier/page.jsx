@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useCallback, memo } from "react"
 import { useAuth } from "../../context/AuthContext"
 import { motion, AnimatePresence } from "framer-motion"
 import { FaChevronLeft, FaChevronRight, FaPlus, FaCalendarAlt, FaFilter, FaList, FaTh, FaTrash, FaEdit, FaSync, FaCalendarDay, FaCalendarWeek, FaWifi, FaBars } from "react-icons/fa"
@@ -16,7 +16,7 @@ import { useSwipeNavigation } from "../../hooks/useSwipeNavigation"
 import { useColors } from "../../hooks/useColors"
 import Notification from "../../components/Notification"
 
-export default function Calendrier(){
+const Calendrier = memo(function Calendrier(){
     const [isLoading, setIsLoading] = useState(false)
     const [currentDate, setCurrentDate] = useState(new Date())
     const [viewMode, setViewMode] = useState('month') // 'month', 'week', 'day'
@@ -54,33 +54,33 @@ export default function Calendrier(){
     )
 
     // Fonction pour gérer le clic sur un jour (pour mobile et desktop)
-    const handleDayClick = (date) => {
+    const handleDayClick = useCallback((date) => {
         // S'assurer que la date est un objet Date valide
         const validDate = date instanceof Date ? date : new Date(date)
         setSelectedEventDate(validDate)
         // Ouvrir le modal de liste des événements
         setShowDayEvents(true)
-    }
+    }, [])
 
     // Fonction pour ouvrir directement le modal d'édition d'un événement
-    const handleEventClick = (event, date) => {
+    const handleEventClick = useCallback((event, date) => {
         // Utiliser le modal mobile moderne sur toutes les tailles d'écran
         setSelectedEventForModal(event)
         setShowEventMobileModal(true)
-    }
+    }, [])
     
-    const handleEditFromModal = (event) => {
+    const handleEditFromModal = useCallback((event) => {
         setSelectedEvent(event)
         setShowEditEvent(true)
-    }
+    }, [])
     
-    const handleDeleteFromModal = async (eventId) => {
+    const handleDeleteFromModal = useCallback(async (eventId) => {
         try {
             await deleteEvent(eventId)
         } catch (error) {
-            console.error('Erreur lors de la suppression:', error)
+            // Erreur lors de la suppression
         }
-    }
+    }, [deleteEvent])
 
     // Fonction pour retourner vers le modal de liste des événements
     const handleBackToEventsList = () => {
@@ -110,57 +110,63 @@ export default function Calendrier(){
     //     return () => clearTimeout(timer)
     // }, [])
 
-    // Charger les événements (Google + locaux)
-    useEffect(() => {
-        const loadCurrentPeriodEvents = () => {
-            let timeMin, timeMax
-            const now = new Date(currentDate)
+    // Calculer les périodes de temps (mémoisé pour éviter les recalculs)
+    const { timeMin, timeMax } = useMemo(() => {
+        const now = new Date(currentDate)
+        let min, max
+        
+        if (viewMode === 'month') {
+            // Premier jour du mois - étendre pour inclure la semaine précédente
+            min = new Date(now.getFullYear(), now.getMonth(), 1)
+            const firstDayOfWeek = min.getDay()
+            const mondayAdjustment = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
+            min.setDate(min.getDate() - mondayAdjustment)
             
-            if (viewMode === 'month') {
-                // Premier jour du mois - étendre pour inclure la semaine précédente
-                timeMin = new Date(now.getFullYear(), now.getMonth(), 1)
-                const firstDayOfWeek = timeMin.getDay()
-                const mondayAdjustment = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1
-                timeMin.setDate(timeMin.getDate() - mondayAdjustment)
-                
-                // Dernier jour du mois - étendre pour inclure la semaine suivante
-                timeMax = new Date(now.getFullYear(), now.getMonth() + 1, 0)
-                const lastDayOfWeek = timeMax.getDay()
-                timeMax.setDate(timeMax.getDate() + (6 - lastDayOfWeek))
-                
-                // Assurer qu'on va jusqu'à la fin de la journée
-                timeMax.setHours(23, 59, 59, 999)
-            } else if (viewMode === 'week') {
-                // Début de la semaine (lundi)
-                timeMin = new Date(now)
-                const dayOfWeek = now.getDay()
-                const mondayAdjustment = dayOfWeek === 0 ? 6 : dayOfWeek - 1
-                timeMin.setDate(now.getDate() - mondayAdjustment)
-                timeMin.setHours(0, 0, 0, 0)
-                
-                // Fin de la semaine (dimanche)
-                timeMax = new Date(timeMin)
-                timeMax.setDate(timeMin.getDate() + 6)
-                timeMax.setHours(23, 59, 59, 999)
-            } else {
-                // Jour actuel
-                timeMin = new Date(now.getFullYear(), now.getMonth(), now.getDate())
-                timeMin.setHours(0, 0, 0, 0)
-                timeMax = new Date(timeMin)
-                timeMax.setDate(timeMin.getDate() + 1)
-                timeMax.setHours(23, 59, 59, 999)
-            }
-
-            loadEvents(timeMin.toISOString(), timeMax.toISOString())
+            // Dernier jour du mois - étendre pour inclure la semaine suivante
+            max = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+            const lastDayOfWeek = max.getDay()
+            max.setDate(max.getDate() + (6 - lastDayOfWeek))
+            max.setHours(23, 59, 59, 999)
+        } else if (viewMode === 'week') {
+            // Début de la semaine (lundi)
+            min = new Date(now)
+            const dayOfWeek = now.getDay()
+            const mondayAdjustment = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+            min.setDate(now.getDate() - mondayAdjustment)
+            min.setHours(0, 0, 0, 0)
+            
+            // Fin de la semaine (dimanche)
+            max = new Date(min)
+            max.setDate(min.getDate() + 6)
+            max.setHours(23, 59, 59, 999)
+        } else {
+            // Jour actuel
+            min = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+            min.setHours(0, 0, 0, 0)
+            max = new Date(min)
+            max.setDate(min.getDate() + 1)
+            max.setHours(23, 59, 59, 999)
         }
+        
+        return {
+            timeMin: min.toISOString(),
+            timeMax: max.toISOString()
+        }
+    }, [currentDate, viewMode])
 
-        loadCurrentPeriodEvents()
-    }, [currentDate, viewMode, loadEvents])
+    // Charger les événements avec debounce
+    useEffect(() => {
+        const timeoutId = setTimeout(() => {
+            loadEvents(timeMin, timeMax)
+        }, 100) // Debounce de 100ms pour éviter les appels excessifs
+        
+        return () => clearTimeout(timeoutId)
+    }, [timeMin, timeMax, loadEvents])
 
 
 
     // Navigation du calendrier avec animation
-    const navigateDate = (direction) => {
+    const navigateDate = useCallback((direction) => {
         // S'assurer que la direction est claire avant de déclencher l'animation
         setSlideDirection(0) // Reset d'abord
         setTimeout(() => {
@@ -177,13 +183,13 @@ export default function Calendrier(){
             // Reset l'animation après un délai - plus rapide
             setTimeout(() => setSlideDirection(0), 200)
         }, 10) // Petit délai pour éviter les conflits
-    }
+    }, [currentDate, viewMode])
 
     // Aller à aujourd'hui
-    const goToToday = () => {
+    const goToToday = useCallback(() => {
         setSlideDirection(0) // Pas d'animation pour "aller à aujourd'hui"
         setCurrentDate(new Date())
-    }
+    }, [])
     
     // Variantes d'animation pour les slides - avec gestion améliorée
     const getSlideVariants = () => {
@@ -211,13 +217,13 @@ export default function Calendrier(){
     }
 
     // Ouvrir le modal d'ajout d'événement
-    const handleAddEventClick = () => {
+    const handleAddEventClick = useCallback(() => {
         setSelectedEventDate(new Date())
         setShowAddEvent(true)
-    }
+    }, [])
 
-    // Générer le calendrier mensuel (commence par Lundi)
-    const generateMonthCalendar = () => {
+    // Générer le calendrier mensuel (commence par Lundi) - Mémoisé pour éviter les recalculs
+    const generateMonthCalendar = useMemo(() => {
         const year = currentDate.getFullYear()
         const month = currentDate.getMonth()
         const firstDay = new Date(year, month, 1)
@@ -238,37 +244,39 @@ export default function Calendrier(){
         }
         
         return days
-    }
+    }, [currentDate])
 
     // Formater la date pour l'affichage
-    const formatDate = (date) => {
+    const formatDate = useCallback((date) => {
         return date.toLocaleDateString('fr-FR', {
             weekday: 'long',
             year: 'numeric',
             month: 'long',
             day: 'numeric'
         })
-    }
+    }, [])
 
-    const formatMonthYear = (date) => {
+    const formatMonthYear = useCallback((date) => {
         return date.toLocaleDateString('fr-FR', {
             month: 'long',
             year: 'numeric'
         })
-    }
+    }, [])
 
-    const isToday = (date) => {
+    const isToday = useCallback((date) => {
         const today = new Date()
         return date.toDateString() === today.toDateString()
-    }
+    }, [])
 
-    const isCurrentMonth = (date) => {
+    const isCurrentMonth = useCallback((date) => {
         return date.getMonth() === currentDate.getMonth()
-    }
+    }, [currentDate])
 
-    const getEventsForDay = (date) => {
+    const getEventsForDay = useCallback((date) => {
         const filteredEvents = events.filter(event => {
-            if (!event.start || !event.end) return false
+            if (!event.start || !event.end) {
+                return false;
+            }
             
             const eventStart = new Date(event.start?.dateTime || event.start?.date)
             const eventEnd = new Date(event.end?.dateTime || event.end?.date)
@@ -285,7 +293,8 @@ export default function Calendrier(){
             }
             
             // L'événement est visible ce jour si la date est entre le début et la fin (inclus)
-            return checkDate >= startDate && checkDate <= endDate
+            const isVisible = checkDate >= startDate && checkDate <= endDate;
+            return isVisible;
         })
         
         // 🎯 PRIORISER LES ÉVÉNEMENTS MULTI-JOURS pour éviter les bugs d'affichage
@@ -310,19 +319,19 @@ export default function Calendrier(){
             const bStart = new Date(b.start?.dateTime || b.start?.date)
             return aStart - bStart
         })
-    }
+    }, [events])
 
     // Fonction pour déterminer si c'est le premier jour d'un événement multi-jours
-    const isFirstDayOfEvent = (event, date) => {
+    const isFirstDayOfEvent = useCallback((event, date) => {
         if (!event.start) return false
         const eventStart = new Date(event.start?.dateTime || event.start?.date)
         const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         const startDate = new Date(eventStart.getFullYear(), eventStart.getMonth(), eventStart.getDate())
         return startDate.getTime() === checkDate.getTime()
-    }
+    }, [])
 
     // Fonction pour déterminer si c'est le dernier jour d'un événement multi-jours
-    const isLastDayOfEvent = (event, date) => {
+    const isLastDayOfEvent = useCallback((event, date) => {
         if (!event.end) return false
         const eventEnd = new Date(event.end?.dateTime || event.end?.date)
         let endDate = new Date(eventEnd.getFullYear(), eventEnd.getMonth(), eventEnd.getDate())
@@ -334,10 +343,10 @@ export default function Calendrier(){
         
         const checkDate = new Date(date.getFullYear(), date.getMonth(), date.getDate())
         return endDate.getTime() === checkDate.getTime()
-    }
+    }, [])
 
     // Fonction pour déterminer si un événement est multi-jours
-    const isMultiDayEvent = (event) => {
+    const isMultiDayEvent = useCallback((event) => {
         if (!event.start || !event.end) return false
         
         const eventStart = new Date(event.start?.dateTime || event.start?.date)
@@ -351,7 +360,7 @@ export default function Calendrier(){
         }
         
         return endDate.getTime() !== startDate.getTime()
-    }
+    }, [])
 
     // Nouvelle fonction pour gérer les événements multi-jours
     const getMultiDayEvents = (startDate, endDate) => {
@@ -598,7 +607,7 @@ export default function Calendrier(){
 
                             {/* Grille du calendrier moderne sombre - tuiles plus larges */}
                             <div className="grid grid-cols-7 gap-1 sm:gap-2 lg:gap-3">
-                                {generateMonthCalendar().map((date, index) => {
+                                {generateMonthCalendar.map((date, index) => {
                                     const dayEvents = getEventsForDay(date)
                                     const isCurrentDay = isToday(date)
                                     const isInCurrentMonth = isCurrentMonth(date)
@@ -1352,4 +1361,6 @@ export default function Calendrier(){
             
         </div>
     )
-}
+})
+
+export default Calendrier

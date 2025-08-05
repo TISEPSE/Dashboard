@@ -11,9 +11,7 @@ export default function Profile(){
     const { user, authenticated, loading, signIn, signOut } = useAuth()
     const [isSigningOut, setIsSigningOut] = useState(false)
 
-    console.log('🔍 [Profile Debug]', 'Authenticated:', authenticated)
-    console.log('🔍 [Profile Debug]', 'User:', user)
-    console.log('🔍 [Profile Debug]', 'Loading:', loading)
+    // Debug logs supprimés pour les performances
 
     useEffect(() => {
         const timer = setTimeout(() => setIsLoading(false), 1000)
@@ -25,7 +23,7 @@ export default function Profile(){
         try {
             await signOut()
         } catch (error) {
-            console.error('Erreur de déconnexion:', error)
+            // Erreur de déconnexion silencieuse
         } finally {
             setIsSigningOut(false)
         }

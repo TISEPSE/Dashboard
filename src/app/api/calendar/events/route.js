@@ -12,12 +12,8 @@ const getEventsList = () => {
 
 // Fonction pour récupérer les événements Google Calendar
 async function getGoogleCalendarEvents(accessToken, timeMin, timeMax) {
-  console.log('🔍 [SERVER] Session Google Calendar:', { 
-    hasToken: !!accessToken
-  })
   
   if (!accessToken) {
-    console.log('❌ [SERVER] Pas de token d\'accès Google Calendar')
     return []
   }
 
@@ -33,7 +29,6 @@ async function getGoogleCalendarEvents(accessToken, timeMin, timeMax) {
     
     const calendar = google.calendar({ version: 'v3', auth: oauth2Client })
     
-    console.log('🔄 Récupération des événements Google Calendar...', { timeMin, timeMax })
     
     const response = await calendar.events.list({
       calendarId: 'primary',
@@ -45,7 +40,6 @@ async function getGoogleCalendarEvents(accessToken, timeMin, timeMax) {
     })
     
     const events = response.data.items || []
-    console.log(`✅ ${events.length} événements récupérés depuis Google Calendar`)
     
     return events.map(event => ({
       id: event.id,
@@ -68,7 +62,6 @@ async function getGoogleCalendarEvents(accessToken, timeMin, timeMax) {
       source: 'google'
     }))
   } catch (error) {
-    console.error('❌ Erreur récupération Google Calendar:', error)
     return []
   }
 }
@@ -92,11 +85,9 @@ export async function GET(request) {
         if (Date.now() < sessionData.expiresAt) {
           accessToken = sessionData.accessToken
         } else {
-          console.log('🔄 [SERVER] Token expiré, pas d\'événements Google')
         }
       }
     } catch (error) {
-      console.error('❌ [SERVER] Erreur lecture session:', error)
     }
     
     // Récupérer les événements Google Calendar
@@ -128,7 +119,6 @@ export async function GET(request) {
       return dateA - dateB
     })
     
-    console.log(`📊 Total événements retournés: ${allEvents.length} (Google: ${googleEvents.length}, Local: ${filteredLocalEvents.length})`)
     
     return NextResponse.json({
       events: allEvents,
@@ -141,7 +131,6 @@ export async function GET(request) {
     })
 
   } catch (error) {
-    console.error('❌ Erreur GET événements:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
@@ -149,31 +138,37 @@ export async function GET(request) {
 export async function POST(request) {
   try {
     const eventData = await request.json()
+    
     const eventsList = getEventsList()
     
     const newEvent = {
       id: `web_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       summary: eventData.summary,
-      description: eventData.description,
-      location: eventData.location,
-      start: eventData.start,
-      end: eventData.end,
+      description: eventData.description || '',
+      location: eventData.location || '',
+      start: {
+        dateTime: eventData.start,
+        date: null
+      },
+      end: {
+        dateTime: eventData.end, 
+        date: null
+      },
       colorId: eventData.colorId || '1',
-      attendees: eventData.attendees,
+      attendees: eventData.attendees || [],
       created: new Date().toISOString(),
-      updated: new Date().toISOString()
+      updated: new Date().toISOString(),
+      source: 'local'
     }
+    
     
     eventsList.push(newEvent)
     globalThis.eventsList = eventsList
     
-    return NextResponse.json({
-      event: newEvent,
-      message: "Événement créé avec succès"
-    })
+    
+    return NextResponse.json(newEvent)
 
   } catch (error) {
-    console.error('Erreur POST événement:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
@@ -209,7 +204,6 @@ export async function PUT(request) {
     })
 
   } catch (error) {
-    console.error('Erreur PUT événement:', error)
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

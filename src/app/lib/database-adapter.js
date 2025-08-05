@@ -14,13 +14,11 @@ class DatabaseAdapter {
   setupOfflineDetection() {
     if (typeof window !== 'undefined') {
       window.addEventListener('online', () => {
-        console.log('🌐 [NETWORK] Connexion rétablie');
         this.isOnline = true;
         this.onOnline();
       });
       
       window.addEventListener('offline', () => {
-        console.log('❌ [NETWORK] Connexion perdue - mode hors ligne');
         this.isOnline = false;
         this.onOffline();
       });
@@ -30,7 +28,6 @@ class DatabaseAdapter {
   // Callback quand la connexion est rétablie
   async onOnline() {
     if (this.isElectron) {
-      console.log('🔄 [SYNC] Tentative de synchronisation après reconnexion...');
       try {
         // Nettoyer le cache pour forcer une nouvelle synchronisation
         this.clearCache();
@@ -41,22 +38,21 @@ class DatabaseAdapter {
         const oneMonthLater = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
         
         await this.getCalendarEvents(oneMonthAgo.toISOString(), oneMonthLater.toISOString());
-        console.log('✅ [SYNC] Synchronisation post-reconnexion réussie');
       } catch (error) {
-        console.error('❌ [SYNC] Erreur synchronisation post-reconnexion:', error);
+        // Erreur synchronisation post-reconnexion silencieuse
       }
     }
   }
 
   // Callback quand la connexion est perdue
   onOffline() {
-    console.log('📴 [OFFLINE] Mode hors ligne activé - utilisation de SQLite uniquement');
+    // Mode hors ligne activé - utilisation de SQLite uniquement
   }
 
   // Vérifier si une connexion Google est possible
   async canConnectToGoogle() {
     if (!this.isOnline) {
-      console.log('📴 [CONNECTIVITY] Mode hors ligne détecté');
+      // Log supprimé pour performance
       return false;
     }
     
@@ -65,7 +61,7 @@ class DatabaseAdapter {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 secondes timeout pour Electron
       
-      console.log('🔍 [CONNECTIVITY] Test de connexion Google Calendar...');
+      // Log supprimé pour performance
       const headers = {
         'Accept': 'application/json',
         'Content-Type': 'application/json'
@@ -87,17 +83,17 @@ class DatabaseAdapter {
       clearTimeout(timeoutId);
       
       if (response.ok) {
-        console.log('✅ [CONNECTIVITY] Google Calendar accessible');
+        // Log supprimé pour performance
         return true;
       } else {
-        console.warn(`⚠️ [CONNECTIVITY] Google Calendar inaccessible (${response.status})`);
+        // Log supprimé pour performance
         return false;
       }
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.warn('⏰ [CONNECTIVITY] Timeout lors du test de connexion Google');
+        // Log supprimé pour performance
       } else {
-        console.warn('⚠️ [CONNECTIVITY] Erreur test connexion Google:', error.message);
+        // Log supprimé pour performance
       }
       return false;
     }
@@ -112,7 +108,6 @@ class DatabaseAdapter {
   // Définir le token d'accès Google pour Electron
   setAccessToken(token) {
     this.accessToken = token;
-    console.log('🔑 [ADAPTER] Token d\'accès Google défini:', !!token);
   }
 
   // === MÉTHODES CACHE ===
@@ -166,7 +161,7 @@ class DatabaseAdapter {
       this.setCache(cacheKey, preferences);
       return preferences;
     } catch (error) {
-      console.error('Erreur récupération préférences navbar:', error);
+      // Log supprimé pour performance
       return this.getDefaultNavbarPreferences();
     }
   }
@@ -186,7 +181,7 @@ class DatabaseAdapter {
       this.clearCache('navbar_preferences');
       return result;
     } catch (error) {
-      console.error('Erreur sauvegarde préférences navbar:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -210,7 +205,7 @@ class DatabaseAdapter {
       this.setCache(cacheKey, order);
       return order;
     } catch (error) {
-      console.error('Erreur récupération ordre navbar:', error);
+      // Log supprimé pour performance
       return this.getDefaultNavbarOrder();
     }
   }
@@ -230,7 +225,7 @@ class DatabaseAdapter {
       this.clearCache('navbar_order');
       return result;
     } catch (error) {
-      console.error('Erreur sauvegarde ordre navbar:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -256,7 +251,7 @@ class DatabaseAdapter {
       this.setCache(cacheKey, favorites);
       return favorites;
     } catch (error) {
-      console.error('Erreur récupération favoris crypto:', error);
+      // Log supprimé pour performance
       return [];
     }
   }
@@ -276,7 +271,7 @@ class DatabaseAdapter {
       this.clearCache('crypto_favorites');
       return result;
     } catch (error) {
-      console.error('Erreur ajout favori crypto:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -297,7 +292,7 @@ class DatabaseAdapter {
       this.clearCache('crypto_favorites');
       return result;
     } catch (error) {
-      console.error('Erreur suppression favori crypto:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -305,12 +300,10 @@ class DatabaseAdapter {
   // === MÉTHODES CALENDAR EVENTS ===
   
   async getCalendarEvents(timeMin, timeMax) {
-    console.log('🔍 [ADAPTER] getCalendarEvents appelé', { timeMin, timeMax, isElectron: this.isElectron });
     
     const cacheKey = `calendar_events_${timeMin}_${timeMax}`;
     const cached = this.getCached(cacheKey);
     if (cached) {
-      console.log('⚡ [ADAPTER] Données en cache utilisées:', cached.length, 'événements');
       return cached;
     }
 
@@ -319,7 +312,6 @@ class DatabaseAdapter {
       
       if (this.isElectron) {
         // Mode Electron - Approche hybride: Google API + SQLite
-        console.log('🖥️ [ADAPTER] Mode hybride Electron: Google API + SQLite');
         events = await this.getHybridCalendarEvents(timeMin, timeMax);
       } else {
         // Mode Web - API REST
@@ -328,45 +320,42 @@ class DatabaseAdapter {
         if (timeMax) params.append('timeMax', timeMax);
         
         const url = `/api/calendar/events?${params}`;
-        console.log('🌐 [ADAPTER] Appel API:', url);
         
         const response = await fetch(url);
-        console.log('📡 [ADAPTER] Réponse API:', { status: response.status, ok: response.ok });
         
         if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
         const data = await response.json();
-        console.log('📦 [ADAPTER] Données reçues:', data);
         events = data.events || [];
       }
       
-      console.log('📅 [ADAPTER] Événements bruts:', events.length);
       
-      // Convertir les événements au format attendu
-      const formattedEvents = events.map(event => this.formatEvent(event));
-      console.log('✨ [ADAPTER] Événements formatés:', formattedEvents.length);
+      // Convertir les événements au format attendu et filtrer les nulls
+      const formattedEvents = events
+        .filter(event => event && typeof event === 'object' && Object.keys(event).length > 0)
+        .map(event => this.formatEvent(event))
+        .filter(event => event !== null);
       
       this.setCache(cacheKey, formattedEvents);
       return formattedEvents;
     } catch (error) {
-      console.error('❌ [ADAPTER] Erreur récupération événements:', error);
+      // Log supprimé pour performance
       return [];
     }
   }
 
   // Méthode hybride pour Electron: Google API + SQLite
   async getHybridCalendarEvents(timeMin, timeMax) {
-    console.log('🔄 [HYBRID] Démarrage récupération hybride');
+    // Log supprimé pour performance
     
     // 1. Toujours récupérer les événements SQLite d'abord (garantie)
     let sqliteEvents = [];
     try {
       const rawEvents = await window.electronAPI.getCalendarEvents(timeMin, timeMax);
-      console.log('📊 [HYBRID] Événements SQLite bruts récupérés:', rawEvents?.length || 0);
-      console.log('🔍 [HYBRID] Premier événement brut (si existe):', rawEvents?.[0]);
+      // Log supprimé pour performance
       
       sqliteEvents = rawEvents || [];
     } catch (sqliteError) {
-      console.error('❌ [HYBRID] Erreur SQLite:', sqliteError);
+      // Log supprimé pour performance
       sqliteEvents = [];
     }
     
@@ -377,11 +366,11 @@ class DatabaseAdapter {
       
       if (canConnectGoogle) {
         try {
-          console.log('🌐 [HYBRID] Tentative de synchronisation Google Calendar...');
+          // Log supprimé pour performance
           const googleEvents = await this.fetchGoogleCalendarEvents(timeMin, timeMax, this.accessToken);
           
           if (googleEvents && googleEvents.length > 0) {
-            console.log('✅ [HYBRID] Événements Google récupérés:', googleEvents.length);
+            // Log supprimé pour performance
             
             // Synchroniser avec SQLite en arrière-plan
             await this.syncEventsToSQLite(googleEvents, timeMin, timeMax);
@@ -389,23 +378,23 @@ class DatabaseAdapter {
             // Récupérer les événements mis à jour depuis SQLite
             try {
               const updatedEvents = await window.electronAPI.getCalendarEvents(timeMin, timeMax);
-              console.log('📊 [HYBRID] Total événements après sync:', updatedEvents.length);
+              // Log supprimé pour performance
               return updatedEvents;
             } catch (refreshError) {
-              console.warn('⚠️ [HYBRID] Erreur rafraîchissement post-sync, utilisation cache SQLite');
+              // Log supprimé pour performance
               return sqliteEvents;
             }
           } else {
-            console.log('📭 [HYBRID] Aucun événement Google récupéré');
+            // Log supprimé pour performance
           }
         } catch (googleError) {
-          console.warn('⚠️ [HYBRID] Échec récupération Google:', googleError.message);
+          // Log supprimé pour performance
         }
       } else {
-        console.log('🔐 [HYBRID] Google Calendar inaccessible - utilisation SQLite uniquement');
+        // Log supprimé pour performance
       }
     } else {
-      console.log('📴 [HYBRID] Mode hors ligne - utilisation SQLite uniquement');
+      // Log supprimé pour performance
     }
     
     // 3. Retourner les événements SQLite (avec ou sans sync Google)
@@ -415,7 +404,7 @@ class DatabaseAdapter {
   // Récupérer les événements depuis Google Calendar API (pour Electron)
   async fetchGoogleCalendarEvents(timeMin, timeMax, accessToken = null) {
     try {
-      console.log('🌐 [GOOGLE-API] Tentative de récupération depuis Google...');
+      // Log supprimé pour performance
       
       // Construire l'URL avec les paramètres
       const params = new URLSearchParams();
@@ -423,7 +412,7 @@ class DatabaseAdapter {
       if (timeMax) params.append('timeMax', timeMax);
       
       const url = `/api/calendar/google/events?${params}`;
-      console.log('🔗 [GOOGLE-API] URL:', url);
+      // Log supprimé pour performance
       
       // Timeout étendu pour permettre l'authentification Google en Electron
       const controller = new AbortController();
@@ -441,10 +430,10 @@ class DatabaseAdapter {
         
         // En mode Electron, utiliser le token fourni en paramètre
         if (accessToken) {
-          console.log('🔑 [GOOGLE-API] Utilisation du token d\'accès fourni');
+          // Log supprimé pour performance
           headers['x-access-token'] = accessToken;
         } else {
-          console.warn('⚠️ [GOOGLE-API] Aucun token d\'accès fourni pour Electron');
+          // Log supprimé pour performance
         }
       }
       
@@ -456,15 +445,15 @@ class DatabaseAdapter {
       });
       
       clearTimeout(timeoutId);
-      console.log('📡 [GOOGLE-API] Réponse:', { status: response.status, ok: response.ok });
+      // Log supprimé pour performance
       
       if (!response.ok) {
         if (response.status === 401 || response.status === 403) {
-          console.warn('🔐 [GOOGLE-API] Non authentifié/autorisé, utilisation SQLite uniquement');
+          // Log supprimé pour performance
           return [];
         }
         if (response.status >= 500) {
-          console.warn('🔧 [GOOGLE-API] Erreur serveur, utilisation SQLite uniquement');
+          // Log supprimé pour performance
           return [];
         }
         throw new Error(`Erreur Google API: ${response.status}`);
@@ -473,12 +462,12 @@ class DatabaseAdapter {
       const data = await response.json();
       
       if (data.error || data.needsReauth) {
-        console.warn('🔐 [GOOGLE-API] Authentification requise, utilisation SQLite uniquement');
+        // Log supprimé pour performance
         return [];
       }
       
       const events = data.events || [];
-      console.log('✅ [GOOGLE-API] Événements récupérés:', events.length);
+      // Log supprimé pour performance
       
       // Valider les événements reçus
       const validEvents = events.filter(event => {
@@ -486,17 +475,17 @@ class DatabaseAdapter {
       });
       
       if (validEvents.length !== events.length) {
-        console.warn('⚠️ [GOOGLE-API] Certains événements ignorés (données invalides)');
+        // Log supprimé pour performance
       }
       
       return validEvents;
     } catch (error) {
       if (error.name === 'AbortError') {
-        console.warn('⏰ [GOOGLE-API] Timeout - utilisation SQLite uniquement');
+        // Log supprimé pour performance
       } else if (error.name === 'TypeError' && error.message.includes('fetch')) {
-        console.warn('🔌 [GOOGLE-API] Problème de réseau - utilisation SQLite uniquement');
+        // Log supprimé pour performance
       } else {
-        console.error('❌ [GOOGLE-API] Erreur:', error.message);
+        // Log supprimé pour performance
       }
       return [];
     }
@@ -505,12 +494,12 @@ class DatabaseAdapter {
   // Synchroniser les événements Google avec SQLite
   async syncEventsToSQLite(googleEvents, timeMin, timeMax) {
     if (!googleEvents || googleEvents.length === 0) {
-      console.log('📭 [SYNC] Aucun événement Google à synchroniser');
+      // Log supprimé pour performance
       return { syncedCount: 0, updatedCount: 0 };
     }
 
     try {
-      console.log('🔄 [SYNC] Synchronisation de', googleEvents.length, 'événements vers SQLite (mode batch)');
+      // Log supprimé pour performance
       
       // Formater les événements pour SQLite
       const formattedEvents = googleEvents.map(event => ({
@@ -522,10 +511,10 @@ class DatabaseAdapter {
       // Utiliser la synchronisation en lot pour de meilleures performances
       const result = await window.electronAPI.syncGoogleEvents(formattedEvents);
       
-      console.log(`✅ [SYNC] Synchronisation batch terminée:`, result);
+      // Log supprimé pour performance
       return result;
     } catch (error) {
-      console.error('❌ [SYNC] Erreur synchronisation batch, fallback vers sync individuelle:', error);
+      // Log supprimé pour performance
       
       // Fallback vers la synchronisation individuelle en cas d'erreur
       return await this.syncEventsIndividually(googleEvents, timeMin, timeMax);
@@ -535,7 +524,7 @@ class DatabaseAdapter {
   // Méthode de fallback pour synchronisation individuelle
   async syncEventsIndividually(googleEvents, timeMin, timeMax) {
     try {
-      console.log('🔄 [SYNC-INDIVIDUAL] Synchronisation individuelle de', googleEvents.length, 'événements');
+      // Log supprimé pour performance
       
       let syncedCount = 0;
       let updatedCount = 0;
@@ -549,34 +538,42 @@ class DatabaseAdapter {
           });
           syncedCount++;
         } catch (eventError) {
-          console.error('❌ [SYNC-INDIVIDUAL] Erreur sync événement:', googleEvent.id, eventError);
+          // Log supprimé pour performance
         }
       }
       
       const result = { syncedCount, updatedCount };
-      console.log(`✅ [SYNC-INDIVIDUAL] Synchronisation terminée:`, result);
+      // Log supprimé pour performance
       return result;
     } catch (error) {
-      console.error('❌ [SYNC-INDIVIDUAL] Erreur synchronisation individuelle:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
 
-  // Synchroniser un événement local vers Google Calendar
+  // Synchroniser un événement local vers Google Calendar (version bloquante)
   async syncLocalEventToGoogle(localEvent) {
     try {
-      console.log('⬆️ [SYNC-UP] Synchronisation vers Google:', localEvent.id);
+      // Log supprimé pour performance
       
-      // Préparer les données pour Google Calendar
+      // Préparer les données pour Google Calendar avec format correct
       const googleEventData = {
         summary: localEvent.summary,
         description: localEvent.description || '',
         location: localEvent.location || '',
-        start: localEvent.start,
-        end: localEvent.end,
+        start: {
+          dateTime: typeof localEvent.start === 'string' ? localEvent.start : localEvent.start?.dateTime,
+          timeZone: 'Europe/Paris'
+        },
+        end: {
+          dateTime: typeof localEvent.end === 'string' ? localEvent.end : localEvent.end?.dateTime,
+          timeZone: 'Europe/Paris'
+        },
         colorId: localEvent.colorId || '1',
         attendees: localEvent.attendees || []
       };
+      
+      // Log supprimé pour performance
       
       if (localEvent.googleId) {
         // Mettre à jour un événement existant
@@ -595,14 +592,15 @@ class DatabaseAdapter {
         
         if (!response.ok) {
           if (response.status === 401) {
-            console.warn('🔐 [SYNC-UP] Non authentifié pour Google Calendar');
+            // Log supprimé pour performance
             return null;
           }
           throw new Error(`Erreur mise à jour Google: ${response.status}`);
         }
         
-        const updatedEvent = await response.json();
-        console.log('✅ [SYNC-UP] Événement mis à jour sur Google:', updatedEvent.id);
+        const responseData = await response.json();
+        const updatedEvent = responseData.event || responseData; // Handle both formats
+        // Log supprimé pour performance
         return updatedEvent;
       } else {
         // Créer un nouvel événement
@@ -621,14 +619,15 @@ class DatabaseAdapter {
         
         if (!response.ok) {
           if (response.status === 401) {
-            console.warn('🔐 [SYNC-UP] Non authentifié pour Google Calendar');
+            // Log supprimé pour performance
             return null;
           }
           throw new Error(`Erreur création Google: ${response.status}`);
         }
         
-        const createdEvent = await response.json();
-        console.log('✅ [SYNC-UP] Événement créé sur Google:', createdEvent.id);
+        const responseData = await response.json();
+        const createdEvent = responseData.event || responseData; // Handle both formats
+        // Log supprimé pour performance
         
         // Mettre à jour l'événement local avec le googleId
         await window.electronAPI.updateCalendarEvent(localEvent.id, {
@@ -639,7 +638,42 @@ class DatabaseAdapter {
         return createdEvent;
       }
     } catch (error) {
-      console.error('❌ [SYNC-UP] Erreur synchronisation vers Google:', error);
+      // Log supprimé pour performance
+      throw error;
+    }
+  }
+
+  // Synchroniser un événement local vers Google Calendar (version arrière-plan)
+  async syncLocalEventToGoogleBackground(localEvent) {
+    try {
+      // Log supprimé pour performance
+      
+      // Attendre un court instant pour laisser l'UI se mettre à jour
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      const createdEvent = await this.syncLocalEventToGoogle(localEvent);
+      
+      if (createdEvent) {
+        // Log supprimé pour performance
+        // Optionnel : émettre un événement pour notifier l'UI
+        if (typeof window !== 'undefined' && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('googleSyncSuccess', { 
+            detail: { localEventId: localEvent.id, googleEvent: createdEvent }
+          }));
+        }
+      }
+      
+      return createdEvent;
+    } catch (error) {
+      // Log supprimé pour performance
+      
+      // Optionnel : émettre un événement d'erreur
+      if (typeof window !== 'undefined' && window.dispatchEvent) {
+        window.dispatchEvent(new CustomEvent('googleSyncError', { 
+          detail: { localEventId: localEvent.id, error: error.message }
+        }));
+      }
+      
       throw error;
     }
   }
@@ -647,40 +681,53 @@ class DatabaseAdapter {
   async addCalendarEvent(eventData) {
     try {
       const formattedEvent = this.formatEventForStorage(eventData);
+      // Log supprimé pour performance
       let result;
       
       if (this.isElectron) {
         // Mode Electron - Ajouter à SQLite d'abord
         result = await window.electronAPI.addCalendarEvent(formattedEvent);
+        // Log supprimé pour performance
         
-        // Synchronisation vers Google Calendar (RÉACTIVÉE)
+        // Nettoyer le cache pour forcer le rafraîchissement
+        this.clearCache('calendar_events');
+        
+        // Synchronisation vers Google Calendar en arrière-plan (NON BLOQUANTE)
         if (!formattedEvent.googleId && !formattedEvent.source && this.isOnline) {
-          try {
-            console.log('🔄 [SYNC-UP] Tentative de synchronisation avec Google Calendar...');
-            await this.syncLocalEventToGoogle(result);
-            console.log('✅ [SYNC-UP] Synchronisation réussie');
-          } catch (syncError) {
-            console.warn('⚠️ [SYNC-UP] Synchronisation échouée, événement restera local:', syncError.message);
-            // L'événement reste local uniquement - ce n'est pas une erreur critique
-          }
+          // Lancer la synchronisation en arrière-plan sans attendre
+          this.syncLocalEventToGoogleBackground(result).catch(syncError => {
+            console.warn('⚠️ [SYNC-BACKGROUND] Synchronisation échouée, événement restera local:', syncError.message);
+          });
+          // Log supprimé pour performance
         } else if (!this.isOnline) {
-          console.log('📴 [SYNC-UP] Mode hors ligne, événement enregistré localement uniquement');
+          // Log supprimé pour performance
         }
       } else {
-        // Mode Web - API REST
+        // Mode Web - API REST SIMPLIFIÉ
+        // Log supprimé pour performance
+        
         const response = await fetch('/api/calendar/events', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(formattedEvent)
         });
-        if (!response.ok) throw new Error('Erreur réseau');
+        
+        if (!response.ok) {
+          throw new Error(`Erreur API: ${response.status}`);
+        }
+        
         result = await response.json();
+        // Log supprimé pour performance
+        
+        // Nettoyer le cache pour forcer le rafraîchissement
+        this.clearCache('calendar_events');
       }
       
-      this.clearCache('calendar_events');
-      return this.formatEvent(result);
+      // SIMPLIFICATION TOTALE - Juste retourner l'événement
+      // Log supprimé pour performance
+      return result;
     } catch (error) {
-      console.error('Erreur ajout événement:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -688,8 +735,7 @@ class DatabaseAdapter {
   async updateCalendarEvent(id, eventData) {
     try {
       const formattedEvent = this.formatEventForStorage(eventData);
-      console.log('DatabaseAdapter - updateCalendarEvent - ID:', id);
-      console.log('DatabaseAdapter - updateCalendarEvent - Data:', formattedEvent);
+      // Log supprimé pour performance
       
       let result;
       
@@ -702,7 +748,7 @@ class DatabaseAdapter {
           try {
             await this.syncLocalEventToGoogle({ ...formattedEvent, id });
           } catch (syncError) {
-            console.warn('⚠️ [SYNC-UP] Impossible de synchroniser la mise à jour avec Google:', syncError.message);
+            // Log supprimé pour performance
             // La mise à jour reste locale uniquement
           }
         }
@@ -715,16 +761,19 @@ class DatabaseAdapter {
         });
         if (!response.ok) {
           const errorText = await response.text();
-          console.error('Erreur API updateCalendarEvent:', response.status, errorText);
+          // Log supprimé pour performance
           throw new Error(`Erreur réseau: ${response.status}`);
         }
-        result = await response.json();
+        const responseData = await response.json();
+        
+        // L'API REST retourne { event: {...}, message: "..." }
+        result = responseData.event || responseData;
       }
       
       this.clearCache('calendar_events');
       return result;
     } catch (error) {
-      console.error('Erreur mise à jour événement:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -746,7 +795,7 @@ class DatabaseAdapter {
           try {
             await this.deleteGoogleEvent(eventToDelete.google_id);
           } catch (syncError) {
-            console.warn('⚠️ [SYNC-DELETE] Impossible de supprimer de Google Calendar:', syncError.message);
+            // Log supprimé pour performance
             // La suppression reste locale uniquement
           }
         }
@@ -762,7 +811,7 @@ class DatabaseAdapter {
       this.clearCache('calendar_events');
       return result;
     } catch (error) {
-      console.error('Erreur suppression événement:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -770,7 +819,7 @@ class DatabaseAdapter {
   // Supprimer un événement de Google Calendar
   async deleteGoogleEvent(googleId) {
     try {
-      console.log('🗑️ [SYNC-DELETE] Suppression de Google Calendar:', googleId);
+      // Log supprimé pour performance
       
       const response = await fetch(`/api/calendar/google/events/${googleId}`, {
         method: 'DELETE',
@@ -779,21 +828,21 @@ class DatabaseAdapter {
       
       if (!response.ok) {
         if (response.status === 401) {
-          console.warn('🔐 [SYNC-DELETE] Non authentifié pour Google Calendar');
+          // Log supprimé pour performance
           return null;
         }
         if (response.status === 404) {
-          console.warn('⚠️ [SYNC-DELETE] Événement déjà supprimé de Google Calendar');
+          // Log supprimé pour performance
           return null;
         }
         throw new Error(`Erreur suppression Google: ${response.status}`);
       }
       
       const result = await response.json();
-      console.log('✅ [SYNC-DELETE] Événement supprimé de Google Calendar:', googleId);
+      // Log supprimé pour performance
       return result;
     } catch (error) {
-      console.error('❌ [SYNC-DELETE] Erreur suppression Google Calendar:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -803,15 +852,21 @@ class DatabaseAdapter {
   formatEvent(event) {
     // Convertir l'événement vers le format Google Calendar standard
     if (!event) {
-      console.warn('⚠️ [FORMAT] Événement null reçu');
+      // Log supprimé pour performance
       return null;
     }
     
-    console.log('🔍 [FORMAT] Formatage événement:', event);
+    // Vérifier si l'événement est vide
+    if (typeof event === 'object' && Object.keys(event).length === 0) {
+      // Log supprimé pour performance
+      
+      // Retourner null au lieu de continuer le formatage
+      return null;
+    }
+    
     
     // Si l'événement a déjà le bon format (depuis API), le retourner tel quel
     if (event.start && (event.start.dateTime || event.start.date)) {
-      console.log('✅ [FORMAT] Événement déjà au bon format (API)');
       return {
         id: event.id,
         googleId: event.googleId,
@@ -829,7 +884,6 @@ class DatabaseAdapter {
     }
     
     // Sinon, convertir depuis le format SQLite
-    console.log('🔄 [FORMAT] Conversion depuis format SQLite');
     const formatted = {
       id: event.id,
       summary: event.summary,
@@ -852,17 +906,18 @@ class DatabaseAdapter {
     
     // Validation que l'événement formaté a les champs requis
     if (!formatted.start.dateTime && !formatted.start.date) {
-      console.error('❌ [FORMAT] Événement sans date de début valide:', event);
+      // Log supprimé pour performance
       return null;
     }
     
-    console.log('✅ [FORMAT] Événement formaté:', formatted);
     return formatted;
   }
 
   formatEventForStorage(event) {
-    // Convertir l'événement du format Google Calendar vers SQLite
-    return {
+    // Convertir l'événement vers le format SQLite
+    // Log supprimé pour performance
+    
+    const formatted = {
       id: event.id,
       googleId: event.googleId,
       summary: event.summary,
@@ -874,6 +929,9 @@ class DatabaseAdapter {
       attendees: event.attendees,
       userId: event.userId
     };
+    
+    // Log supprimé pour performance
+    return formatted;
   }
 
   // === MÉTHODES STOCKAGE LOCAL CHIFFRÉ (MODE WEB) ===
@@ -909,17 +967,15 @@ class DatabaseAdapter {
   // Récupérer les préférences navbar locales
   getLocalNavbarPreferences() {
     try {
-      console.log('🔍 [LOCAL-STORAGE] Récupération des préférences navbar...');
       const encrypted = localStorage.getItem('dashboard_navbar_preferences');
       if (!encrypted) {
-        console.log('📭 [LOCAL-STORAGE] Aucune préférence navbar trouvée, utilisation des valeurs par défaut');
         return this.getDefaultNavbarPreferences();
       }
       const preferences = this.decryptData(encrypted);
-      console.log('✅ [LOCAL-STORAGE] Préférences navbar récupérées:', preferences);
+      // Log supprimé pour performance
       return { ...this.getDefaultNavbarPreferences(), ...preferences };
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur récupération préférences navbar:', error);
+      // Log supprimé pour performance
       return this.getDefaultNavbarPreferences();
     }
   }
@@ -929,10 +985,10 @@ class DatabaseAdapter {
     try {
       const encrypted = this.encryptData(preferences);
       localStorage.setItem('dashboard_navbar_preferences', encrypted);
-      console.log('✅ [LOCAL-STORAGE] Préférences navbar sauvegardées:', preferences);
+      // Log supprimé pour performance
       return { success: true };
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur sauvegarde préférences navbar:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -940,17 +996,17 @@ class DatabaseAdapter {
   // Récupérer l'ordre navbar local
   getLocalNavbarOrder() {
     try {
-      console.log('🔍 [LOCAL-STORAGE] Récupération de l\'ordre navbar...');
+      // Log supprimé pour performance
       const encrypted = localStorage.getItem('dashboard_navbar_order');
       if (!encrypted) {
-        console.log('📭 [LOCAL-STORAGE] Aucun ordre navbar trouvé, utilisation des valeurs par défaut');
+        // Log supprimé pour performance
         return this.getDefaultNavbarOrder();
       }
       const order = this.decryptData(encrypted);
-      console.log('✅ [LOCAL-STORAGE] Ordre navbar récupéré:', order);
+      // Log supprimé pour performance
       return order;
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur récupération ordre navbar:', error);
+      // Log supprimé pour performance
       return this.getDefaultNavbarOrder();
     }
   }
@@ -960,10 +1016,10 @@ class DatabaseAdapter {
     try {
       const encrypted = this.encryptData(order);
       localStorage.setItem('dashboard_navbar_order', encrypted);
-      console.log('✅ [LOCAL-STORAGE] Ordre navbar sauvegardé:', order);
+      // Log supprimé pour performance
       return { success: true };
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur sauvegarde ordre navbar:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -993,7 +1049,7 @@ class DatabaseAdapter {
       }
       return btoa(encrypted);
     } catch (error) {
-      console.error('Erreur chiffrement:', error);
+      // Log supprimé pour performance
       return btoa(JSON.stringify(data));
     }
   }
@@ -1009,7 +1065,7 @@ class DatabaseAdapter {
       }
       return JSON.parse(decrypted);
     } catch (error) {
-      console.error('Erreur déchiffrement:', error);
+      // Log supprimé pour performance
       return [];
     }
   }
@@ -1017,17 +1073,17 @@ class DatabaseAdapter {
   // Récupérer les favoris crypto locaux
   getLocalCryptoFavorites() {
     try {
-      console.log('🔍 [LOCAL-STORAGE] Récupération des favoris...');
+      // Log supprimé pour performance
       const encrypted = localStorage.getItem('dashboard_crypto_favorites');
       if (!encrypted) {
-        console.log('📭 [LOCAL-STORAGE] Aucun favori trouvé');
+        // Log supprimé pour performance
         return [];
       }
       const favorites = this.decryptData(encrypted);
-      console.log('✅ [LOCAL-STORAGE] Favoris récupérés:', favorites);
+      // Log supprimé pour performance
       return favorites;
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur récupération favoris locaux:', error);
+      // Log supprimé pour performance
       return [];
     }
   }
@@ -1056,10 +1112,10 @@ class DatabaseAdapter {
       const encrypted = this.encryptData(favorites);
       localStorage.setItem('dashboard_crypto_favorites', encrypted);
       
-      console.log('✅ [LOCAL-STORAGE] Favori ajouté:', newFavorite);
+      // Log supprimé pour performance
       return { success: true, favorite: newFavorite };
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur ajout favori:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -1083,10 +1139,10 @@ class DatabaseAdapter {
       const encrypted = this.encryptData(updatedFavorites);
       localStorage.setItem('dashboard_crypto_favorites', encrypted);
       
-      console.log('✅ [LOCAL-STORAGE] Favori supprimé:', symbol);
+      // Log supprimé pour performance
       return { success: true, removedSymbol: symbol };
     } catch (error) {
-      console.error('❌ [LOCAL-STORAGE] Erreur suppression favori:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }
@@ -1094,12 +1150,12 @@ class DatabaseAdapter {
   // Méthodes de synchronisation
   async syncWithGoogle() {
     if (this.isElectron) {
-      console.log('Synchronisation Google non disponible en mode Electron - utilisez le mode web');
+      // Log supprimé pour performance
       return;
     }
     
     try {
-      console.log('🔄 Démarrage synchronisation Google Calendar...');
+      // Log supprimé pour performance
       
       // En mode web, forcer un rechargement des événements Google
       this.clearCache('calendar_events');
@@ -1112,9 +1168,9 @@ class DatabaseAdapter {
       // Forcer le rechargement des événements pour la période courante
       await this.getCalendarEvents(oneMonthAgo.toISOString(), oneMonthLater.toISOString());
       
-      console.log('✅ Synchronisation Google Calendar terminée');
+      // Log supprimé pour performance
     } catch (error) {
-      console.error('❌ Erreur synchronisation Google:', error);
+      // Log supprimé pour performance
       throw error;
     }
   }

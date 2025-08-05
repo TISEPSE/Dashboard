@@ -140,10 +140,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                 Profil
               </span>
               
-              {/* Point indicateur en bas */}
-              {isActiveRoute("/Dashboard/Profile") && (
-                <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-indigo-400 rounded-full opacity-60 animate-pulse"></div>
-              )}
+              {/* Point indicateur en bas supprimé pour Profile */}
             </Link>
           </div>
         </div>
@@ -339,10 +336,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                       </>
                     )}
                     
-                    {/* Point indicateur à droite */}
-                    {isActiveRoute("/Dashboard/Profile") && (
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2 w-2 h-2 bg-indigo-400 rounded-full opacity-60"></div>
-                    )}
+                    {/* Point indicateur à droite supprimé pour Profile */}
                   </div>
                 </Link>
                 
@@ -449,10 +443,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-2 h-10 bg-indigo-400 rounded-r-full opacity-90 shadow-lg"></div>
                         )}
                         
-                        {/* Point indicateur en haut à droite */}
-                        {isActiveRoute("/Dashboard/Profile") && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full opacity-80 shadow-sm animate-pulse"></div>
-                        )}
+                        {/* Point indicateur en haut à droite supprimé pour Profile */}
                         
                         <FaUser className="text-lg text-white" />
                       </div>
@@ -475,10 +466,7 @@ export default function Navbar({isOpen, setIsOpen}) {
                           <div className="absolute -left-2 top-1/2 transform -translate-y-1/2 w-2 h-10 bg-indigo-400 rounded-r-full opacity-90 shadow-lg"></div>
                         )}
                         
-                        {/* Point indicateur en haut à droite */}
-                        {isActiveRoute("/Dashboard/Profile") && (
-                          <div className="absolute -top-1 -right-1 w-3 h-3 bg-indigo-400 rounded-full opacity-80 shadow-sm animate-pulse"></div>
-                        )}
+                        {/* Point indicateur en haut à droite supprimé pour Profile */}
                         
                         <div className="text-lg">
                           <FaUser className="text-indigo-400 text-lg" />

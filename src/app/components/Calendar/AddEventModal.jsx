@@ -153,8 +153,10 @@ const AddEventModal = ({ isOpen, onClose, onSave, selectedDate = null }) => {
 
       await onSave(eventData)
       
-      // Attendre que l'événement soit visible avant de fermer le modal
-      await new Promise(resolve => setTimeout(resolve, 600))
+      // Fermer le modal immédiatement après l'ajout local
+      
+      // Attente très courte pour laisser l'UI se mettre à jour
+      await new Promise(resolve => setTimeout(resolve, 100))
       
       // Réinitialiser le formulaire
       setFormData({

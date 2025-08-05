@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import { getDatabaseAdapter } from '../lib/database-adapter'
 
 const FavoritesContext = createContext()
@@ -17,27 +17,30 @@ export const FavoritesProvider = ({ children }) => {
   const [favorites, setFavorites] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const db = getDatabaseAdapter()
+  const db = useMemo(() => getDatabaseAdapter(), [])
+  const loadingRef = useRef(false)
 
   useEffect(() => {
     const loadFavorites = async () => {
+      if (loadingRef.current) return
+      loadingRef.current = true
+      
       try {
         setLoading(true)
         setError(null)
-        console.log('🔍 [FAVORITES] Chargement des favoris depuis le stockage local...')
         
         const favoritesList = await db.getCryptoFavorites()
-        console.log('✅ [FAVORITES] Favoris chargés:', favoritesList)
         
         // Convert to array of symbol strings for backwards compatibility
         const favoriteSymbols = favoritesList ? favoritesList.map(fav => fav.symbol.toLowerCase()) : []
         setFavorites(favoriteSymbols)
       } catch (err) {
-        console.error('❌ [FAVORITES] Erreur lors du chargement des favoris:', err)
+        // Erreur lors du chargement des favoris
         setError(err.message)
         setFavorites([])
       } finally {
         setLoading(false)
+        loadingRef.current = false
       }
     }
 
@@ -46,7 +49,6 @@ export const FavoritesProvider = ({ children }) => {
 
   const addFavorite = async (symbol, name) => {
     try {
-      console.log('➕ [FAVORITES] Ajout favori:', { symbol, name })
       
       const result = await db.addCryptoFavorite({
         symbol: symbol.toLowerCase(),
@@ -54,7 +56,6 @@ export const FavoritesProvider = ({ children }) => {
         addedAt: new Date().toISOString()
       })
       
-      console.log('✅ [FAVORITES] Favori ajouté:', result)
       
       // Refresh favorites after adding
       const favoritesList = await db.getCryptoFavorites()
@@ -66,7 +67,7 @@ export const FavoritesProvider = ({ children }) => {
         message: `${symbol.toUpperCase()} ajouté aux favoris`
       }
     } catch (error) {
-      console.error('❌ [FAVORITES] Erreur lors de l\'ajout:', error)
+      // Erreur lors de l'ajout
       setError(error.message)
       return {
         success: false,
@@ -77,10 +78,8 @@ export const FavoritesProvider = ({ children }) => {
 
   const removeFavorite = async (symbol) => {
     try {
-      console.log('➖ [FAVORITES] Suppression favori:', symbol)
       
       const result = await db.removeCryptoFavorite(symbol.toLowerCase())
-      console.log('✅ [FAVORITES] Favori supprimé:', result)
       
       // Refresh favorites after removing
       const favoritesList = await db.getCryptoFavorites()
@@ -92,7 +91,7 @@ export const FavoritesProvider = ({ children }) => {
         message: `${symbol.toUpperCase()} retiré des favoris`
       }
     } catch (error) {
-      console.error('❌ [FAVORITES] Erreur lors de la suppression:', error)
+      // Erreur lors de la suppression
       setError(error.message)
       return {
         success: false,
@@ -107,13 +106,11 @@ export const FavoritesProvider = ({ children }) => {
 
   const refreshFavorites = async () => {
     try {
-      console.log('🔄 [FAVORITES] Actualisation des favoris...')
       const favoritesList = await db.getCryptoFavorites()
       const favoriteSymbols = favoritesList ? favoritesList.map(fav => fav.symbol.toLowerCase()) : []
       setFavorites(favoriteSymbols)
-      console.log('✅ [FAVORITES] Favoris actualisés:', favoriteSymbols)
     } catch (err) {
-      console.error('❌ [FAVORITES] Erreur lors de l\'actualisation:', err)
+      // Erreur lors de l'actualisation
     }
   }
 

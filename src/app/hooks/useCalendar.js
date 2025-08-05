@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { getDatabaseAdapter } from '../lib/database-adapter'
 
@@ -36,7 +36,8 @@ export const useCalendar = () => {
   const [syncStatus, setSyncStatus] = useState('idle') // 'idle', 'syncing', 'success', 'error'
   const [notification, setNotification] = useState(null)
   const { user, authenticated, accessToken } = useAuth()
-  const db = getDatabaseAdapter()
+  const db = useMemo(() => getDatabaseAdapter(), [])
+  const loadingRef = useRef(false)
 
   // Mettre à jour le token d'accès dans l'adaptateur quand il change
   useEffect(() => {
@@ -51,6 +52,34 @@ export const useCalendar = () => {
     setTimeout(() => setNotification(null), 5000)
   }, [])
 
+  // Écouter les événements de synchronisation Google (optimisé)
+  const showNotificationRef = useRef(showNotification)
+  showNotificationRef.current = showNotification
+  
+  useEffect(() => {
+    const handleGoogleSyncSuccess = (event) => {
+      showNotificationRef.current('Événement synchronisé avec Google Calendar', 'success')
+      setSyncStatus('success')
+      setTimeout(() => setSyncStatus('idle'), 3000)
+    }
+
+    const handleGoogleSyncError = (event) => {
+      showNotificationRef.current('Synchronisation Google échouée, événement reste local', 'warning')
+      setSyncStatus('error')
+      setTimeout(() => setSyncStatus('idle'), 5000)
+    }
+
+    if (typeof window !== 'undefined') {
+      window.addEventListener('googleSyncSuccess', handleGoogleSyncSuccess)
+      window.addEventListener('googleSyncError', handleGoogleSyncError)
+
+      return () => {
+        window.removeEventListener('googleSyncSuccess', handleGoogleSyncSuccess)
+        window.removeEventListener('googleSyncError', handleGoogleSyncError)
+      }
+    }
+  }, [])
+
   // Fonction pour fermer manuellement la notification
   const closeNotification = useCallback(() => {
     setNotification(null)
@@ -58,21 +87,20 @@ export const useCalendar = () => {
 
   // Charger les événements depuis la base de données (SQLite local ou API)
   const loadEvents = useCallback(async (timeMin, timeMax) => {
-    console.log('🔄 [CLIENT] Chargement des événements...', { timeMin, timeMax, authenticated, isElectron: db.isElectronApp() })
+    // Éviter les appels simultanés
+    if (loadingRef.current) return
+    loadingRef.current = true
     setLoadingEvents(true)
     
     try {
       const events = await db.getCalendarEvents(timeMin, timeMax)
-      console.log('📅 [CLIENT] Événements reçus:', events?.length || 0)
       
       // Validation et nettoyage des événements
       const validEvents = (events || []).filter(event => {
         return event && event.id && event.summary && (event.start || event.end)
       })
       
-      if (validEvents.length !== (events?.length || 0)) {
-        console.warn('⚠️ [CLIENT] Certains événements ignorés (données invalides)')
-      }
+      // Certains événements peuvent être ignorés si les données sont invalides
       
       // Trier les événements par date
       const sortedEvents = validEvents.sort((a, b) => {
@@ -82,14 +110,8 @@ export const useCalendar = () => {
       })
       
       setEvents(sortedEvents)
-      console.log('✅ [CLIENT] Événements triés et mis à jour:', sortedEvents.length)
       
-      // Statistiques en mode Electron
-      if (db.isElectronApp() && sortedEvents.length > 0) {
-        const googleEvents = sortedEvents.filter(e => e.source === 'google' || e.google_id).length
-        const localEvents = sortedEvents.length - googleEvents
-        console.log(`📊 [CLIENT] Google: ${googleEvents}, Local: ${localEvents}`)
-      }
+      // Statistiques en mode Electron disponibles en silence
       
       // Notification silencieuse - pas de message si pas d'événements en mode Electron
       if (sortedEvents.length === 0 && !db.isElectronApp()) {
@@ -97,13 +119,10 @@ export const useCalendar = () => {
       }
       
     } catch (error) {
-      console.error('❌ [CLIENT] Erreur lors du chargement des événements:', error)
-      
       // Gestion d'erreur plus robuste
       if (db.isElectronApp()) {
         // En mode Electron, les erreurs sont moins critiques car on a SQLite comme fallback
-        console.log('📴 [CLIENT] Mode Electron - continuera avec les événements locaux')
-        // Ne pas afficher d'erreur intrusive, juste un warning en console
+        // Ne pas afficher d'erreur intrusive
       } else {
         // En mode web, afficher les erreurs appropriées
         if (error.message?.includes('Session expirée') || error.message?.includes('needsReauth')) {
@@ -121,25 +140,28 @@ export const useCalendar = () => {
       }
     } finally {
       setLoadingEvents(false)
+      loadingRef.current = false
     }
-  }, [db, showNotification, user, authenticated])
+  }, [db, showNotification, authenticated])
 
-  // Écouter les événements de rechargement depuis le debug
+  // Écouter les événements de rechargement depuis le debug (optimisé)
+  const loadEventsRef = useRef(loadEvents)
+  loadEventsRef.current = loadEvents
+  
   useEffect(() => {
     const handleCalendarRefresh = () => {
-      console.log('🔄 [CLIENT] Rechargement déclenché par debug')
       // Recharger avec une plage très large pour inclure tous les événements
       const now = new Date()
       const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
       const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
-      loadEvents(oneYearAgo.toISOString(), oneYearLater.toISOString())
+      loadEventsRef.current(oneYearAgo.toISOString(), oneYearLater.toISOString())
     }
 
     if (typeof window !== 'undefined') {
       window.addEventListener('calendar-refresh', handleCalendarRefresh)
       return () => window.removeEventListener('calendar-refresh', handleCalendarRefresh)
     }
-  }, [loadEvents])
+  }, [])
 
   // Ajouter un événement
   const addEvent = useCallback(async (eventData) => {
@@ -149,9 +171,11 @@ export const useCalendar = () => {
         userId: user?.id || 'anonymous'
       })
       
-      console.log('✅ [CLIENT] Événement ajouté:', newEvent)
+      // Indiquer qu'une synchronisation Google est en cours
+      setSyncStatus('syncing')
+      showNotification('Événement ajouté localement, synchronisation avec Google...', 'info')
       
-      // Forcer le rechargement des événements depuis la base pour s'assurer que tout est synchronisé
+      // Forcer le rechargement immédiat des événements depuis la base
       if (db.isElectronApp()) {
         try {
           // En mode Electron, recharger depuis SQLite pour obtenir la version complète avec l'ID correct
@@ -159,10 +183,7 @@ export const useCalendar = () => {
           const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000)
           const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000)
           
-          console.log('🔄 [CLIENT] Rechargement événements après ajout - plage étendue:', {
-            from: oneYearAgo.toISOString(),
-            to: oneYearLater.toISOString()
-          })
+          // Rechargement événements après ajout avec plage étendue
           
           // Vider le cache pour forcer le rechargement
           db.clearCache('calendar_events')
@@ -181,26 +202,36 @@ export const useCalendar = () => {
           })
           
           setEvents(sortedEvents)
-          console.log('🔄 [CLIENT] Événements rechargés après ajout:', sortedEvents.length)
         } catch (refreshError) {
-          console.warn('⚠️ [CLIENT] Erreur rechargement, mise à jour état local uniquement:', refreshError)
           // Fallback: mise à jour de l'état local uniquement
           setEvents(prev => [...prev, newEvent].sort((a, b) => 
             new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
           ))
         }
       } else {
-        // Mode web: mise à jour de l'état local
-        setEvents(prev => [...prev, newEvent].sort((a, b) => 
-          new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
-        ))
+        // Mode web: SIMPLE - Recharger tous les événements depuis l'API
+        try {
+          // Recharger tous les événements
+          const now = new Date();
+          const oneYearAgo = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
+          const oneYearLater = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
+          
+          const allEvents = await db.getCalendarEvents(oneYearAgo.toISOString(), oneYearLater.toISOString());
+          
+          if (allEvents) {
+            const sortedEvents = allEvents.sort((a, b) => 
+              new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+            );
+            setEvents(sortedEvents);
+          }
+        } catch (refreshError) {
+          // Erreur rechargement silencieuse
+        }
       }
       
-      const contextMessage = db.isElectronApp() ? 'localement' : 'avec succès'
-      showNotification(`Événement ajouté ${contextMessage}`, 'success')
+      // Pas de notification ici car elle sera gérée par les événements de synchronisation
       return newEvent
     } catch (error) {
-      console.error('❌ [CLIENT] Erreur lors de l\'ajout de l\'événement:', error)
       showNotification('Erreur lors de l\'ajout de l\'événement', 'error')
       throw error
     }
@@ -230,7 +261,6 @@ export const useCalendar = () => {
         throw new Error('Échec de la mise à jour')
       }
     } catch (error) {
-      console.error('Erreur lors de la modification de l\'événement:', error)
       showNotification('Erreur lors de la modification de l\'événement', 'error')
       throw error
     }
@@ -249,7 +279,6 @@ export const useCalendar = () => {
         throw new Error('Échec de la suppression')
       }
     } catch (error) {
-      console.error('Erreur lors de la suppression de l\'événement:', error)
       showNotification('Erreur lors de la suppression de l\'événement', 'error')
       throw error
     }
@@ -279,7 +308,6 @@ export const useCalendar = () => {
       setSyncStatus('success')
       // Notification supprimée - synchronisation silencieuse
     } catch (error) {
-      console.error('Erreur synchronisation:', error)
       setSyncStatus('error')
       showNotification('Erreur lors de la synchronisation', 'error')
     }

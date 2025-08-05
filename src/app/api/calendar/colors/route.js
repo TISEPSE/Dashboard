@@ -11,7 +11,6 @@ export async function GET(request) {
       try {
         sessionData = JSON.parse(decodeURIComponent(authCookie.value))
       } catch (parseError) {
-        console.error('❌ [COLORS-API] Erreur parsing session:', parseError)
       }
     }
     
@@ -29,7 +28,6 @@ export async function GET(request) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ Erreur API Google Colors:', response.status, errorText)
       
       // Gestion spécifique des erreurs d'authentification
       if (response.status === 401) {
@@ -93,13 +91,11 @@ export async function GET(request) {
       })
       
     } catch (eventError) {
-      console.warn('⚠️ Erreur lors de la récupération des couleurs personnalisées:', eventError.message)
       // Continuer même si on ne peut pas récupérer les couleurs personnalisées
     }
     
     return NextResponse.json(colors)
   } catch (error) {
-    console.error('❌ Erreur récupération couleurs Google:', error)
     return NextResponse.json({ 
       error: error.message,
       fallback: true 

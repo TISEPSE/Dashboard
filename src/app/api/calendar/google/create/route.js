@@ -11,7 +11,6 @@ export async function POST(request) {
       try {
         sessionData = JSON.parse(decodeURIComponent(authCookie.value))
       } catch (parseError) {
-        console.error('❌ [CREATE-API] Erreur parsing session:', parseError)
       }
     }
     
@@ -47,7 +46,6 @@ export async function POST(request) {
       attendees: eventData.attendees || []
     }
     
-    console.log('🔄 Création événement dans Google Calendar...', googleEvent.summary)
     
     // Créer l'événement dans Google Calendar
     const response = await calendar.events.insert({
@@ -57,7 +55,6 @@ export async function POST(request) {
     
     const createdEvent = response.data
     
-    console.log('✅ Événement créé dans Google Calendar:', createdEvent.id)
     
     // Formater la réponse
     const formattedEvent = {
@@ -87,7 +84,6 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('❌ Erreur création événement Google Calendar:', error)
     
     // Gérer les erreurs d'authentification
     if (error.code === 401 || error.status === 401) {
@@ -98,7 +94,8 @@ export async function POST(request) {
     }
     
     return NextResponse.json({ 
-      error: error.message || 'Erreur lors de la création de l\'événement'
+      error: error.message || 'Erreur lors de la création de l\'événement',
+      details: error.response?.data || error.toString()
     }, { status: 500 })
   }
 }

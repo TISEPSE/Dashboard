@@ -9,7 +9,13 @@
       "Bash(timeout 10 npm run dev)",
       "Bash(rm:*)",
       "Bash(del \"D:\\Visual_Studio_Code\\Portfolio_Dev\\Dashboard\\src\\app\\components\\DebugCalendar.jsx\")",
-      "Bash(powershell Remove-Item:*)"
+      "Bash(powershell Remove-Item:*)",
+      "Bash(cat:*)",
+      "Bash(powershell:*)",
+      "Bash(find:*)",
+      "Bash(mv:*)",
+      "Bash(del useNavbarPreferences.js)",
+      "Bash(ren:*)"
     ],
     "deny": []
   },

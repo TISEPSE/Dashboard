@@ -11,7 +11,6 @@ export async function POST(request) {
       try {
         sessionData = JSON.parse(decodeURIComponent(authCookie.value))
       } catch (parseError) {
-        console.error('❌ [GOOGLE-FIT-API] Erreur parsing session:', parseError)
       }
     }
     
@@ -82,7 +81,6 @@ export async function POST(request) {
       }]
     }
 
-    console.log('📤 Envoi vers Google Fit:', JSON.stringify(requestBody, null, 2))
 
     // Envoi vers l'API Google Fit
     const fitApiUrl = `https://www.googleapis.com/fitness/v1/users/me/dataSources/${requestBody.dataSourceId}/dataPointChanges`
@@ -101,7 +99,6 @@ export async function POST(request) {
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.error('❌ Erreur Google Fit API (soumission):', response.status, errorText)
       
       if (response.status === 401) {
         return NextResponse.json(
@@ -117,7 +114,6 @@ export async function POST(request) {
     }
 
     const result = await response.json()
-    console.log('✅ Données envoyées avec succès vers Google Fit:', result)
 
     return NextResponse.json({
       success: true,
@@ -126,7 +122,6 @@ export async function POST(request) {
     })
 
   } catch (error) {
-    console.error('❌ Erreur dans l\'API de soumission Google Fit:', error)
     return NextResponse.json(
       { 
         error: 'Erreur interne du serveur',
