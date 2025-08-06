@@ -9,7 +9,6 @@ const nextConfig = {
   },
   
   // Optimisations de performance
-  swcMinify: true,
   compiler: {
     // Supprimer les console.log en production
     removeConsole: process.env.NODE_ENV === 'production',

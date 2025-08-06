@@ -314,18 +314,25 @@ class DatabaseAdapter {
         // Mode Electron - Approche hybride: Google API + SQLite
         events = await this.getHybridCalendarEvents(timeMin, timeMax);
       } else {
-        // Mode Web - API REST
-        const params = new URLSearchParams();
-        if (timeMin) params.append('timeMin', timeMin);
-        if (timeMax) params.append('timeMax', timeMax);
-        
-        const url = `/api/calendar/events?${params}`;
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
-        const data = await response.json();
-        events = data.events || [];
+        // Mode Web - Charger DIRECTEMENT depuis Google Calendar
+        try {
+          events = await this.fetchGoogleCalendarEventsWeb(timeMin, timeMax);
+        } catch (googleError) {
+          console.warn('Échec de chargement Google Calendar, utilisation du stockage local:', googleError.message);
+          
+          // Fallback: utiliser l'API REST locale
+          const params = new URLSearchParams();
+          if (timeMin) params.append('timeMin', timeMin);
+          if (timeMax) params.append('timeMax', timeMax);
+          
+          const url = `/api/calendar/events?${params}`;
+          
+          const response = await fetch(url);
+          
+          if (!response.ok) throw new Error(`Erreur réseau: ${response.status}`);
+          const data = await response.json();
+          events = data.events || [];
+        }
       }
       
       
@@ -399,6 +406,40 @@ class DatabaseAdapter {
     
     // 3. Retourner les événements SQLite (avec ou sans sync Google)
     return sqliteEvents;
+  }
+
+  // Récupérer les événements depuis Google Calendar API (pour mode web)
+  async fetchGoogleCalendarEventsWeb(timeMin, timeMax) {
+    try {
+      const params = new URLSearchParams();
+      if (timeMin) params.append('timeMin', timeMin);
+      if (timeMax) params.append('timeMax', timeMax);
+      
+      const url = `/api/calendar/google/events?${params}`;
+      
+      const response = await fetch(url, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error('Session Google expirée, reconnectez-vous');
+        }
+        throw new Error(`Erreur Google API: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      return data.events || [];
+      
+    } catch (error) {
+      console.error('Erreur récupération événements Google (web):', error);
+      throw error;
+    }
   }
 
   // Récupérer les événements depuis Google Calendar API (pour Electron)
@@ -648,9 +689,6 @@ class DatabaseAdapter {
     try {
       // Log supprimé pour performance
       
-      // Attendre un court instant pour laisser l'UI se mettre à jour
-      await new Promise(resolve => setTimeout(resolve, 200));
-      
       const createdEvent = await this.syncLocalEventToGoogle(localEvent);
       
       if (createdEvent) {
@@ -703,24 +741,37 @@ class DatabaseAdapter {
           // Log supprimé pour performance
         }
       } else {
-        // Mode Web - API REST SIMPLIFIÉ
-        // Log supprimé pour performance
-        
-        const response = await fetch('/api/calendar/events', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formattedEvent)
-        });
-        
-        if (!response.ok) {
-          throw new Error(`Erreur API: ${response.status}`);
+        // Mode Web - Synchroniser DIRECTEMENT avec Google Calendar
+        try {
+          // En mode web, créer directement sur Google Calendar
+          result = await this.syncLocalEventToGoogle(formattedEvent);
+          
+          if (!result) {
+            throw new Error('Échec de la synchronisation Google');
+          }
+          
+          // Nettoyer le cache pour forcer le rafraîchissement
+          this.clearCache('calendar_events');
+          
+        } catch (syncError) {
+          // En cas d'erreur Google, utiliser l'API locale comme fallback temporaire
+          console.warn('Synchronisation Google échouée, utilisation du stockage local:', syncError.message);
+          
+          const response = await fetch('/api/calendar/events', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formattedEvent)
+          });
+          
+          if (!response.ok) {
+            throw new Error(`Erreur API: ${response.status}`);
+          }
+          
+          result = await response.json();
+          
+          // Nettoyer le cache pour forcer le rafraîchissement
+          this.clearCache('calendar_events');
         }
-        
-        result = await response.json();
-        // Log supprimé pour performance
-        
-        // Nettoyer le cache pour forcer le rafraîchissement
-        this.clearCache('calendar_events');
       }
       
       // SIMPLIFICATION TOTALE - Juste retourner l'événement
@@ -743,31 +794,55 @@ class DatabaseAdapter {
         // Mode Electron - Mettre à jour SQLite d'abord
         result = await window.electronAPI.updateCalendarEvent(id, formattedEvent);
         
-        // Si l'événement a un googleId, synchroniser les changements avec Google
-        if (formattedEvent.googleId) {
+        // Nettoyer le cache pour forcer le rafraîchissement
+        this.clearCache('calendar_events');
+        
+        // Synchroniser avec Google Calendar (création ou mise à jour)
+        if (this.isOnline) {
           try {
-            await this.syncLocalEventToGoogle({ ...formattedEvent, id });
+            if (formattedEvent.googleId) {
+              // L'événement existe déjà sur Google, le mettre à jour
+              await this.syncLocalEventToGoogle({ ...formattedEvent, id });
+            } else {
+              // L'événement n'existe pas encore sur Google, le créer
+              await this.syncLocalEventToGoogleBackground({ ...formattedEvent, id });
+            }
           } catch (syncError) {
             // Log supprimé pour performance
             // La mise à jour reste locale uniquement
+            if (typeof window !== 'undefined' && window.dispatchEvent) {
+              window.dispatchEvent(new CustomEvent('googleSyncError', { 
+                detail: { localEventId: id, error: syncError.message }
+              }));
+            }
           }
         }
       } else {
-        // Mode Web - API REST
-        const response = await fetch(`/api/calendar/events/${encodeURIComponent(id)}`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formattedEvent)
-        });
-        if (!response.ok) {
-          const errorText = await response.text();
-          // Log supprimé pour performance
-          throw new Error(`Erreur réseau: ${response.status}`);
+        // Mode Web - Synchroniser DIRECTEMENT avec Google Calendar (pas de base locale)
+        try {
+          // En mode web, essayer de synchroniser directement avec Google
+          result = await this.syncLocalEventToGoogle({ ...formattedEvent, id });
+          
+          if (!result) {
+            throw new Error('Échec de la synchronisation Google');
+          }
+          
+        } catch (syncError) {
+          // En cas d'erreur Google, utiliser l'API locale comme fallback temporaire
+          console.warn('Synchronisation Google échouée, utilisation du stockage local:', syncError.message);
+          
+          const response = await fetch(`/api/calendar/events/${encodeURIComponent(id)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formattedEvent)
+          });
+          if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Erreur réseau: ${response.status}`);
+          }
+          const responseData = await response.json();
+          result = responseData.event || responseData;
         }
-        const responseData = await response.json();
-        
-        // L'API REST retourne { event: {...}, message: "..." }
-        result = responseData.event || responseData;
       }
       
       this.clearCache('calendar_events');

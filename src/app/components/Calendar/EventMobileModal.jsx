@@ -303,14 +303,12 @@ export default function EventMobileModal({
                                 </div>
 
                                 {/* Description */}
-                                <div className="lg:col-span-2 bg-gradient-to-r from-slate-800/60 to-slate-700/40 rounded-2xl p-6 border border-slate-600/30 shadow-lg">
-                                    <div className="flex items-start gap-4">
-                                        <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl flex items-center justify-center flex-shrink-0">
-                                            <FaAlignLeft className="w-6 h-6 text-white" />
-                                        </div>
+                                <div className="lg:col-span-2 bg-slate-800/40 rounded-2xl p-4 border border-slate-700/30">
+                                    <div className="flex items-center gap-4">
+                                        <FaAlignLeft className="w-7 h-7 text-purple-400 flex-shrink-0" />
                                         <div className="flex-1">
-                                            <h3 className="text-white font-semibold text-xl mb-4">Description</h3>
-                                            <div className="text-slate-200 leading-relaxed text-base">
+                                            <h3 className="text-white font-semibold text-lg mb-3">Description</h3>
+                                            <div className="text-slate-200 leading-relaxed text-sm sm:text-base">
                                                 {description ? (
                                                     <p className="whitespace-pre-wrap">{description}</p>
                                                 ) : (

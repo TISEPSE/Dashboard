@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaAlignLeft, FaClock, FaPalette, FaTrash } from "react-icons/fa"
+import { FaTimes, FaCalendarAlt, FaMapMarkerAlt, FaAlignLeft, FaClock, FaPalette, FaTrash, FaEye } from "react-icons/fa"
 import ColorPicker from "./ColorPicker"
+import { useColors } from "../../hooks/useColors"
 
 const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
+  const { getColor } = useColors()
   const [formData, setFormData] = useState({
     summary: '',
     description: '',
@@ -116,14 +118,12 @@ const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
     try {
       const eventDataToSave = {
         ...formData,
-        id: event.id,
         start: startISO,
         end: endISO
       }
-      await onSave(eventDataToSave)
+      await onSave(event.id, eventDataToSave)
       
-      // Attendre que les modifications soient visibles avant de fermer le modal
-      await new Promise(resolve => setTimeout(resolve, 600))
+      // Fermer le modal immédiatement après la sauvegarde
       onClose()
     } catch (error) {
       console.error('Erreur lors de la modification:', error)
@@ -481,6 +481,68 @@ const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
               />
             </div>
 
+            {/* Aperçu en direct */}
+            <div className="mt-6">
+              <label className="block text-gray-300 text-sm font-medium mb-3">
+                <FaEye className="inline w-4 h-4 mr-2" />
+                Aperçu de l'événement modifié
+              </label>
+              <div className="bg-[#3a3d4e]/40 rounded-xl p-4 border border-gray-600/30">
+                <div className="flex items-start gap-3">
+                  <div 
+                    className={`w-1 h-16 rounded-full flex-shrink-0 ${getColor(formData.colorId).bg}`}
+                  />
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-white text-base mb-1 truncate">
+                      {formData.summary || 'Titre de l\'événement'}
+                    </h4>
+                    
+                    {/* Heure */}
+                    <div className="flex items-center gap-2 text-gray-300 text-sm mb-1">
+                      <FaClock className="w-3 h-3 text-[#3A6FF8]" />
+                      <span>
+                        {formData.startTime && formData.endTime
+                          ? `${formData.startTime} - ${formData.endTime}`
+                          : '09:00 - 10:00'
+                        }
+                      </span>
+                    </div>
+
+                    {/* Date */}
+                    <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+                      <FaCalendarAlt className="w-3 h-3" />
+                      <span>
+                        {formData.startDate
+                          ? new Date(formData.startDate).toLocaleDateString('fr-FR', {
+                              weekday: 'long',
+                              day: 'numeric',
+                              month: 'long'
+                            })
+                          : 'Date non définie'
+                        }
+                      </span>
+                    </div>
+
+                    {/* Lieu */}
+                    {formData.location && (
+                      <div className="flex items-center gap-2 text-gray-400 text-xs mb-1">
+                        <FaMapMarkerAlt className="w-3 h-3" />
+                        <span className="truncate">{formData.location}</span>
+                      </div>
+                    )}
+
+                    {/* Description */}
+                    {formData.description && (
+                      <div className="flex items-start gap-2 text-gray-400 text-xs mt-2">
+                        <FaAlignLeft className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                        <p className="line-clamp-2">{formData.description}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Boutons */}
             <div className="flex gap-3 pt-4">
               <button
@@ -494,7 +556,11 @@ const EditEventModal = ({ isOpen, onClose, onSave, onDelete, event }) => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="flex-1 bg-[#3A6FF8] hover:bg-[#2952d3] text-white py-3 rounded-xl font-medium transition-all duration-200 transform hover:scale-105 disabled:opacity-50 disabled:transform-none"
+                className={`flex-1 bg-[#3A6FF8] text-white py-3 rounded-xl font-medium transition-all duration-200 disabled:opacity-50 ${
+                  isLoading 
+                    ? 'cursor-not-allowed' 
+                    : 'hover:bg-[#2952d3] transform hover:scale-105'
+                }`}
               >
                 {isLoading ? 'Enregistrement...' : 'Enregistrer'}
               </button>

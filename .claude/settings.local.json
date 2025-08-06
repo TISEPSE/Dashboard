@@ -15,7 +15,10 @@
       "Bash(find:*)",
       "Bash(mv:*)",
       "Bash(del useNavbarPreferences.js)",
-      "Bash(ren:*)"
+      "Bash(ren:*)",
+      "Bash(npx next lint:*)",
+      "Bash(npx eslint:*)",
+      "Bash(npx next build:*)"
     ],
     "deny": []
   },

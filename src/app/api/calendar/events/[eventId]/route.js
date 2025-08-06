@@ -13,7 +13,7 @@ const getEventsList = () => {
 
 export async function GET(request, { params }) {
   try {
-    const { eventId } = params
+    const { eventId } = await params
     const eventsList = getEventsList()
     
     const event = eventsList.find(event => event.id === eventId)
@@ -32,7 +32,7 @@ export async function GET(request, { params }) {
 
 export async function PUT(request, { params }) {
   try {
-    const { eventId } = params
+    const { eventId } = await params
     const eventData = await request.json()
     const eventsList = getEventsList()
     
@@ -82,7 +82,7 @@ export async function PUT(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const { eventId } = params
+    const { eventId } = await params
     const eventsList = getEventsList()
 
     if (!eventId) {

@@ -124,11 +124,15 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
       <div
         ref={ref}
         className={`crypto-card bg-[#2a2d3e] border border-[#3a3d4e] rounded-[0.75em] p-[1em]
-                   transition-all duration-400 group cursor-pointer flex flex-col h-[16em]
-                   hover:border-[#3A6FF8]
-                   hover:bg-[#2f3240] hover:scale-[1.02] hover:-translate-y-1
-                   relative 
-                   animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0`}
+                   transition-all duration-300 ease-out group cursor-pointer flex flex-col h-[16em]
+                   hover:border-[#3A6FF8] hover:shadow-2xl hover:shadow-[#3A6FF8]/20
+                   hover:bg-gradient-to-br hover:from-[#2f3240] hover:to-[#2a2d3e] 
+                   hover:scale-[1.03] hover:-translate-y-2
+                   relative overflow-hidden
+                   animate-[fadeInUp_0.2s_ease-out_forwards] opacity-0
+                   before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent 
+                   before:via-[#3A6FF8]/10 before:to-transparent before:translate-x-[-100%] 
+                   before:transition-transform before:duration-700 hover:before:translate-x-[100%]`}
         style={{
           animationDelay: `${index * 0.02}s`
         }}
@@ -139,9 +143,17 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
             <img
               src={coin.image}
               alt={coin.name}
-              className="w-[2.2em] h-[2.2em] rounded-full object-cover object-center"
+              className="w-[2.2em] h-[2.2em] rounded-full object-cover object-center 
+                         transition-all duration-300 ease-out
+                         group-hover:scale-110 group-hover:rotate-6 
+                         group-hover:shadow-lg group-hover:shadow-[#3A6FF8]/30"
             />
-            <div className="absolute -top-[0.4em] -right-[0.4em] w-[1.3em] h-[1.3em] bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg border-2 border-[#2a2d3e]">
+            <div className="absolute -top-[0.4em] -right-[0.4em] w-[1.3em] h-[1.3em] 
+                            bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full 
+                            flex items-center justify-center shadow-lg border-2 border-[#2a2d3e]
+                            transition-all duration-300 ease-out
+                            group-hover:scale-110 group-hover:animate-pulse 
+                            group-hover:shadow-xl group-hover:shadow-blue-500/40">
               <span className="text-[0.6em] font-bold text-white leading-none">
                 #{coin.market_cap_rank}
               </span>
@@ -155,7 +167,9 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <h3
-                className="text-[1.3em] font-bold text-[#FeFeFe] truncate transition-colors duration-200 ease-in-out"
+                className="text-[1.3em] font-bold text-[#FeFeFe] truncate 
+                           transition-all duration-300 ease-out
+                           group-hover:text-[#3A6FF8] group-hover:drop-shadow-lg"
                 title={coin.name}
               >
                 {coin.name}
@@ -195,13 +209,15 @@ const CryptoCard = React.forwardRef(({coin, currency, onInfoClick, index = 0, ha
           </div>
         ) : (
           <div
-            className="text-[1.6em] font-bold text-[#FeFeFe] truncate"
+            className="text-[1.6em] font-bold text-[#FeFeFe] truncate
+                       transition-all duration-300 ease-out
+                       group-hover:scale-105 group-hover:drop-shadow-lg"
             title={`${formatPrice(coin.current_price, currency)} ${
               currency === "eur" ? "€" : "$"
             }`}
           >
             {formatPrice(coin.current_price, currency)}{" "}
-            <span className="text-[0.7em] text-[#FeFeFe]">
+            <span className="text-[0.7em] text-[#FeFeFe] transition-colors duration-300">
               {currency === "eur" ? "€" : "$"}
             </span>
           </div>

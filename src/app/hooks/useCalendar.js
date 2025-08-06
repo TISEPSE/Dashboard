@@ -237,34 +237,103 @@ export const useCalendar = () => {
     }
   }, [db, user, showNotification])
 
-  // Mettre à jour un événement
+  // Mettre à jour un événement (logique sécurisée : créer d'abord, supprimer après confirmation)
   const updateEvent = useCallback(async (eventId, eventData) => {
     try {
-      const success = await db.updateCalendarEvent(eventId, {
-        ...eventData,
-        userId: user?.id || 'anonymous'
-      })
-      
-      if (success) {
-        // Mettre à jour l'état local
-        const updatedEvent = { ...eventData, id: eventId, updated: new Date().toISOString() }
-        setEvents(prev => prev.map(event => 
-          event.id === eventId ? updatedEvent : event
-        ).sort((a, b) => 
-          new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
-        ))
-        
-        const contextMessage = db.isElectronApp() ? 'localement' : 'avec succès'
-        showNotification(`Événement modifié ${contextMessage}`, 'success')
-        return updatedEvent
-      } else {
-        throw new Error('Échec de la mise à jour')
+      const existingEvent = events.find(event => event.id === eventId)
+      if (!existingEvent) {
+        throw new Error('Événement non trouvé')
       }
+
+      // 1. Créer le nouvel événement avec les nouvelles données (fusion avec anciennes)
+      const newEventData = {
+        summary: eventData.summary || existingEvent.summary,
+        description: eventData.description || existingEvent.description || '',
+        location: eventData.location || existingEvent.location || '',
+        start: eventData.start || existingEvent.start,
+        end: eventData.end || existingEvent.end,
+        colorId: eventData.colorId || existingEvent.colorId || '1'
+      }
+
+      // 2. IMMÉDIATEMENT : Afficher le nouvel événement dans l'interface (optimiste)
+      const tempNewEvent = {
+        ...newEventData,
+        id: 'temp_' + Date.now(), // ID temporaire
+        userId: user?.id || 'anonymous',
+        created: new Date().toISOString(),
+        updated: new Date().toISOString()
+      }
+
+      // Remplacer l'ancien par le nouveau temporairement
+      setEvents(prev => prev.map(event => 
+        event.id === eventId ? tempNewEvent : event
+      ).sort((a, b) => 
+        new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+      ))
+
+      showNotification('Modification en cours...', 'info')
+      
+      // 3. EN ARRIÈRE-PLAN : Créer le vrai nouvel événement, puis supprimer l'ancien
+      setTimeout(async () => {
+        try {
+          setSyncStatus('syncing')
+          
+          // Étape 1: CRÉER le nouvel événement
+          console.log('➕ Création du nouvel événement avec les données:', newEventData)
+          const newEvent = await db.addCalendarEvent({
+            ...newEventData,
+            userId: user?.id || 'anonymous'
+          })
+          
+          if (!newEvent) {
+            throw new Error('Échec de la création du nouvel événement')
+          }
+
+          console.log('✅ Nouvel événement créé avec succès:', newEvent.id)
+          
+          // Étape 2: SUPPRIMER l'ancien événement (seulement après confirmation de création)
+          console.log('🗑️ Suppression de l\'ancien événement:', eventId)
+          await db.deleteCalendarEvent(eventId)
+          console.log('✅ Ancien événement supprimé avec succès')
+          
+          // Remplacer l'événement temporaire par le vrai nouvel événement
+          setEvents(prev => prev.map(event => 
+            event.id === tempNewEvent.id ? newEvent : event
+          ).sort((a, b) => 
+            new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+          ))
+          
+          setSyncStatus('success')
+          showNotification('Événement modifié avec succès', 'success')
+          setTimeout(() => setSyncStatus('idle'), 2000)
+          
+          return newEvent
+        } catch (error) {
+          console.error('Erreur création/suppression en arrière-plan:', error)
+          setSyncStatus('error')
+          setTimeout(() => setSyncStatus('idle'), 3000)
+          
+          // En cas d'erreur, restaurer l'événement original
+          setEvents(prev => prev.map(event => 
+            event.id === tempNewEvent.id ? existingEvent : event
+          ).sort((a, b) => 
+            new Date(a.start?.dateTime || a.start?.date) - new Date(b.start?.dateTime || b.start?.date)
+          ))
+          
+          if (error.message?.includes('Échec de la création')) {
+            showNotification('Erreur lors de la création du nouvel événement', 'error')
+          } else {
+            showNotification('Nouvel événement créé mais erreur lors de la suppression de l\'ancien', 'warning')
+          }
+        }
+      }, 100) // Petit délai pour que l'interface se mette à jour
+      
     } catch (error) {
+      console.error('Erreur lors de la modification:', error)
       showNotification('Erreur lors de la modification de l\'événement', 'error')
       throw error
     }
-  }, [db, user, showNotification])
+  }, [db, user, showNotification, events])
 
   // Supprimer un événement
   const deleteEvent = useCallback(async (eventId) => {
